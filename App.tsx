@@ -10,15 +10,9 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 function ConnectionDebug() {
-  // @ts-ignore
-  const url = import.meta.env?.VITE_SUPA_URL;
-  // @ts-ignore
-  const key = import.meta.env?.VITE_SUPA_KEY;
-  
-  console.log('Environment check:', { 
-    url: url || 'MISSING (Using Fallback)', 
-    key: key ? 'PRESENT' : 'MISSING (Using Fallback)' 
-  });
+  // Use optional chaining to prevent crashes if import.meta.env is not yet available
+  const url = (import.meta as any)?.env?.VITE_SUPA_URL;
+  const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
   
   return (
     <div style={{ 

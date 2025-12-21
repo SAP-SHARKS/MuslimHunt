@@ -1,4 +1,3 @@
-
 import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -11,7 +10,7 @@ interface State {
   error: Error | null;
 }
 
-// Fixed: Explicitly extending React.Component with Props and State generics to ensure 'this.props' is correctly typed and recognized by the compiler
+// Fixed: Explicitly extending React.Component with Props and State generics
 class ErrorBoundary extends React.Component<Props, State> {
   // Explicitly defining state as a class property for better type inference
   public state: State = {
@@ -81,8 +80,8 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Fixed: 'this.props' is now correctly identified as part of the React.Component inheritance
-    return this.props.children;
+    // Fix: Explicitly casting 'this' to any to resolve TS error where 'props' is not correctly identified on the instance
+    return (this as any).props.children;
   }
 }
 

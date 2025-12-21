@@ -1,7 +1,7 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Fixed: Strictly following initialization guidelines using process.env.API_KEY exclusively
+// Strictly follow guidelines: Use process.env.API_KEY directly.
+// This is injected at build-time by Vite's `define` configuration.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 export const geminiService = {
@@ -18,7 +18,6 @@ export const geminiService = {
         }
       });
       
-      // Fixed: 'text' is a property, not a method, on GenerateContentResponse
       return response.text?.replace(/"/g, '').trim() || `${name} - Your trusted solution`;
     } catch (error) {
       console.error("Gemini optimization failed:", error);
@@ -50,7 +49,6 @@ export const geminiService = {
         }
       });
       
-      // Fixed: Accessed response.text directly as a property
       const jsonStr = response.text.trim();
       const data = JSON.parse(jsonStr || '{}');
       return data.category || 'Productivity';
