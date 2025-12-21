@@ -10,21 +10,31 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 function ConnectionDebug() {
-  // Use optional chaining to prevent "Cannot read properties of undefined"
   // @ts-ignore
   const url = import.meta.env?.VITE_SUPA_URL;
   // @ts-ignore
   const key = import.meta.env?.VITE_SUPA_KEY;
   
+  console.log('Environment check:', { 
+    url: url || 'MISSING (Using Fallback)', 
+    key: key ? 'PRESENT' : 'MISSING (Using Fallback)' 
+  });
+  
   return (
     <div style={{ 
       background: url && key ? '#e6fffa' : '#ffeeee', 
-      padding: '10px', border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
-      position: 'fixed', top: 0, right: 0, zIndex: 9999, fontSize: '10px', 
-      color: url && key ? '#234e52' : '#880000', borderRadius: '0 0 0 12px',
+      padding: '10px', 
+      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
+      position: 'fixed', 
+      top: 0, 
+      right: 0, 
+      zIndex: 9999, 
+      fontSize: '10px', 
+      color: url && key ? '#234e52' : '#880000', 
+      borderRadius: '0 0 0 12px',
       pointerEvents: 'none'
     }}>
-      URL Found: {url ? '✅' : '❌'} | Key Found: {key ? '✅' : '❌'}
+      URL: {url ? '✅' : '❌ FALLBACK'} | Key: {key ? '✅' : '❌ FALLBACK'}
     </div>
   );
 }
