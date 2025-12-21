@@ -1,7 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Strictly follow guidelines: Use process.env.API_KEY directly.
-// This is injected at build-time by Vite's `define` configuration.
+// @google/genai guideline: Always initialize with the pre-configured process.env.API_KEY
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 export const geminiService = {

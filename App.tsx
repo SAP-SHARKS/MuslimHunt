@@ -28,7 +28,7 @@ function ConnectionDebug() {
       borderRadius: '0 0 0 12px',
       pointerEvents: 'none'
     }}>
-      URL: {url ? '✅' : '❌ FALLBACK'} | Key: {key ? '✅' : '❌ FALLBACK'}
+      URL: {url ? '✅' : '❌ MISSING'} | Key: {key ? '✅' : '❌ MISSING'}
     </div>
   );
 }
