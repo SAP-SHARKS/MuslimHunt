@@ -6,8 +6,9 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import { Product, User, View, Comment } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X, Search } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import { searchProducts } from './utils/searchUtils';
 
 function ConnectionDebug() {
   // Use optional chaining to prevent crashes if import.meta.env is not yet available
@@ -41,6 +42,7 @@ const App: React.FC = () => {
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Auth State Listener
   useEffect(() => {
@@ -157,7 +159,11 @@ const App: React.FC = () => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     
-    const sorted = [...products].sort((a, b) => b.upvotes_count - a.upvotes_count);
+    // First filter by search query
+    const filteredProducts = searchProducts(products, searchQuery);
+    
+    // Then sort by upvotes
+    const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
     
     return {
       today: sorted.filter(p => new Date(p.created_at).toDateString() === today),
@@ -167,7 +173,7 @@ const App: React.FC = () => {
         return d !== today && d !== yesterday;
       })
     };
-  }, [products]);
+  }, [products, searchQuery]);
 
   const renderContent = () => {
     if (view === View.LOGIN) {
@@ -195,6 +201,8 @@ const App: React.FC = () => {
       );
     }
 
+    const totalResults = groupedProducts.today.length + groupedProducts.yesterday.length + groupedProducts.past.length;
+
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
         <header className="mb-12 text-center md:text-left md:flex md:items-center md:justify-between border-b border-emerald-50 pb-12">
@@ -211,6 +219,25 @@ const App: React.FC = () => {
             CURATED SOFTWARE<br />BUILT BY BELIEVERS<br />FOR THE GLOBAL HUB
           </div>
         </header>
+
+        {searchQuery && (
+          <div className="max-w-4xl mx-auto mb-6">
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-emerald-900 font-bold">
+                  Found {totalResults} {totalResults === 1 ? 'product' : 'products'} matching "{searchQuery}"
+                </p>
+              </div>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-emerald-800 hover:text-emerald-900 font-bold text-sm flex items-center gap-2"
+              >
+                Clear search
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <main className="space-y-16">
           {groupedProducts.today.length > 0 && (
@@ -273,10 +300,24 @@ const App: React.FC = () => {
             </section>
           )}
           
-          {!products.length && (
+          {!products.length && !searchQuery && (
             <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
               <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
               <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
+            </div>
+          )}
+
+          {searchQuery && totalResults === 0 && (
+            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
+              <Search className="w-12 h-12 text-emerald-100 mb-4" />
+              <p className="text-emerald-900/20 font-serif text-3xl italic mb-2">No products found</p>
+              <p className="text-gray-400">Try adjusting your search terms</p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="mt-6 px-6 py-3 bg-emerald-800 text-white rounded-xl font-bold hover:bg-emerald-900 transition-colors"
+              >
+                Clear Search
+              </button>
             </div>
           )}
         </main>
@@ -287,7 +328,14 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
       <ConnectionDebug />
-      <Navbar user={user} currentView={view} setView={setView} onLogout={handleLogout} />
+      <Navbar 
+        user={user} 
+        currentView={view} 
+        setView={setView} 
+        onLogout={handleLogout} 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <div className="pt-4">
         {renderContent()}
       </div>

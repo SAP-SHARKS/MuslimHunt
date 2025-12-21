@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Globe, Sparkles } from 'lucide-react';
+import { Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Globe, Sparkles, X } from 'lucide-react';
 import { User, View } from '../types';
 
 interface NavbarProps {
@@ -8,6 +7,8 @@ interface NavbarProps {
   currentView: View;
   setView: (view: View) => void;
   onLogout: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any }[] }> = ({ label, items }) => {
@@ -32,7 +33,16 @@ const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any 
   );
 };
 
-const Navbar: React.FC<NavbarProps> = ({ user, currentView, setView, onLogout }) => {
+const Navbar: React.FC<NavbarProps> = ({ 
+  user, 
+  currentView, 
+  setView, 
+  onLogout,
+  searchQuery,
+  onSearchChange
+}) => {
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 h-16">
@@ -84,13 +94,31 @@ const Navbar: React.FC<NavbarProps> = ({ user, currentView, setView, onLogout })
             <input 
               type="text" 
               placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/10 focus:border-emerald-700 transition-all text-sm"
             />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-3">
+          {/* Mobile Search Button */}
+          <button
+            onClick={() => setShowMobileSearch(true)}
+            className="lg:hidden p-2 text-gray-600 hover:text-emerald-800 transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
           <button 
             onClick={() => user ? setView(View.SUBMIT) : setView(View.LOGIN)}
             className="flex items-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm active:scale-95"
@@ -122,6 +150,31 @@ const Navbar: React.FC<NavbarProps> = ({ user, currentView, setView, onLogout })
           )}
         </div>
       </div>
+
+      {/* Mobile Search Modal */}
+      {showMobileSearch && (
+        <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={() => setShowMobileSearch(false)}>
+          <div className="bg-white p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                autoFocus
+                className="flex-1 py-3 bg-transparent border-none outline-none text-lg"
+              />
+              <button
+                onClick={() => setShowMobileSearch(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
