@@ -1,0 +1,7 @@
+{
+  "name": "Muslim Hunt",
+  "description": "A premier discovery platform for the Muslim tech community to showcase and support Halal-conscious digital products.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
