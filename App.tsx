@@ -18,7 +18,7 @@ const App: React.FC = () => {
 
   // Load persistence
   useEffect(() => {
-    const savedProducts = localStorage.getItem('mh_products_v2');
+    const savedProducts = localStorage.getItem('mh_products_v3');
     const savedVotes = localStorage.getItem('mh_votes');
     const savedUser = localStorage.getItem('mh_user');
 
@@ -34,7 +34,7 @@ const App: React.FC = () => {
   // Sync persistence
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('mh_products_v2', JSON.stringify(products));
+      localStorage.setItem('mh_products_v3', JSON.stringify(products));
       localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
     }
   }, [products, votes, isLoading]);
@@ -117,10 +117,12 @@ const App: React.FC = () => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     
+    const sorted = [...products].sort((a, b) => b.upvotes_count - a.upvotes_count);
+    
     return {
-      today: products.filter(p => new Date(p.created_at).toDateString() === today),
-      yesterday: products.filter(p => new Date(p.created_at).toDateString() === yesterday),
-      past: products.filter(p => {
+      today: sorted.filter(p => new Date(p.created_at).toDateString() === today),
+      yesterday: sorted.filter(p => new Date(p.created_at).toDateString() === yesterday),
+      past: sorted.filter(p => {
         const d = new Date(p.created_at).toDateString();
         return d !== today && d !== yesterday;
       })
@@ -130,19 +132,20 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (view === View.LOGIN) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-md mx-auto text-center px-4">
-          <div className="w-20 h-20 bg-emerald-100 rounded-[2rem] flex items-center justify-center mb-6 text-emerald-800 shadow-xl shadow-emerald-100">
-            <Shield className="w-10 h-10" />
+        <div className="flex flex-col items-center justify-center min-h-[70vh] max-w-md mx-auto text-center px-4">
+          <div className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center mb-8 text-emerald-800 shadow-xl shadow-emerald-700/5">
+            <Shield className="w-12 h-12" />
           </div>
           <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4">Assalamu Alaikum</h2>
-          <p className="text-gray-500 mb-8 text-lg">Join the premier gateway for discoverable Halal tech.</p>
+          <p className="text-gray-500 mb-8 text-lg font-medium">Join the premier gateway for discoverable Halal tech and support the Ummah's innovators.</p>
           <button 
             onClick={handleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white py-5 rounded-2xl font-black shadow-lg transition-all active:scale-[0.98] text-xl"
+            className="w-full flex items-center justify-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white py-5 rounded-2xl font-black shadow-xl transition-all active:scale-[0.98] text-xl"
           >
             <LogIn className="w-6 h-6" />
-            Sign in with Email
+            Enter the Community
           </button>
+          <p className="mt-6 text-sm text-gray-400">Secure. Halal. Community-Driven.</p>
         </div>
       );
     }
@@ -173,11 +176,11 @@ const App: React.FC = () => {
               <Sparkles className="w-5 h-5" />
               <span className="text-xs tracking-[0.2em] uppercase">Halal Trust Layer</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-emerald-900 leading-[1.1]">
+            <h1 className="text-5xl md:text-7xl font-serif font-bold text-emerald-900 leading-[1.05] tracking-tight">
               Discovery for the <br /><span className="text-emerald-700 italic">Modern Ummah.</span>
             </h1>
           </div>
-          <div className="hidden md:block max-w-[200px] text-gray-400 font-bold text-xs leading-loose tracking-widest text-right">
+          <div className="hidden md:block max-w-[200px] text-gray-400 font-black text-[10px] leading-loose tracking-[0.2em] text-right opacity-60">
             CURATED SOFTWARE<br />BUILT BY BELIEVERS<br />FOR THE GLOBAL HUB
           </div>
         </header>
@@ -185,8 +188,11 @@ const App: React.FC = () => {
         <main className="space-y-16">
           {groupedProducts.today.length > 0 && (
             <section>
-              <h2 className="text-xs font-black text-emerald-800/40 mb-6 uppercase tracking-[0.3em]">Freshly Launched</h2>
-              <div className="space-y-3 bg-white rounded-[2rem] border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
+                <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
                 {groupedProducts.today.map(p => (
                   <ProductCard 
                     key={p.id} 
@@ -202,8 +208,11 @@ const App: React.FC = () => {
 
           {groupedProducts.yesterday.length > 0 && (
             <section>
-              <h2 className="text-xs font-black text-gray-300 mb-6 uppercase tracking-[0.3em]">Yesterday's Highlights</h2>
-              <div className="space-y-3 bg-white/50 rounded-[2rem] border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
+                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
                 {groupedProducts.yesterday.map(p => (
                   <ProductCard 
                     key={p.id} 
@@ -219,8 +228,11 @@ const App: React.FC = () => {
 
           {groupedProducts.past.length > 0 && (
             <section>
-              <h2 className="text-xs font-black text-gray-300 mb-6 uppercase tracking-[0.3em]">The Archives</h2>
-              <div className="space-y-3 bg-white/50 rounded-[2rem] border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
+                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
                 {groupedProducts.past.map(p => (
                   <ProductCard 
                     key={p.id} 
@@ -235,7 +247,8 @@ const App: React.FC = () => {
           )}
           
           {!products.length && (
-            <div className="text-center py-20 bg-white border-4 border-dashed border-emerald-50 rounded-[3rem]">
+            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
+              <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
               <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
             </div>
           )}
@@ -245,7 +258,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
       <Navbar user={user} currentView={view} setView={setView} onLogout={handleLogout} />
       <div className="pt-4">
         {renderContent()}
