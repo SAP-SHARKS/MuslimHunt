@@ -13,6 +13,7 @@ function ConnectionDebug() {
   // Use optional chaining to prevent crashes if import.meta.env is not yet available
   const url = (import.meta as any)?.env?.VITE_SUPA_URL;
   const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
+  const geminiKey = process.env.API_KEY;
   
   return (
     <div style={{ 
@@ -28,7 +29,7 @@ function ConnectionDebug() {
       borderRadius: '0 0 0 12px',
       pointerEvents: 'none'
     }}>
-      URL: {url ? '✅' : '❌ MISSING'} | Key: {key ? '✅' : '❌ MISSING'}
+      Supa: {url ? '✅' : '❌'} | Gemini: {geminiKey ? '✅' : '❌'}
     </div>
   );
 }
