@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import ProductCard from './components/ProductCard';
@@ -9,6 +8,16 @@ import { Product, User, View, Comment } from './types';
 import { INITIAL_PRODUCTS } from './constants';
 import { Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
+
+function ConnectionDebug() {
+  // Use process.env instead of import.meta.env to access environment variables
+  return (
+    <div style={{ background: '#ffeeee', padding: '10px', border: '1px solid red', position: 'fixed', top: 0, right: 0, zIndex: 9999, fontSize: '10px', color: '#880000', borderRadius: '0 0 0 12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+      URL Found: {process.env.VITE_SUPA_URL ? '✅' : '❌'} | 
+      Key Found: {process.env.VITE_SUPA_KEY ? '✅' : '❌'}
+    </div>
+  );
+}
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -262,6 +271,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
+      <ConnectionDebug />
       <Navbar user={user} currentView={view} setView={setView} onLogout={handleLogout} />
       <div className="pt-4">
         {renderContent()}
