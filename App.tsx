@@ -10,6 +10,7 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 function ConnectionDebug() {
+  // Use optional chaining to prevent "Cannot read properties of undefined"
   // @ts-ignore
   const url = import.meta.env?.VITE_SUPA_URL;
   // @ts-ignore
@@ -18,16 +19,9 @@ function ConnectionDebug() {
   return (
     <div style={{ 
       background: url && key ? '#e6fffa' : '#ffeeee', 
-      padding: '10px', 
-      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
-      position: 'fixed', 
-      top: 0, 
-      right: 0, 
-      zIndex: 9999, 
-      fontSize: '10px', 
-      color: url && key ? '#234e52' : '#880000', 
-      borderRadius: '0 0 0 12px',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      padding: '10px', border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
+      position: 'fixed', top: 0, right: 0, zIndex: 9999, fontSize: '10px', 
+      color: url && key ? '#234e52' : '#880000', borderRadius: '0 0 0 12px',
       pointerEvents: 'none'
     }}>
       URL Found: {url ? '✅' : '❌'} | Key Found: {key ? '✅' : '❌'}
