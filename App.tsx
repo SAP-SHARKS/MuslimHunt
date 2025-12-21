@@ -10,11 +10,27 @@ import { Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 function ConnectionDebug() {
-  // Use process.env instead of import.meta.env to access environment variables
+  // @ts-ignore
+  const url = import.meta.env?.VITE_SUPA_URL;
+  // @ts-ignore
+  const key = import.meta.env?.VITE_SUPA_KEY;
+  
   return (
-    <div style={{ background: '#ffeeee', padding: '10px', border: '1px solid red', position: 'fixed', top: 0, right: 0, zIndex: 9999, fontSize: '10px', color: '#880000', borderRadius: '0 0 0 12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-      URL Found: {process.env.VITE_SUPA_URL ? '✅' : '❌'} | 
-      Key Found: {process.env.VITE_SUPA_KEY ? '✅' : '❌'}
+    <div style={{ 
+      background: url && key ? '#e6fffa' : '#ffeeee', 
+      padding: '10px', 
+      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
+      position: 'fixed', 
+      top: 0, 
+      right: 0, 
+      zIndex: 9999, 
+      fontSize: '10px', 
+      color: url && key ? '#234e52' : '#880000', 
+      borderRadius: '0 0 0 12px',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      pointerEvents: 'none'
+    }}>
+      URL Found: {url ? '✅' : '❌'} | Key Found: {key ? '✅' : '❌'}
     </div>
   );
 }
@@ -58,7 +74,7 @@ const App: React.FC = () => {
 
   // Load persistence for products/votes
   useEffect(() => {
-    const savedProducts = localStorage.getItem('mh_products_v3');
+    const savedProducts = localStorage.getItem('mh_products_v4');
     const savedVotes = localStorage.getItem('mh_votes');
 
     if (savedProducts) setProducts(JSON.parse(savedProducts));
@@ -72,7 +88,7 @@ const App: React.FC = () => {
   // Sync persistence
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('mh_products_v3', JSON.stringify(products));
+      localStorage.setItem('mh_products_v4', JSON.stringify(products));
       localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
     }
   }, [products, votes, isLoading]);
