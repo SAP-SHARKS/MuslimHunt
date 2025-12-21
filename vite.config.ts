@@ -12,5 +12,7 @@ export default defineConfig({
     // This bakes the environment variables into the bundle at build time
     'import.meta.env.VITE_SUPA_URL': JSON.stringify(process.env.VITE_SUPA_URL),
     'import.meta.env.VITE_SUPA_KEY': JSON.stringify(process.env.VITE_SUPA_KEY),
+    'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(process.env.API_KEY || process.env.VITE_GEMINI_API_KEY),
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
   }
 });

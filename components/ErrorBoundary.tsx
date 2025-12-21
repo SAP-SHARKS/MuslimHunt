@@ -1,5 +1,5 @@
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
   // Making children optional resolves the "missing in type '{}'" error in index.tsx
@@ -11,9 +11,8 @@ interface State {
   error: Error | null;
 }
 
-// Using Component from 'react' directly and providing explicit generic types
-// helps TypeScript correctly identify 'this.state' and 'this.props'
-class ErrorBoundary extends Component<Props, State> {
+// Fixed: Explicitly extending React.Component with Props and State generics to ensure 'this.props' is correctly typed and recognized by the compiler
+class ErrorBoundary extends React.Component<Props, State> {
   // Explicitly defining state as a class property for better type inference
   public state: State = {
     hasError: false,
@@ -82,7 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // Properly typed access to this.props
+    // Fixed: 'this.props' is now correctly identified as part of the React.Component inheritance
     return this.props.children;
   }
 }

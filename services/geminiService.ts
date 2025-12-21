@@ -1,10 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Strictly adhering to system instructions: Use process.env.API_KEY for Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Fixed: Strictly following initialization guidelines using process.env.API_KEY exclusively
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 
 export const geminiService = {
+  /**
+   * Optimizes a product tagline using Gemini.
+   */
   async optimizeTagline(name: string, description: string): Promise<string> {
     try {
       const response = await ai.models.generateContent({
@@ -14,13 +17,18 @@ export const geminiService = {
           thinkingConfig: { thinkingBudget: 0 }
         }
       });
-      return response.text?.replace(/"/g, '').trim() || '';
+      
+      // Fixed: 'text' is a property, not a method, on GenerateContentResponse
+      return response.text?.replace(/"/g, '').trim() || `${name} - Your trusted solution`;
     } catch (error) {
       console.error("Gemini optimization failed:", error);
-      return '';
+      return `${name} - Your trusted solution`;
     }
   },
 
+  /**
+   * Suggests a category for a product based on its description.
+   */
   async getCategorySuggestion(description: string): Promise<string> {
     try {
       const response = await ai.models.generateContent({
@@ -31,14 +39,23 @@ export const geminiService = {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              category: { type: Type.STRING }
-            }
+              category: { 
+                type: Type.STRING,
+                description: 'The suggested category for the product.'
+              }
+            },
+            required: ['category'],
+            propertyOrdering: ["category"]
           }
         }
       });
-      const data = JSON.parse(response.text || '{}');
+      
+      // Fixed: Accessed response.text directly as a property
+      const jsonStr = response.text.trim();
+      const data = JSON.parse(jsonStr || '{}');
       return data.category || 'Productivity';
     } catch (error) {
+      console.error("Gemini category suggestion failed:", error);
       return 'Productivity';
     }
   }
