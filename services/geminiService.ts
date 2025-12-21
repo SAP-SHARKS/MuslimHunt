@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Standardizing to process.env.API_KEY as per developer guidelines
+// Strictly adhering to system instructions: Use process.env.API_KEY for Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const geminiService = {
