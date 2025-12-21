@@ -101,8 +101,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, currentView, setView, onLogout })
 
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer group relative">
                 <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                  <p className="text-xs font-bold text-emerald-900 mb-1">{user.username}</p>
+                  <p className="text-[10px] text-gray-400">{user.email}</p>
+                </div>
               </div>
               <button onClick={onLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
                 <LogOut className="w-4 h-4" />

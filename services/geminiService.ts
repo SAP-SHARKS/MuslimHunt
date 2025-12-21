@@ -1,7 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Standardizing to process.env.API_KEY as per developer guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const geminiService = {
   async optimizeTagline(name: string, description: string): Promise<string> {

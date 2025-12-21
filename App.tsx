@@ -4,9 +4,11 @@ import Navbar from './components/Navbar';
 import ProductCard from './components/ProductCard';
 import ProductDetail from './components/ProductDetail';
 import SubmitForm from './components/SubmitForm';
+import Auth from './components/Auth';
 import { Product, User, View, Comment } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Shield, Sparkles, LogIn } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -16,17 +18,44 @@ const App: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load persistence
+  // Auth State Listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          username: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Member',
+          avatar_url: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+        });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          username: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Member',
+          avatar_url: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load persistence for products/votes
   useEffect(() => {
     const savedProducts = localStorage.getItem('mh_products_v3');
     const savedVotes = localStorage.getItem('mh_votes');
-    const savedUser = localStorage.getItem('mh_user');
 
     if (savedProducts) setProducts(JSON.parse(savedProducts));
     else setProducts(INITIAL_PRODUCTS);
 
     if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
-    if (savedUser) setUser(JSON.parse(savedUser));
     
     setIsLoading(false);
   }, []);
@@ -39,21 +68,8 @@ const App: React.FC = () => {
     }
   }, [products, votes, isLoading]);
 
-  const handleLogin = () => {
-    const mockUser = {
-      id: 'u_' + Math.random().toString(36).substr(2, 9),
-      email: 'brother@ummah.com',
-      username: 'Saad Al-Ummah',
-      avatar_url: 'https://i.pravatar.cc/150?u=saad'
-    };
-    setUser(mockUser);
-    localStorage.setItem('mh_user', JSON.stringify(mockUser));
-    setView(View.HOME);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('mh_user');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setView(View.HOME);
   };
 
@@ -132,20 +148,8 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (view === View.LOGIN) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[70vh] max-w-md mx-auto text-center px-4">
-          <div className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center mb-8 text-emerald-800 shadow-xl shadow-emerald-700/5">
-            <Shield className="w-12 h-12" />
-          </div>
-          <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4">Assalamu Alaikum</h2>
-          <p className="text-gray-500 mb-8 text-lg font-medium">Join the premier gateway for discoverable Halal tech and support the Ummah's innovators.</p>
-          <button 
-            onClick={handleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-emerald-800 hover:bg-emerald-900 text-white py-5 rounded-2xl font-black shadow-xl transition-all active:scale-[0.98] text-xl"
-          >
-            <LogIn className="w-6 h-6" />
-            Enter the Community
-          </button>
-          <p className="mt-6 text-sm text-gray-400">Secure. Halal. Community-Driven.</p>
+        <div className="flex flex-col items-center justify-center min-h-[80vh]">
+          <Auth onSuccess={() => setView(View.HOME)} />
         </div>
       );
     }
@@ -169,7 +173,6 @@ const App: React.FC = () => {
 
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        {/* Hero Section */}
         <header className="mb-12 text-center md:text-left md:flex md:items-center md:justify-between border-b border-emerald-50 pb-12">
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-800 font-black mb-4">
