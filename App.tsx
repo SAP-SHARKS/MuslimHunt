@@ -55,18 +55,34 @@ const App: React.FC = () => {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
+      // Ensuring we select ALL relevant columns matching the new schema
       const { data, error } = await supabase
         .from('products')
-        .select('*, comments(*)')
+        .select(`
+          id, 
+          slug, 
+          created_at, 
+          name, 
+          description, 
+          tagline, 
+          website_url, 
+          logo_url, 
+          user_id, 
+          category, 
+          upvotes_count, 
+          halal_status, 
+          sadaqah_info, 
+          comments(*)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       
-      // If DB is empty or call fails, use INITIAL_PRODUCTS as a fallback to keep app functional
+      // Fallback: If DB is empty, use INITIAL_PRODUCTS to keep UI functional
       const fetchedProducts = (data && data.length > 0) ? (data as Product[]) : INITIAL_PRODUCTS;
       setProducts(fetchedProducts);
 
-      // Refresh currently selected product if in detail view
+      // Refresh currently selected product if in detail view to sync new comments
       if (selectedProduct) {
         const updated = fetchedProducts.find(p => p.id === selectedProduct.id);
         if (updated) setSelectedProduct(updated);
@@ -86,7 +102,8 @@ const App: React.FC = () => {
         setVotes(voteSet);
       }
     } catch (err) {
-      console.error('Supabase fetch error, using fallback data:', err);
+      console.error('Supabase fetch error:', err);
+      // Ensure UI still shows something in case of network/connection error
       setProducts(INITIAL_PRODUCTS);
     } finally {
       setIsLoading(false);
@@ -126,7 +143,6 @@ const App: React.FC = () => {
           await supabase.from('products').update({ upvotes_count: (p.upvotes_count || 0) + 1 }).eq('id', productId);
         }
       }
-      // Re-fetch to sync for all users
       await fetchProducts();
     } catch (err) {
       console.error('Upvote failed:', err);
@@ -137,7 +153,7 @@ const App: React.FC = () => {
     if (!user) return;
     
     try {
-      // Map frontend 'url' to 'website_url' and 'founder_id' to 'user_id' per schema
+      // Map frontend fields to cloud schema: website_url and user_id
       const { data, error } = await supabase.from('products').insert([{
         name: formData.name,
         website_url: formData.url,
@@ -157,7 +173,7 @@ const App: React.FC = () => {
         setView(View.HOME);
       }
     } catch (err) {
-      console.error('Cloud submission failed:', err);
+      console.error('Launch failed:', err);
     }
   };
 
@@ -165,23 +181,24 @@ const App: React.FC = () => {
     if (!user || !selectedProduct) return;
     
     try {
-      // Cloud Storage: Save to database so it persists across browsers/devices
+      // Persistence: Ensure comments are saved to the Supabase cloud database
       const { error } = await supabase.from('comments').insert([{
         product_id: selectedProduct.id,
         user_id: user.id,
         username: user.username,
         avatar_url: user.avatar_url,
         text: text,
+        // Maker logic: compare current user ID with product owner ID
         is_maker: selectedProduct.user_id === user.id,
         upvotes_count: 0
       }]);
 
       if (error) throw error;
       
-      // Refresh to pull updated cloud state
+      // Refresh state from cloud so the new comment appears for everyone
       await fetchProducts();
     } catch (err) {
-      console.error('Comment insertion failed:', err);
+      console.error('Failed to post comment to cloud:', err);
     }
   };
 
@@ -378,10 +395,11 @@ const App: React.FC = () => {
             </section>
           )}
           
-          {!isLoading && !products.length && !searchQuery && (
+          {/* Default view when no products match. Note: INITIAL_PRODUCTS usually prevents this from being visible unless manually cleared. */}
+          {!isLoading && products.length === 0 && !searchQuery && (
             <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
               <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
-              <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
+              <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the first great launch...</p>
             </div>
           )}
 
