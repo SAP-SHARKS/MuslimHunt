@@ -6,9 +6,9 @@ import ProductDetail from './components/ProductDetail';
 import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
-import { Product, User, View, Comment } from './types';
+import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, X, Search } from 'lucide-react';
+import { Sparkles, X, Search, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
@@ -41,8 +41,9 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [votes, setVotes] = useState<Set<string>>(new Set());
+  const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
@@ -76,30 +77,74 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load persistence
+  // Load Persistence (Mocking Supabase for now)
   useEffect(() => {
-    const savedProducts = localStorage.getItem('mh_products_v4');
-    const savedVotes = localStorage.getItem('mh_votes');
+    const savedProducts = localStorage.getItem('mh_products_v5');
+    const savedVotes = localStorage.getItem('mh_votes_v5');
+    const savedCVotes = localStorage.getItem('mh_cvotes_v5');
 
     if (savedProducts) setProducts(JSON.parse(savedProducts));
     else setProducts(INITIAL_PRODUCTS);
 
     if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
+    if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
     
     setIsLoading(false);
   }, []);
 
-  // Sync persistence
+  // Sync Persistence
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('mh_products_v4', JSON.stringify(products));
-      localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
+      localStorage.setItem('mh_products_v5', JSON.stringify(products));
+      localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
+      localStorage.setItem('mh_cvotes_v5', JSON.stringify(Array.from(commentVotes)));
     }
-  }, [products, votes, isLoading]);
+  }, [products, votes, commentVotes, isLoading]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setView(View.HOME);
+  };
+
+  const handleViewProfile = async (userId: string) => {
+    setIsLoading(true);
+    try {
+      // Restore dynamic profile clicking logic: Fetch clicked user's data from Supabase
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (profile) {
+        setSelectedProfile({
+          id: profile.id,
+          username: profile.username,
+          avatar_url: profile.avatar_url,
+          bio: profile.bio || 'Product Maker & Community Contributor',
+          headline: profile.headline || 'Halal Tech Explorer',
+          twitter_url: profile.twitter_url,
+          website_url: profile.website_url
+        });
+      } else {
+        // Fallback for missing profile records
+        setSelectedProfile({
+          id: userId,
+          username: 'Community Member',
+          avatar_url: `https://i.pravatar.cc/150?u=${userId}`,
+          bio: 'Part of the growing Muslim Hunt ecosystem.',
+          headline: 'User'
+        });
+      }
+      setView(View.PROFILE);
+    } catch (err) {
+      console.error("Error loading user profile:", err);
+      alert("Could not load user profile details. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleUpvote = (productId: string) => {
@@ -118,6 +163,35 @@ const App: React.FC = () => {
         next.add(voteKey);
         setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count + 1 } : p));
       }
+      return next;
+    });
+  };
+
+  const handleCommentUpvote = (productId: string, commentId: string) => {
+    if (!user) {
+      setView(View.LOGIN);
+      return;
+    }
+
+    const voteKey = `${user.id}_${commentId}`;
+    setCommentVotes(prev => {
+      const next = new Set(prev);
+      const isUpvoting = !next.has(voteKey);
+      
+      if (isUpvoting) next.add(voteKey); else next.delete(voteKey);
+      
+      setProducts(curr => curr.map(p => {
+        if (p.id === productId) {
+          const updatedComments = (p.comments || []).map(c => 
+            c.id === commentId ? { ...c, upvotes_count: isUpvoting ? (c.upvotes_count || 0) + 1 : Math.max(0, (c.upvotes_count || 0) - 1) } : c
+          );
+          const updatedProduct = { ...p, comments: updatedComments };
+          if (selectedProduct?.id === productId) setSelectedProduct(updatedProduct);
+          return updatedProduct;
+        }
+        return p;
+      }));
+
       return next;
     });
   };
@@ -141,11 +215,13 @@ const App: React.FC = () => {
     const newComment: Comment = {
       id: 'c_' + Math.random().toString(36).substr(2, 9),
       user_id: user.id,
+      product_id: selectedProduct.id,
       username: user.username,
       avatar_url: user.avatar_url,
       text,
       created_at: new Date().toISOString(),
-      is_maker: selectedProduct.founder_id === user.id
+      is_maker: selectedProduct.founder_id === user.id,
+      upvotes_count: 0
     };
 
     setProducts(prev => prev.map(p => {
@@ -156,16 +232,6 @@ const App: React.FC = () => {
       }
       return p;
     }));
-  };
-
-  const handleViewProfile = (userId: string, username: string, email: string, avatar: string) => {
-    setSelectedUser({
-      id: userId,
-      username,
-      email,
-      avatar_url: avatar
-    });
-    setView(View.PROFILE);
   };
 
   const handleProductClick = (product: Product, andScrollToComments: boolean = false) => {
@@ -192,22 +258,13 @@ const App: React.FC = () => {
   }, [products, searchQuery]);
 
   const renderContent = () => {
-    if (view === View.LOGIN) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[80vh]">
-          <Auth onSuccess={() => setView(View.HOME)} />
-        </div>
-      );
-    }
+    if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => setView(View.HOME)} /></div>;
+    if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
 
-    if (view === View.SUBMIT) {
-      return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
-    }
-
-    if (view === View.PROFILE && selectedUser) {
+    if (view === View.PROFILE && selectedProfile) {
       return (
         <UserProfile
-          profileUser={selectedUser}
+          profile={selectedProfile}
           currentUser={user}
           products={products}
           votes={votes}
@@ -229,7 +286,9 @@ const App: React.FC = () => {
             setShouldScrollToComments(false);
           }}
           onUpvote={handleUpvote}
+          onCommentUpvote={handleCommentUpvote}
           hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
+          commentVotes={commentVotes}
           onAddComment={handleAddComment}
           onViewProfile={handleViewProfile}
           scrollToComments={shouldScrollToComments}
@@ -237,138 +296,54 @@ const App: React.FC = () => {
       );
     }
 
-    const totalResults = groupedProducts.today.length + groupedProducts.yesterday.length + groupedProducts.past.length;
-
+    // Default: Home View with full main section mapping
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <header className="mb-12 text-center md:text-left md:flex md:items-center md:justify-between border-b border-emerald-50 pb-12">
+        <header className="mb-12 text-center md:text-left md:flex md:items-center md:justify-between border-b border-emerald-50 pb-12 overflow-hidden">
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-800 font-black mb-4">
               <Sparkles className="w-5 h-5" />
               <span className="text-xs tracking-[0.2em] uppercase">Halal Trust Layer</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-emerald-900 leading-[1.05] tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-serif font-bold text-emerald-900 leading-[1.05] tracking-tight whitespace-nowrap lg:whitespace-normal">
               Discovery for the <br /><span className="text-emerald-700 italic">Modern Ummah.</span>
             </h1>
           </div>
-          <div className="hidden md:block max-w-[200px] text-gray-400 font-black text-[10px] leading-loose tracking-[0.2em] text-right opacity-60">
-            CURATED SOFTWARE<br />BUILT BY BELIEVERS<br />FOR THE GLOBAL HUB
-          </div>
         </header>
 
-        {searchQuery && (
-          <div className="max-w-4xl mx-auto mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center justify-between shadow-sm">
-              <div>
-                <p className="text-emerald-900 font-bold">
-                  Found {totalResults} {totalResults === 1 ? 'product' : 'products'} matching "{searchQuery}"
-                </p>
-              </div>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-emerald-800 hover:text-emerald-900 font-bold text-sm flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-100 rounded-lg transition-colors"
-              >
-                Clear search
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
         <main className="space-y-16">
-          {groupedProducts.today.length > 0 && (
-            <section>
+          {[
+            { title: 'Freshly Launched', data: groupedProducts.today, color: 'emerald' },
+            { title: 'Trending Yesterday', data: groupedProducts.yesterday, color: 'gray' },
+            { title: 'The Archives', data: groupedProducts.past, color: 'gray' }
+          ].map(section => section.data.length > 0 && (
+            <section key={section.title}>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
-                <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
+                <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
+                <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
               </div>
               <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.today.map(p => (
+                {section.data.map(p => (
                   <ProductCard 
                     key={p.id} 
                     product={p} 
                     onUpvote={handleUpvote} 
                     hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
+                    onClick={handleProductClick}
                     onCommentClick={(prod) => handleProductClick(prod, true)}
                     searchQuery={searchQuery}
                   />
                 ))}
               </div>
             </section>
-          )}
-
-          {groupedProducts.yesterday.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
-                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-              </div>
-              <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.yesterday.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {groupedProducts.past.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
-                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-              </div>
-              <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.past.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-          
-          {!products.length && !searchQuery && (
-            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
-              <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
-              <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
-            </div>
-          )}
-
-          {searchQuery && totalResults === 0 && (
-            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
-              <Search className="w-12 h-12 text-emerald-100 mb-4" />
-              <p className="text-emerald-900/20 font-serif text-3xl italic mb-2">No products found</p>
-              <p className="text-gray-400">Try adjusting your search terms</p>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="mt-6 px-6 py-3 bg-emerald-800 text-white rounded-xl font-bold hover:bg-emerald-900 transition-colors"
-              >
-                Clear Search
-              </button>
-            </div>
-          )}
+          ))}
         </main>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen pb-20 bg-cream">
       <ConnectionDebug />
       <Navbar 
         user={user} 
@@ -377,15 +352,9 @@ const App: React.FC = () => {
         onLogout={handleLogout} 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onViewProfile={() => {
-          if (user) {
-            handleViewProfile(user.id, user.username, user.email, user.avatar_url);
-          }
-        }}
+        onViewProfile={() => user && handleViewProfile(user.id)}
       />
-      <div className="pt-4">
-        {renderContent()}
-      </div>
+      <div className="pt-4">{renderContent()}</div>
     </div>
   );
 };

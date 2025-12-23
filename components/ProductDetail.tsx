@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock } from 'lucide-react';
 import { Product, Comment } from '../types';
@@ -8,9 +9,11 @@ interface ProductDetailProps {
   user: any;
   onBack: () => void;
   onUpvote: (id: string) => void;
+  onCommentUpvote: (productId: string, commentId: string) => void;
   hasUpvoted: boolean;
+  commentVotes: Set<string>;
   onAddComment: (text: string) => void;
-  onViewProfile: (userId: string, username: string, email: string, avatar: string) => void;
+  onViewProfile: (userId: string) => void;
   scrollToComments?: boolean;
 }
 
@@ -19,7 +22,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   user, 
   onBack, 
   onUpvote, 
+  onCommentUpvote,
   hasUpvoted, 
+  commentVotes,
   onAddComment,
   onViewProfile,
   scrollToComments = false
@@ -29,7 +34,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   useEffect(() => {
     if (scrollToComments && discussionRef.current) {
-      // Small timeout to ensure the component is fully rendered and browser has stabilized
       const timer = setTimeout(() => {
         discussionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -44,6 +48,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     setCommentText('');
   };
 
+  const handleReportComment = (commentId: string, username: string) => {
+    console.log(`[Moderation] Comment ${commentId} by ${username} reported.`);
+    alert(`Thank you for keeping Muslim Hunt safe. The comment by ${username} has been reported for review.`);
+  };
+
+  const handleShareComment = (commentId: string) => {
+    const shareUrl = `${window.location.origin}/comment/${commentId}`;
+    navigator.clipboard.writeText(shareUrl);
+    alert('Link to comment copied to clipboard!');
+  };
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
       <button 
@@ -55,7 +70,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm p-8 sm:p-12">
             <div className="flex items-start gap-8 mb-10">
@@ -73,31 +87,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   </div>
                 </div>
                 <h1 className="text-5xl font-serif font-bold text-emerald-900 mb-2">{product.name}</h1>
-                <p className="text-xl text-gray-500 font-medium leading-snug">
-                  {product.tagline}
-                </p>
+                <p className="text-xl text-gray-500 font-medium leading-snug">{product.tagline}</p>
               </div>
             </div>
 
             <div className="prose prose-emerald max-w-none">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">About this product</h2>
-              <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-wrap">
-                {product.description}
-              </p>
+              <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-wrap">{product.description}</p>
             </div>
-
-            {product.sadaqah_info && (
-              <div className="mt-8 p-6 bg-red-50/50 border border-red-100 rounded-2xl flex gap-4">
-                <Heart className="w-6 h-6 text-red-500 shrink-0" />
-                <div>
-                  <h4 className="font-bold text-red-900">Community Impact (Sadaqah)</h4>
-                  <p className="text-red-800/80">{product.sadaqah_info}</p>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Discussion Section */}
           <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12 scroll-mt-20">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-bold text-emerald-900 flex items-center gap-3">
@@ -109,9 +108,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
             {user ? (
               <form onSubmit={handleSubmitComment} className="mb-10 flex gap-4">
-                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                <button 
+                  type="button"
+                  onClick={() => onViewProfile(user.id)}
+                  className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200 active:scale-95 transition-transform cursor-pointer"
+                >
                   <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                </div>
+                </button>
                 <div className="flex-1 relative">
                   <input 
                     value={commentText}
@@ -134,65 +137,66 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {product.comments?.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 italic">No comments yet. Start the conversation!</div>
               ) : (
-                product.comments?.map((comment: Comment) => (
-                  <div key={comment.id} className="flex gap-4 group">
-                    <div 
-                      className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer"
-                      onClick={() => onViewProfile(comment.user_id, comment.username, comment.username + '@example.com', comment.avatar_url)}
-                    >
-                      <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span 
-                          className={`font-bold text-sm cursor-pointer hover:underline ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
-                          onClick={() => onViewProfile(comment.user_id, comment.username, comment.username + '@example.com', comment.avatar_url)}
-                        >
-                          {comment.username}
-                        </span>
-                        {comment.is_maker && (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
-                        )}
-                      </div>
-                      <p className="text-gray-600 text-base leading-relaxed">
-                        {comment.text}
-                      </p>
-                      
-                      {/* Product Hunt Style Action Bar */}
-                      <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400">
-                        {/* Upvote Button */}
-                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors group/upvote uppercase tracking-tighter">
-                          <ArrowBigUp className="w-4 h-4 group-hover/upvote:scale-110 transition-transform" />
-                          <span>Upvote ({comment.upvotes_count || 0})</span>
-                        </button>
-
-                        {/* Report Button */}
-                        <button className="flex items-center gap-1 hover:text-red-500 transition-colors uppercase tracking-tighter">
-                          <Flag className="w-3.5 h-3.5" />
-                          <span>Report</span>
-                        </button>
-
-                        {/* Share Button */}
-                        <button className="flex items-center gap-1 hover:text-blue-500 transition-colors uppercase tracking-tighter">
-                          <Share2 className="w-3.5 h-3.5" />
-                          <span>Share</span>
-                        </button>
-
-                        {/* Relative Time Display */}
-                        <div className="flex items-center gap-1 uppercase tracking-tighter">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{formatTimeAgo(comment.created_at)}</span>
+                product.comments?.map((comment: Comment) => {
+                  const hasUpvotedComment = commentVotes.has(`${user?.id}_${comment.id}`);
+                  return (
+                    <div key={comment.id} className="flex gap-4 group">
+                      <button 
+                        className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
+                        onClick={() => onViewProfile(comment.user_id)}
+                      >
+                        <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+                      </button>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <button 
+                            className={`font-bold text-sm cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                            onClick={() => onViewProfile(comment.user_id)}
+                          >
+                            {comment.username}
+                          </button>
+                          {comment.is_maker && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 text-base leading-relaxed">{comment.text}</p>
+                        
+                        <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400">
+                          <button 
+                            onClick={() => onCommentUpvote(product.id, comment.id)}
+                            className={`flex items-center gap-1 transition-colors uppercase tracking-tighter ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
+                          >
+                            <ArrowBigUp className={`w-3.5 h-3.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
+                            <span>Upvote ({comment.upvotes_count || 0})</span>
+                          </button>
+                          <button 
+                            onClick={() => handleShareComment(comment.id)}
+                            className="flex items-center gap-1 hover:text-blue-500 transition-colors uppercase tracking-tighter"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                            <span>Share</span>
+                          </button>
+                          <button 
+                            onClick={() => handleReportComment(comment.id, comment.username)}
+                            className="flex items-center gap-1 hover:text-red-500 transition-colors uppercase tracking-tighter"
+                          >
+                            <Flag className="w-3.5 h-3.5" />
+                            <span>Report</span>
+                          </button>
+                          <div className="flex items-center gap-1 uppercase tracking-tighter">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{formatTimeAgo(comment.created_at)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
           <div className="bg-emerald-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-900/10">
             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -204,22 +208,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <p className="text-2xl font-bold">{product.halal_status}</p>
             </div>
             <div className="space-y-4">
-              <a 
-                href={product.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]"
-              >
+              <a href={product.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]">
                 Visit Site <ExternalLink className="w-5 h-5" />
               </a>
-              <button
-                onClick={() => onUpvote(product.id)}
-                className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-lg transition-all border-2 ${
-                  hasUpvoted 
-                    ? 'bg-emerald-700/50 border-white text-white' 
-                    : 'bg-transparent border-emerald-600/50 text-emerald-100 hover:border-white'
-                }`}
-              >
+              <button onClick={() => onUpvote(product.id)} className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-lg transition-all border-2 ${hasUpvoted ? 'bg-emerald-700/50 border-white text-white' : 'bg-transparent border-emerald-600/50 text-emerald-100 hover:border-white'}`}>
                 <ChevronUp className="w-6 h-6" />
                 {product.upvotes_count} Upvotes
               </button>
@@ -227,19 +219,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           </div>
 
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8">
-            <h4 className="font-bold text-gray-900 mb-4">The Maker</h4>
-            <div 
-              className="flex items-center gap-4 cursor-pointer group"
-              onClick={() => onViewProfile(product.founder_id, 'Founder', 'founder@example.com', `https://i.pravatar.cc/150?u=${product.founder_id}`)}
+            <h4 className="font-bold text-gray-900 mb-4 uppercase tracking-widest text-xs">The Maker</h4>
+            <button 
+              className="flex items-center gap-4 cursor-pointer group w-full text-left active:scale-[0.98] transition-transform"
+              onClick={() => onViewProfile(product.founder_id)}
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 group-hover:bg-emerald-200 transition-colors">
-                <User className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-full overflow-hidden border border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
+                <img src={`https://i.pravatar.cc/150?u=${product.founder_id}`} alt="Founder" className="w-full h-full object-cover" />
               </div>
               <div>
-                <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">Community Builder</p>
-                <p className="text-sm text-gray-500">Global Ummah</p>
+                <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">View Profile</p>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-tighter hover:underline">Maker Portfolio</p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

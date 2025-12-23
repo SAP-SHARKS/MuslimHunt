@@ -21,6 +21,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       {
         id: 'c1',
         user_id: 'u_1',
+        product_id: '1',
+        upvotes_count: 5,
         username: 'Ahmed (Maker)',
         avatar_url: 'https://i.pravatar.cc/150?u=u_1',
         text: 'Assalamu Alaikum! We just launched our newest version with Dark Mode. Happy to answer any questions!',
@@ -30,6 +32,8 @@ export const INITIAL_PRODUCTS: Product[] = [
       {
         id: 'c2',
         user_id: 'u_99',
+        product_id: '1',
+        upvotes_count: 2,
         username: 'Fatima',
         avatar_url: 'https://i.pravatar.cc/150?u=fatima',
         text: 'This looks amazing. Is there a mobile app coming soon?',
@@ -78,62 +82,6 @@ export const INITIAL_PRODUCTS: Product[] = [
     upvotes_count: 215,
     halal_status: 'Self-Certified',
     sadaqah_info: 'We provide free access to non-profits and masjids.',
-    comments: []
-  },
-  {
-    id: '6',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    name: 'Ethical Wealth',
-    description: 'A robo-advisor that exclusively invests in Shariah-compliant and ESG-screened equities.',
-    tagline: 'Grow your wealth the halal way.',
-    url: 'https://example.com/ethicalwealth',
-    logo_url: 'https://images.unsplash.com/photo-1579621970795-87faff2f9070?w=100&h=100&fit=crop',
-    founder_id: 'u_6',
-    category: 'Finance',
-    upvotes_count: 178,
-    halal_status: 'Certified',
-    comments: []
-  },
-  {
-    id: '7',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    name: 'HalalBite',
-    description: 'The first delivery app that only features Halal-certified vendors with a zero-alcohol policy.',
-    tagline: 'Pure food, delivered fast.',
-    url: 'https://example.com/halalbite',
-    logo_url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=100&h=100&fit=crop',
-    founder_id: 'u_7',
-    category: 'Food',
-    upvotes_count: 312,
-    halal_status: 'Certified',
-    comments: []
-  },
-  {
-    id: '4',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    name: 'Ummah Hub',
-    description: 'A professional network for the global Muslim community to connect on projects, find jobs, and share knowledge.',
-    tagline: 'Connect, collaborate, and grow with the Ummah.',
-    url: 'https://example.com/ummahhub',
-    logo_url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=100&h=100&fit=crop',
-    founder_id: 'u_4',
-    category: 'Social',
-    upvotes_count: 156,
-    halal_status: 'Shariah-Compliant',
-    comments: []
-  },
-  {
-    id: '8',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    name: 'Sunnah Wellness',
-    description: 'An AI-powered health app that integrates Prophetic medicine and sunnah diet practices with modern science.',
-    tagline: 'Holistic health from a Sunnah perspective.',
-    url: 'https://example.com/sunnahwell',
-    logo_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop',
-    founder_id: 'u_8',
-    category: 'Health',
-    upvotes_count: 94,
-    halal_status: 'Self-Certified',
     comments: []
   }
 ];

@@ -3,17 +3,22 @@ export interface Profile {
   id: string;
   username: string;
   avatar_url: string;
+  bio?: string;
+  headline?: string;
+  twitter_url?: string;
+  website_url?: string;
 }
 
 export interface Comment {
   id: string;
   user_id: string;
+  product_id: string;
   username: string;
   avatar_url: string;
   text: string;
   created_at: string;
   is_maker?: boolean;
-  upvotes_count?: number; // New field for comment upvotes
+  upvotes_count: number;
 }
 
 export interface Product {
@@ -43,6 +48,10 @@ export interface User {
   email: string;
   username: string;
   avatar_url: string;
+  bio?: string;
+  twitter_url?: string;
+  website_url?: string;
+  headline?: string;
 }
 
 export enum View {
