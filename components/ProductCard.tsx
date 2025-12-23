@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ChevronUp, MessageSquare } from 'lucide-react';
 import { Product } from '../types';
@@ -51,29 +52,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0 ml-4">
-        {/* Comment Button */}
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-emerald-800 transition-colors group/comment"
+          className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all"
         >
-          <MessageSquare className="w-4 h-4 group-hover/comment:scale-110 transition-transform" />
-          <span className="text-xs font-bold">{commentCount}</span>
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[10px] font-bold mt-1">{commentCount}</span>
         </button>
 
-        {/* Upvote Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onUpvote(product.id);
           }}
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg border-2 transition-all shadow-sm active:scale-95 ${
+          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg border-2 transition-all shrink-0 ${
             hasUpvoted 
-              ? 'bg-emerald-800 border-emerald-800 text-white font-bold' 
-              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800'
+              ? 'bg-emerald-800 border-emerald-800 text-white' 
+              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800 shadow-sm'
           }`}
         >
           <ChevronUp className={`w-5 h-5 ${hasUpvoted ? 'animate-bounce' : ''}`} />

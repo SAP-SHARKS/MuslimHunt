@@ -8,25 +8,23 @@ export interface Profile {
 export interface Comment {
   id: string;
   user_id: string;
-  product_id: string;
   username: string;
   avatar_url: string;
   text: string;
   created_at: string;
   is_maker?: boolean;
-  upvotes_count?: number;
+  upvotes_count?: number; // New field for comment upvotes
 }
 
 export interface Product {
   id: string;
-  slug?: string;
   created_at: string;
   name: string;
   description: string;
   tagline: string;
-  website_url: string;
+  url: string;
   logo_url: string;
-  user_id: string;
+  founder_id: string;
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';

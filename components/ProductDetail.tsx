@@ -29,9 +29,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   useEffect(() => {
     if (scrollToComments && discussionRef.current) {
+      // Small timeout to ensure the component is fully rendered and browser has stabilized
       const timer = setTimeout(() => {
         discussionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [scrollToComments]);
@@ -97,19 +98,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           </div>
 
           {/* Discussion Section */}
-          <div 
-            ref={discussionRef}
-            className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12 scroll-mt-24"
-          >
+          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12 scroll-mt-20">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-bold text-emerald-900 flex items-center gap-3">
                 <MessageSquare className="w-6 h-6" />
                 Discussion
               </h3>
-              <span className="text-gray-400 font-medium">{(product.comments?.length || 0)} comments</span>
+              <span className="text-gray-400 font-medium">{product.comments?.length || 0} comments</span>
             </div>
 
-            {/* Public Access: Everyone sees comments, only users can post */}
             {user ? (
               <form onSubmit={handleSubmitComment} className="mb-10 flex gap-4">
                 <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200">
@@ -128,17 +125,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </form>
             ) : (
-              <div className="p-6 bg-emerald-50/30 rounded-2xl text-center mb-10 border border-dashed border-emerald-100">
-                <p className="text-emerald-900 font-bold mb-1">Please sign in to join the discussion.</p>
-                <p className="text-emerald-800/60 text-sm italic font-serif">Contribute to the Ummah's tech ecosystem.</p>
+              <div className="p-6 bg-gray-50 rounded-2xl text-center mb-10 border border-dashed border-gray-200">
+                <p className="text-gray-500 font-medium">Please sign in to join the discussion.</p>
               </div>
             )}
 
             <div className="space-y-8">
-              {(!product.comments || product.comments.length === 0) ? (
+              {product.comments?.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 italic">No comments yet. Start the conversation!</div>
               ) : (
-                [...product.comments].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((comment: Comment) => (
+                product.comments?.map((comment: Comment) => (
                   <div key={comment.id} className="flex gap-4 group">
                     <div 
                       className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer"
@@ -149,34 +145,41 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span 
-                          className={`font-bold text-sm cursor-pointer hover:underline ${comment.user_id === product.user_id ? 'text-emerald-800' : 'text-gray-900'}`}
+                          className={`font-bold text-sm cursor-pointer hover:underline ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
                           onClick={() => onViewProfile(comment.user_id, comment.username, comment.username + '@example.com', comment.avatar_url)}
                         >
                           {comment.username}
                         </span>
-                        {comment.user_id === product.user_id && (
+                        {comment.is_maker && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
                         )}
                       </div>
-                      <p className="text-gray-600 text-base leading-relaxed mb-1">
+                      <p className="text-gray-600 text-base leading-relaxed">
                         {comment.text}
                       </p>
                       
                       {/* Product Hunt Style Action Bar */}
-                      <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400 uppercase tracking-tighter">
-                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors group/upvote">
+                      <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400">
+                        {/* Upvote Button */}
+                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors group/upvote uppercase tracking-tighter">
                           <ArrowBigUp className="w-4 h-4 group-hover/upvote:scale-110 transition-transform" />
-                          <span>Upvote ({(comment.upvotes_count || 0)})</span>
+                          <span>Upvote ({comment.upvotes_count || 0})</span>
                         </button>
-                        <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
+
+                        {/* Report Button */}
+                        <button className="flex items-center gap-1 hover:text-red-500 transition-colors uppercase tracking-tighter">
                           <Flag className="w-3.5 h-3.5" />
                           <span>Report</span>
                         </button>
-                        <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
+
+                        {/* Share Button */}
+                        <button className="flex items-center gap-1 hover:text-blue-500 transition-colors uppercase tracking-tighter">
                           <Share2 className="w-3.5 h-3.5" />
                           <span>Share</span>
                         </button>
-                        <div className="flex items-center gap-1">
+
+                        {/* Relative Time Display */}
+                        <div className="flex items-center gap-1 uppercase tracking-tighter">
                           <Clock className="w-3.5 h-3.5" />
                           <span>{formatTimeAgo(comment.created_at)}</span>
                         </div>
@@ -202,7 +205,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
             <div className="space-y-4">
               <a 
-                href={product.website_url} 
+                href={product.url} 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]"
@@ -227,7 +230,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <h4 className="font-bold text-gray-900 mb-4">The Maker</h4>
             <div 
               className="flex items-center gap-4 cursor-pointer group"
-              onClick={() => onViewProfile(product.user_id, 'Founder', 'founder@example.com', `https://i.pravatar.cc/150?u=${product.user_id}`)}
+              onClick={() => onViewProfile(product.founder_id, 'Founder', 'founder@example.com', `https://i.pravatar.cc/150?u=${product.founder_id}`)}
             >
               <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 group-hover:bg-emerald-200 transition-colors">
                 <User className="w-6 h-6" />

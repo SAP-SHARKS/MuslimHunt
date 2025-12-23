@@ -29,8 +29,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   // Get user's submitted products
   const userProducts = useMemo(() => {
-    // Fixed: changed 'founder_id' to 'user_id'
-    return products.filter(p => p.user_id === profileUser.id);
+    return products.filter(p => p.founder_id === profileUser.id);
   }, [products, profileUser.id]);
 
   // Get user's upvoted products

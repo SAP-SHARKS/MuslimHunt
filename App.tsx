@@ -7,10 +7,34 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment } from './types';
-import { Sparkles, X, Search, Loader2, Rocket } from 'lucide-react';
+import { INITIAL_PRODUCTS } from './constants';
+import { Sparkles, X, Search } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
-import { INITIAL_PRODUCTS } from './constants';
+
+function ConnectionDebug() {
+  const url = (import.meta as any)?.env?.VITE_SUPA_URL;
+  const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
+  const geminiKey = process.env.API_KEY;
+  
+  return (
+    <div style={{ 
+      background: url && key ? '#e6fffa' : '#ffeeee', 
+      padding: '10px', 
+      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
+      position: 'fixed', 
+      top: 0, 
+      right: 0, 
+      zIndex: 9999, 
+      fontSize: '10px', 
+      color: url && key ? '#234e52' : '#880000', 
+      borderRadius: '0 0 0 12px',
+      pointerEvents: 'none'
+    }}>
+      Supa: {url ? '✅' : '❌'} | Gemini: {geminiKey ? '✅' : '❌'}
+    </div>
+  );
+}
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -52,171 +76,86 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch data directly from Supabase (Source of Truth)
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, comments(*)')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase fetch error details:', error);
-        throw error;
-      }
-      
-      // FIX: If the fetch is successful, we use the returned data even if it's empty [].
-      // We no longer fallback to INITIAL_PRODUCTS here because mock IDs break database constraints.
-      setProducts(data as Product[] || []);
-
-      if (selectedProduct) {
-        const updated = (data || []).find(p => p.id === selectedProduct.id);
-        if (updated) setSelectedProduct(updated as Product);
-      }
-      
-      const session = await supabase.auth.getSession();
-      const currentUserId = session.data.session?.user?.id;
-      if (currentUserId) {
-        const { data: voteData } = await supabase
-          .from('votes')
-          .select('product_id')
-          .eq('user_id', currentUserId);
-        
-        const voteSet = new Set<string>();
-        voteData?.forEach(v => voteSet.add(`${currentUserId}_${v.product_id}`));
-        setVotes(voteSet);
-      }
-    } catch (err: any) {
-      console.error('Fetch operation failed:', err);
-      // ONLY use mock data if the network request fails completely, to keep UI from being a blank screen
-      if (products.length === 0) {
-        setProducts(INITIAL_PRODUCTS);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Load persistence
   useEffect(() => {
-    fetchProducts();
-  }, [user?.id]);
+    const savedProducts = localStorage.getItem('mh_products_v4');
+    const savedVotes = localStorage.getItem('mh_votes');
+
+    if (savedProducts) setProducts(JSON.parse(savedProducts));
+    else setProducts(INITIAL_PRODUCTS);
+
+    if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
+    
+    setIsLoading(false);
+  }, []);
+
+  // Sync persistence
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('mh_products_v4', JSON.stringify(products));
+      localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
+    }
+  }, [products, votes, isLoading]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setView(View.HOME);
-    setVotes(new Set());
   };
 
-  const handleUpvote = async (productId: string) => {
+  const handleUpvote = (productId: string) => {
     if (!user) {
       setView(View.LOGIN);
       return;
     }
 
     const voteKey = `${user.id}_${productId}`;
-    const hasVoted = votes.has(voteKey);
-
-    try {
-      if (hasVoted) {
-        await supabase.from('votes').delete().match({ user_id: user.id, product_id: productId });
-        const p = products.find(prod => prod.id === productId);
-        if (p) {
-          await supabase.from('products').update({ upvotes_count: Math.max(0, (p.upvotes_count || 1) - 1) }).eq('id', productId);
-        }
+    setVotes(prev => {
+      const next = new Set(prev);
+      if (next.has(voteKey)) {
+        next.delete(voteKey);
+        setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count - 1 } : p));
       } else {
-        await supabase.from('votes').insert({ user_id: user.id, product_id: productId });
-        const p = products.find(prod => prod.id === productId);
-        if (p) {
-          await supabase.from('products').update({ upvotes_count: (p.upvotes_count || 0) + 1 }).eq('id', productId);
-        }
+        next.add(voteKey);
+        setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count + 1 } : p));
       }
-      await fetchProducts();
-    } catch (err: any) {
-      console.error('Upvote error details:', err);
-    }
+      return next;
+    });
   };
 
-  const handleNewProduct = async (formData: any) => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase.from('products').insert([{
-        name: formData.name,
-        website_url: formData.url,
-        tagline: formData.tagline,
-        description: formData.description,
-        logo_url: formData.logo_url,
-        category: formData.category,
-        halal_status: formData.halal_status,
-        sadaqah_info: formData.sadaqah_info,
-        user_id: user.id,
-        upvotes_count: 0
-      }]).select();
-
-      if (error) throw error;
-      if (data) {
-        await fetchProducts();
-        setView(View.HOME);
-      }
-    } catch (err: any) {
-      console.error('Launch error details:', err);
-    }
+  const handleNewProduct = (formData: any) => {
+    const newProduct: Product = {
+      ...formData,
+      id: Math.random().toString(36).substr(2, 9),
+      created_at: new Date().toISOString(),
+      founder_id: user?.id || 'anonymous',
+      upvotes_count: 0,
+      comments: []
+    };
+    setProducts([newProduct, ...products]);
+    setView(View.HOME);
   };
 
-  const handleAddComment = async (text: string) => {
-    if (!user || !selectedProduct) {
-      console.error("User must be logged in to comment.");
-      return;
-    }
-
-    // GUARD: Prevent commenting on mock products (placeholders)
-    if (selectedProduct.id.startsWith('00000000')) {
-      alert("You cannot comment on sample products. Please launch your own real product or comment on a product retrieved from the live database.");
-      return;
-    }
+  const handleAddComment = (text: string) => {
+    if (!user || !selectedProduct) return;
     
-    // Explicit mapping: ensuring product_id uses the real database UUID
-    const newCommentData = {
-      product_id: selectedProduct.id, 
+    const newComment: Comment = {
+      id: 'c_' + Math.random().toString(36).substr(2, 9),
       user_id: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
-      text: text, 
-      is_maker: selectedProduct.user_id === user.id, // Maker Ownership Check
+      text,
+      created_at: new Date().toISOString(),
+      is_maker: selectedProduct.founder_id === user.id
     };
 
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert([newCommentData])
-        .select();
-
-      if (error) {
-        console.error('Supabase Error Details:', error.message, error.details);
-        throw error;
+    setProducts(prev => prev.map(p => {
+      if (p.id === selectedProduct.id) {
+        const updated = { ...p, comments: [newComment, ...(p.comments || [])] };
+        setSelectedProduct(updated);
+        return updated;
       }
-
-      if (data && data[0]) {
-        const savedComment = data[0] as Comment;
-        setProducts(prev => prev.map(p => {
-          if (p.id === selectedProduct.id) {
-            const updatedProduct = { 
-              ...p, 
-              comments: [savedComment, ...(p.comments || [])] 
-            };
-            if (selectedProduct.id === p.id) {
-              setSelectedProduct(updatedProduct as Product);
-            }
-            return updatedProduct as Product;
-          }
-          return p;
-        }));
-      }
-    } catch (err: any) {
-      console.error("Full technical error details:", err);
-      alert(`Error: ${err.message || "Could not save comment."}`);
-    }
+      return p;
+    }));
   };
 
   const handleViewProfile = (userId: string, username: string, email: string, avatar: string) => {
@@ -253,15 +192,6 @@ const App: React.FC = () => {
   }, [products, searchQuery]);
 
   const renderContent = () => {
-    if (isLoading && products.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 text-emerald-800 animate-spin mb-4" />
-          <p className="text-emerald-900 font-serif text-xl italic">Gathering the Ummah's best...</p>
-        </div>
-      );
-    }
-
     if (view === View.LOGIN) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -346,88 +276,89 @@ const App: React.FC = () => {
         )}
 
         <main className="space-y-16">
-          {totalResults > 0 ? (
-            <>
-              {groupedProducts.today.length > 0 && (
-                <section>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
-                    <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
-                  </div>
-                  <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                    {groupedProducts.today.map(p => (
-                      <ProductCard 
-                        key={p.id} 
-                        product={p} 
-                        onUpvote={handleUpvote} 
-                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                        onClick={(prod) => handleProductClick(prod)}
-                        onCommentClick={(prod) => handleProductClick(prod, true)}
-                        searchQuery={searchQuery}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+          {groupedProducts.today.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
+                <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                {groupedProducts.today.map(p => (
+                  <ProductCard 
+                    key={p.id} 
+                    product={p} 
+                    onUpvote={handleUpvote} 
+                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-              {groupedProducts.yesterday.length > 0 && (
-                <section>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
-                    <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-                  </div>
-                  <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                    {groupedProducts.yesterday.map(p => (
-                      <ProductCard 
-                        key={p.id} 
-                        product={p} 
-                        onUpvote={handleUpvote} 
-                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                        onClick={(prod) => handleProductClick(prod)}
-                        onCommentClick={(prod) => handleProductClick(prod, true)}
-                        searchQuery={searchQuery}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+          {groupedProducts.yesterday.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
+                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                {groupedProducts.yesterday.map(p => (
+                  <ProductCard 
+                    key={p.id} 
+                    product={p} 
+                    onUpvote={handleUpvote} 
+                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-              {groupedProducts.past.length > 0 && (
-                <section>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
-                    <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-                  </div>
-                  <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                    {groupedProducts.past.map(p => (
-                      <ProductCard 
-                        key={p.id} 
-                        product={p} 
-                        onUpvote={handleUpvote} 
-                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                        onClick={(prod) => handleProductClick(prod)}
-                        onCommentClick={(prod) => handleProductClick(prod, true)}
-                        searchQuery={searchQuery}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center px-8">
-              <Rocket className="w-16 h-16 text-emerald-100 mb-6" />
-              <p className="text-emerald-900 font-serif text-3xl italic mb-3">The launchpad is ready.</p>
-              <p className="text-gray-500 max-w-sm mx-auto mb-8">
-                {searchQuery 
-                  ? `No products found matching "${searchQuery}".`
-                  : "Be the first to share your Halal-conscious tech product with the global Muslim community."}
-              </p>
+          {groupedProducts.past.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
+                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+              </div>
+              <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                {groupedProducts.past.map(p => (
+                  <ProductCard 
+                    key={p.id} 
+                    product={p} 
+                    onUpvote={handleUpvote} 
+                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+          
+          {!products.length && !searchQuery && (
+            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
+              <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
+              <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
+            </div>
+          )}
+
+          {searchQuery && totalResults === 0 && (
+            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
+              <Search className="w-12 h-12 text-emerald-100 mb-4" />
+              <p className="text-emerald-900/20 font-serif text-3xl italic mb-2">No products found</p>
+              <p className="text-gray-400">Try adjusting your search terms</p>
               <button
-                onClick={() => searchQuery ? setSearchQuery('') : setView(View.SUBMIT)}
-                className="px-8 py-4 bg-emerald-800 text-white rounded-2xl font-black hover:bg-emerald-900 transition-all shadow-xl active:scale-95"
+                onClick={() => setSearchQuery('')}
+                className="mt-6 px-6 py-3 bg-emerald-800 text-white rounded-xl font-bold hover:bg-emerald-900 transition-colors"
               >
-                {searchQuery ? 'Clear Search' : 'Launch First Product'}
+                Clear Search
               </button>
             </div>
           )}
@@ -438,6 +369,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
+      <ConnectionDebug />
       <Navbar 
         user={user} 
         currentView={view} 
