@@ -128,9 +128,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </form>
             ) : (
-              <div className="p-6 bg-emerald-50/30 rounded-2xl text-center mb-10 border border-dashed border-emerald-100">
-                <p className="text-emerald-900 font-bold mb-1">Join the conversation</p>
-                <p className="text-emerald-800/60 text-sm">Please sign in to share your thoughts and support the maker.</p>
+              <div className="p-6 bg-gray-50 rounded-2xl text-center mb-10 border border-dashed border-gray-200">
+                <p className="text-gray-500 font-medium">Please sign in to join the discussion.</p>
               </div>
             )}
 
@@ -138,7 +137,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {product.comments?.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 italic">No comments yet. Start the conversation!</div>
               ) : (
-                [...(product.comments || [])].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map((comment: Comment) => (
+                product.comments?.map((comment: Comment) => (
                   <div key={comment.id} className="flex gap-4 group">
                     <div 
                       className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer"

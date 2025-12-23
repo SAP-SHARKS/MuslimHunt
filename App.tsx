@@ -6,11 +6,13 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment } from './types';
-import { Sparkles, X, Search, Loader2 } from 'lucide-react';
+import { INITIAL_PRODUCTS } from './constants';
+import { Sparkles, X, Search } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
 function ConnectionDebug() {
+  // Use optional chaining to prevent crashes if import.meta.env is not yet available
   const url = (import.meta as any)?.env?.VITE_SUPA_URL;
   const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
   const geminiKey = process.env.API_KEY;
@@ -74,135 +76,87 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch data from Supabase - Replaced localStorage logic
-  const fetchProducts = async () => {
-    setIsLoading(true);
-    try {
-      // Fetch products and their related comments in one call
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, comments(*)')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
-      
-      // Also fetch user's votes if logged in
-      const session = await supabase.auth.getSession();
-      const currentUserId = session.data.session?.user?.id;
-      if (currentUserId) {
-        const { data: voteData } = await supabase
-          .from('votes')
-          .select('product_id')
-          .eq('user_id', currentUserId);
-        
-        const voteSet = new Set<string>();
-        voteData?.forEach(v => voteSet.add(`${currentUserId}_${v.product_id}`));
-        setVotes(voteSet);
-      }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Load persistence for products/votes
   useEffect(() => {
-    fetchProducts();
-  }, [user?.id]);
+    const savedProducts = localStorage.getItem('mh_products_v4');
+    const savedVotes = localStorage.getItem('mh_votes');
+
+    if (savedProducts) setProducts(JSON.parse(savedProducts));
+    else setProducts(INITIAL_PRODUCTS);
+
+    if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
+    
+    setIsLoading(false);
+  }, []);
+
+  // Sync persistence
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('mh_products_v4', JSON.stringify(products));
+      localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
+    }
+  }, [products, votes, isLoading]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setView(View.HOME);
-    setVotes(new Set());
   };
 
-  const handleUpvote = async (productId: string) => {
+  const handleUpvote = (productId: string) => {
     if (!user) {
       setView(View.LOGIN);
       return;
     }
 
     const voteKey = `${user.id}_${productId}`;
-    const hasVoted = votes.has(voteKey);
-
-    try {
-      if (hasVoted) {
-        // Remove vote
-        await supabase.from('votes').delete().match({ user_id: user.id, product_id: productId });
-        await supabase.rpc('decrement_upvotes', { product_id: productId });
-        
-        setVotes(prev => {
-          const next = new Set(prev);
-          next.delete(voteKey);
-          return next;
-        });
+    setVotes(prev => {
+      const next = new Set(prev);
+      if (next.has(voteKey)) {
+        next.delete(voteKey);
         setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count - 1 } : p));
       } else {
-        // Add vote
-        await supabase.from('votes').insert({ user_id: user.id, product_id: productId });
-        await supabase.rpc('increment_upvotes', { product_id: productId });
-        
-        setVotes(prev => {
-          const next = new Set(prev);
-          next.add(voteKey);
-          return next;
-        });
+        next.add(voteKey);
         setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count + 1 } : p));
       }
-    } catch (err) {
-      console.error('Upvote failed:', err);
-    }
+      return next;
+    });
   };
 
-  const handleNewProduct = async (formData: any) => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase.from('products').insert([{
-        ...formData,
-        founder_id: user.id,
-        upvotes_count: 0
-      }]).select();
-
-      if (error) throw error;
-      if (data) {
-        await fetchProducts(); // Refresh list
-        setView(View.HOME);
-      }
-    } catch (err) {
-      console.error('Launch failed:', err);
-    }
+  const handleNewProduct = (formData: any) => {
+    const newProduct: Product = {
+      ...formData,
+      id: Math.random().toString(36).substr(2, 9),
+      created_at: new Date().toISOString(),
+      founder_id: user?.id || 'anonymous',
+      upvotes_count: 0,
+      comments: []
+    };
+    setProducts([newProduct, ...products]);
+    setView(View.HOME);
   };
 
-  const handleAddComment = async (text: string) => {
+  const handleAddComment = (text: string) => {
     if (!user || !selectedProduct) return;
     
-    try {
-      // Real-Time Persistance: Insert into Supabase directly
-      const { error } = await supabase.from('comments').insert([{
-        product_id: selectedProduct.id,
-        user_id: user.id,
-        username: user.username,
-        avatar_url: user.avatar_url,
-        text,
-        is_maker: selectedProduct.founder_id === user.id,
-        upvotes_count: 0
-      }]);
+    const newComment: Comment = {
+      id: 'c_' + Math.random().toString(36).substr(2, 9),
+      user_id: user.id,
+      username: user.username,
+      avatar_url: user.avatar_url,
+      text,
+      created_at: new Date().toISOString(),
+      is_maker: selectedProduct.founder_id === user.id,
+      upvotes_count: 0
+    };
 
-      if (error) throw error;
-      
-      // Refresh products to show the new comment for everyone
-      await fetchProducts();
-      
-      // Update the selected product view to show the new comment immediately
-      const updatedProduct = products.find(p => p.id === selectedProduct.id);
-      if (updatedProduct) {
-        setSelectedProduct(updatedProduct);
+    setProducts(prev => prev.map(p => {
+      if (p.id === selectedProduct.id) {
+        const updated = { ...p, comments: [newComment, ...(p.comments || [])] };
+        setSelectedProduct(updated);
+        return updated;
       }
-    } catch (err) {
-      console.error('Comment failed:', err);
-    }
+      return p;
+    }));
   };
 
   const handleViewProfile = (userId: string, username: string, email: string, avatar: string) => {
@@ -225,7 +179,10 @@ const App: React.FC = () => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     
+    // First filter by search query
     const filteredProducts = searchProducts(products, searchQuery);
+    
+    // Then sort by upvotes
     const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
     
     return {
@@ -239,15 +196,6 @@ const App: React.FC = () => {
   }, [products, searchQuery]);
 
   const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-12 h-12 text-emerald-800 animate-spin mb-4" />
-          <p className="text-emerald-900 font-serif text-xl italic">Gathering the Ummah's best...</p>
-        </div>
-      );
-    }
-
     if (view === View.LOGIN) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[80vh]">
