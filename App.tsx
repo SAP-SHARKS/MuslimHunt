@@ -55,40 +55,26 @@ const App: React.FC = () => {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      // Ensuring we select ALL relevant columns matching the new schema
+      // Updated: Selecting all columns plus related comments
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          id, 
-          slug, 
-          created_at, 
-          name, 
-          description, 
-          tagline, 
-          website_url, 
-          logo_url, 
-          user_id, 
-          category, 
-          upvotes_count, 
-          halal_status, 
-          sadaqah_info, 
-          comments(*)
-        `)
+        .select('*, comments(*)')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Better error logging to avoid [object Object]
+        console.error('Supabase fetch error:', error.message, error.details, error.hint);
+        throw error;
+      }
       
-      // Fallback: If DB is empty, use INITIAL_PRODUCTS to keep UI functional
       const fetchedProducts = (data && data.length > 0) ? (data as Product[]) : INITIAL_PRODUCTS;
       setProducts(fetchedProducts);
 
-      // Refresh currently selected product if in detail view to sync new comments
       if (selectedProduct) {
         const updated = fetchedProducts.find(p => p.id === selectedProduct.id);
         if (updated) setSelectedProduct(updated);
       }
       
-      // Fetch user's votes from cloud
       const session = await supabase.auth.getSession();
       const currentUserId = session.data.session?.user?.id;
       if (currentUserId) {
@@ -101,9 +87,8 @@ const App: React.FC = () => {
         voteData?.forEach(v => voteSet.add(`${currentUserId}_${v.product_id}`));
         setVotes(voteSet);
       }
-    } catch (err) {
-      console.error('Supabase fetch error:', err);
-      // Ensure UI still shows something in case of network/connection error
+    } catch (err: any) {
+      console.error('Supabase fetch error catch block:', err?.message || err);
       setProducts(INITIAL_PRODUCTS);
     } finally {
       setIsLoading(false);
@@ -144,8 +129,8 @@ const App: React.FC = () => {
         }
       }
       await fetchProducts();
-    } catch (err) {
-      console.error('Upvote failed:', err);
+    } catch (err: any) {
+      console.error('Upvote failed:', err?.message || err);
     }
   };
 
@@ -153,7 +138,6 @@ const App: React.FC = () => {
     if (!user) return;
     
     try {
-      // Map frontend fields to cloud schema: website_url and user_id
       const { data, error } = await supabase.from('products').insert([{
         name: formData.name,
         website_url: formData.url,
@@ -172,33 +156,57 @@ const App: React.FC = () => {
         await fetchProducts();
         setView(View.HOME);
       }
-    } catch (err) {
-      console.error('Launch failed:', err);
+    } catch (err: any) {
+      console.error('Launch failed:', err?.message || err);
     }
   };
 
+  // Fixed: handleAddComment logic as requested with Supabase insert and immediate state update
   const handleAddComment = async (text: string) => {
-    if (!user || !selectedProduct) return;
+    if (!user || !selectedProduct) {
+      console.error("User must be logged in to comment.");
+      return;
+    }
     
+    const newCommentData = {
+      product_id: selectedProduct.id,
+      user_id: user.id,
+      username: user.username,
+      avatar_url: user.avatar_url,
+      text: text,
+      is_maker: selectedProduct.user_id === user.id,
+    };
+
     try {
-      // Persistence: Ensure comments are saved to the Supabase cloud database
-      const { error } = await supabase.from('comments').insert([{
-        product_id: selectedProduct.id,
-        user_id: user.id,
-        username: user.username,
-        avatar_url: user.avatar_url,
-        text: text,
-        // Maker logic: compare current user ID with product owner ID
-        is_maker: selectedProduct.user_id === user.id,
-        upvotes_count: 0
-      }]);
+      // 1. Insert into Supabase 'comments' table
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([newCommentData])
+        .select()
+        .single();
 
       if (error) throw error;
-      
-      // Refresh state from cloud so the new comment appears for everyone
-      await fetchProducts();
-    } catch (err) {
-      console.error('Failed to post comment to cloud:', err);
+
+      // 2. Update local state immediately so the user sees their comment
+      if (data) {
+        setProducts(prev => prev.map(p => {
+          if (p.id === selectedProduct.id) {
+            const updatedProduct = { 
+              ...p, 
+              comments: [data, ...(p.comments || [])] 
+            };
+            // Also update the currently open detail view state
+            if (selectedProduct.id === p.id) {
+              setSelectedProduct(updatedProduct as Product);
+            }
+            return updatedProduct as Product;
+          }
+          return p;
+        }));
+      }
+    } catch (err: any) {
+      console.error("Error posting comment:", err?.message || err);
+      alert("Failed to post comment. Please check your connection.");
     }
   };
 
@@ -395,14 +403,6 @@ const App: React.FC = () => {
             </section>
           )}
           
-          {/* Default view when no products match. Note: INITIAL_PRODUCTS usually prevents this from being visible unless manually cleared. */}
-          {!isLoading && products.length === 0 && !searchQuery && (
-            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
-              <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
-              <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the first great launch...</p>
-            </div>
-          )}
-
           {searchQuery && totalResults === 0 && (
             <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
               <Search className="w-12 h-12 text-emerald-100 mb-4" />
