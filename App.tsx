@@ -62,7 +62,6 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Improved logging: Passing the object as a separate argument to prevent [object Object]
         console.error('Supabase fetch error details:', error);
         throw error;
       }
@@ -88,7 +87,6 @@ const App: React.FC = () => {
         setVotes(voteSet);
       }
     } catch (err: any) {
-      // Catch-all for network or unexpected errors
       console.error('Fetch operation failed:', err);
       setProducts(INITIAL_PRODUCTS);
     } finally {
@@ -163,13 +161,11 @@ const App: React.FC = () => {
   };
 
   const handleAddComment = async (text: string) => {
-    // 1. Validation: Ensure user is logged in and a product is selected
     if (!user || !selectedProduct) {
       console.error("User must be logged in to comment.");
       return;
     }
     
-    // 2. Prepare the comment data to match your Supabase table schema
     // Explicitly mapping 'text' as the column for the message
     const newCommentData = {
       product_id: selectedProduct.id,
@@ -181,27 +177,27 @@ const App: React.FC = () => {
     };
 
     try {
-      // 3. Insert into Supabase 'comments' table
+      // Removing .single() and using .select() for better reliability on insertion
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
-        .select()
-        .single();
+        .select();
 
       if (error) {
-        console.error('Comment submission error details:', error);
+        console.error('Supabase Error Details:', error.message, error.details);
         throw error;
       }
 
-      // 4. Update local state immediately so the user sees their comment
-      if (data) {
+      // Update local state immediately with the first row returned
+      if (data && data[0]) {
+        const savedComment = data[0] as Comment;
         setProducts(prev => prev.map(p => {
           if (p.id === selectedProduct.id) {
             const updatedProduct = { 
               ...p, 
-              comments: [data, ...(p.comments || [])] 
+              comments: [savedComment, ...(p.comments || [])] 
             };
-            // Also update the currently open detail view state
+            // Sync the currently viewed product state
             if (selectedProduct.id === p.id) {
               setSelectedProduct(updatedProduct as Product);
             }
@@ -211,8 +207,8 @@ const App: React.FC = () => {
         }));
       }
     } catch (err: any) {
-      console.error("Failed to post comment:", err);
-      alert("Failed to post comment. Please check your connection or database schema.");
+      console.error("Full technical error:", err);
+      alert(`Error: ${err.message || "Could not save comment. Check browser console for details."}`);
     }
   };
 
