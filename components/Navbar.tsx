@@ -9,6 +9,7 @@ interface NavbarProps {
   onLogout: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onViewProfile?: () => void;
 }
 
 const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any }[] }> = ({ label, items }) => {
@@ -39,7 +40,8 @@ const Navbar: React.FC<NavbarProps> = ({
   setView, 
   onLogout,
   searchQuery,
-  onSearchChange
+  onSearchChange,
+  onViewProfile
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
@@ -129,9 +131,12 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer group relative">
+              <div 
+                className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all group relative"
+                onClick={onViewProfile}
+              >
                 <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                   <p className="text-xs font-bold text-emerald-900 mb-1">{user.username}</p>
                   <p className="text-[10px] text-gray-400">{user.email}</p>
                 </div>

@@ -48,5 +48,6 @@ export enum View {
   HOME = 'home',
   SUBMIT = 'submit',
   DETAIL = 'detail',
-  LOGIN = 'login'
+  LOGIN = 'login',
+  PROFILE = 'profile'
 }

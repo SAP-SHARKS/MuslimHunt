@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send } from 'lucide-react';
 import { Product, Comment } from '../types';
 
@@ -10,10 +9,30 @@ interface ProductDetailProps {
   onUpvote: (id: string) => void;
   hasUpvoted: boolean;
   onAddComment: (text: string) => void;
+  onViewProfile: (userId: string, username: string, email: string, avatar: string) => void;
+  scrollToComments?: boolean;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, onUpvote, hasUpvoted, onAddComment }) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ 
+  product, 
+  user, 
+  onBack, 
+  onUpvote, 
+  hasUpvoted, 
+  onAddComment,
+  onViewProfile,
+  scrollToComments = false
+}) => {
   const [commentText, setCommentText] = useState('');
+  const discussionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollToComments && discussionRef.current) {
+      setTimeout(() => {
+        discussionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [scrollToComments]);
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +95,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, on
           </div>
 
           {/* Discussion Section */}
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12">
+          <div 
+            ref={discussionRef}
+            className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12 scroll-mt-24"
+          >
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-bold text-emerald-900 flex items-center gap-3">
                 <MessageSquare className="w-6 h-6" />
@@ -114,12 +136,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, on
               ) : (
                 product.comments?.map((comment: Comment) => (
                   <div key={comment.id} className="flex gap-4 group">
-                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50">
+                    <div 
+                      className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer"
+                      onClick={() => onViewProfile(comment.user_id, comment.username, comment.username + '@example.com', comment.avatar_url)}
+                    >
                       <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`font-bold text-sm ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}>
+                        <span 
+                          className={`font-bold text-sm cursor-pointer hover:underline ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                          onClick={() => onViewProfile(comment.user_id, comment.username, comment.username + '@example.com', comment.avatar_url)}
+                        >
                           {comment.username}
                         </span>
                         {comment.is_maker && (
@@ -176,13 +204,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, user, onBack, on
 
           <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8">
             <h4 className="font-bold text-gray-900 mb-4">The Maker</h4>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800">
+            <div 
+              className="flex items-center gap-4 cursor-pointer group"
+              onClick={() => onViewProfile(product.founder_id, 'Founder', 'founder@example.com', `https://i.pravatar.cc/150?u=${product.founder_id}`)}
+            >
+              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 group-hover:bg-emerald-200 transition-colors">
                 <User className="w-6 h-6" />
               </div>
               <div>
-                <p className="font-bold text-gray-900">Community Builder</p>
-                <p className="text-sm text-gray-500">Kuala Lumpur, MY</p>
+                <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">Community Builder</p>
+                <p className="text-sm text-gray-500">Global Ummah</p>
               </div>
             </div>
           </div>

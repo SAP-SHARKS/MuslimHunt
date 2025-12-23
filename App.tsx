@@ -4,6 +4,7 @@ import ProductCard from './components/ProductCard';
 import ProductDetail from './components/ProductDetail';
 import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
+import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment } from './types';
 import { INITIAL_PRODUCTS } from './constants';
 import { Sparkles, X, Search } from 'lucide-react';
@@ -41,8 +42,10 @@ const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
 
   // Auth State Listener
   useEffect(() => {
@@ -155,6 +158,22 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleViewProfile = (userId: string, username: string, email: string, avatar: string) => {
+    setSelectedUser({
+      id: userId,
+      username,
+      email,
+      avatar_url: avatar
+    });
+    setView(View.PROFILE);
+  };
+
+  const handleProductClick = (product: Product, andScrollToComments: boolean = false) => {
+    setSelectedProduct(product);
+    setShouldScrollToComments(andScrollToComments);
+    setView(View.DETAIL);
+  };
+
   const groupedProducts = useMemo(() => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
@@ -188,15 +207,34 @@ const App: React.FC = () => {
       return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
     }
 
+    if (view === View.PROFILE && selectedUser) {
+      return (
+        <UserProfile
+          profileUser={selectedUser}
+          currentUser={user}
+          products={products}
+          votes={votes}
+          onBack={() => setView(View.HOME)}
+          onProductClick={(prod) => handleProductClick(prod)}
+          onUpvote={handleUpvote}
+        />
+      );
+    }
+
     if (view === View.DETAIL && selectedProduct) {
       return (
         <ProductDetail 
           product={selectedProduct} 
           user={user}
-          onBack={() => setView(View.HOME)}
+          onBack={() => {
+            setView(View.HOME);
+            setShouldScrollToComments(false);
+          }}
           onUpvote={handleUpvote}
           hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
           onAddComment={handleAddComment}
+          onViewProfile={handleViewProfile}
+          scrollToComments={shouldScrollToComments}
         />
       );
     }
@@ -221,8 +259,8 @@ const App: React.FC = () => {
         </header>
 
         {searchQuery && (
-          <div className="max-w-4xl mx-auto mb-6">
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center justify-between">
+          <div className="max-w-4xl mx-auto mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-4 flex items-center justify-between shadow-sm">
               <div>
                 <p className="text-emerald-900 font-bold">
                   Found {totalResults} {totalResults === 1 ? 'product' : 'products'} matching "{searchQuery}"
@@ -230,7 +268,7 @@ const App: React.FC = () => {
               </div>
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-emerald-800 hover:text-emerald-900 font-bold text-sm flex items-center gap-2"
+                className="text-emerald-800 hover:text-emerald-900 font-bold text-sm flex items-center gap-2 px-3 py-1.5 hover:bg-emerald-100 rounded-lg transition-colors"
               >
                 Clear search
                 <X className="w-4 h-4" />
@@ -253,7 +291,9 @@ const App: React.FC = () => {
                     product={p} 
                     onUpvote={handleUpvote} 
                     hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => { setSelectedProduct(prod); setView(View.DETAIL); }}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </div>
@@ -273,7 +313,9 @@ const App: React.FC = () => {
                     product={p} 
                     onUpvote={handleUpvote} 
                     hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => { setSelectedProduct(prod); setView(View.DETAIL); }}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </div>
@@ -293,7 +335,9 @@ const App: React.FC = () => {
                     product={p} 
                     onUpvote={handleUpvote} 
                     hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => { setSelectedProduct(prod); setView(View.DETAIL); }}
+                    onClick={(prod) => handleProductClick(prod)}
+                    onCommentClick={(prod) => handleProductClick(prod, true)}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </div>
@@ -335,6 +379,11 @@ const App: React.FC = () => {
         onLogout={handleLogout} 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onViewProfile={() => {
+          if (user) {
+            handleViewProfile(user.id, user.username, user.email, user.avatar_url);
+          }
+        }}
       />
       <div className="pt-4">
         {renderContent()}
