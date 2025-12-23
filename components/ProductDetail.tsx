@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp } from 'lucide-react';
+import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock } from 'lucide-react';
 import { Product, Comment } from '../types';
+import { formatTimeAgo } from '../utils/dateUtils';
 
 interface ProductDetailProps {
   product: Product;
@@ -156,28 +157,28 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                           <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
                         )}
                       </div>
-                      <p className="text-gray-600 text-base leading-relaxed mb-2">
+                      <p className="text-gray-600 text-base leading-relaxed mb-1">
                         {comment.text}
                       </p>
                       
                       {/* Product Hunt Style Action Bar */}
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors">
-                          <ArrowBigUp className="w-3.5 h-3.5" />
-                          Upvote ({comment.upvotes_count || 0})
+                      <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400 uppercase tracking-tighter">
+                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors group/upvote">
+                          <ArrowBigUp className="w-4 h-4 group-hover/upvote:scale-110 transition-transform" />
+                          <span>Upvote ({comment.upvotes_count || 0})</span>
                         </button>
-                        <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
-                          <Flag className="w-3 h-3" />
-                          Report
+                        <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
+                          <Flag className="w-3.5 h-3.5" />
+                          <span>Report</span>
                         </button>
-                        <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
-                          <Share2 className="w-3 h-3" />
-                          Share
+                        <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                          <Share2 className="w-3.5 h-3.5" />
+                          <span>Share</span>
                         </button>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(comment.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{formatTimeAgo(comment.created_at)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>

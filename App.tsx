@@ -217,6 +217,7 @@ const App: React.FC = () => {
           votes={votes}
           onBack={() => setView(View.HOME)}
           onProductClick={(prod) => handleProductClick(prod)}
+          onCommentClick={(prod) => handleProductClick(prod, true)}
           onUpvote={handleUpvote}
         />
       );

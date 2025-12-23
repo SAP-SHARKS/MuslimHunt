@@ -10,6 +10,7 @@ interface UserProfileProps {
   votes: Set<string>;
   onBack: () => void;
   onProductClick: (product: Product) => void;
+  onCommentClick: (product: Product) => void;
   onUpvote: (productId: string) => void;
 }
 
@@ -20,6 +21,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   votes,
   onBack,
   onProductClick,
+  onCommentClick,
   onUpvote
 }) => {
   const [activeTab, setActiveTab] = useState<'launches' | 'upvoted'>('launches');
@@ -155,6 +157,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               onUpvote={onUpvote}
               hasUpvoted={votes.has(`${currentUser?.id}_${product.id}`)}
               onClick={onProductClick}
+              onCommentClick={onCommentClick}
             />
           ))}
         </div>
