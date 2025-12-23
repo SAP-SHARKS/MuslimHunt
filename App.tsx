@@ -145,7 +145,8 @@ const App: React.FC = () => {
       avatar_url: user.avatar_url,
       text,
       created_at: new Date().toISOString(),
-      is_maker: selectedProduct.founder_id === user.id
+      is_maker: selectedProduct.founder_id === user.id,
+      upvotes_count: 0
     };
 
     setProducts(prev => prev.map(p => {

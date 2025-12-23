@@ -13,6 +13,7 @@ export interface Comment {
   text: string;
   created_at: string;
   is_maker?: boolean;
+  upvotes_count?: number;
 }
 
 export interface Product {

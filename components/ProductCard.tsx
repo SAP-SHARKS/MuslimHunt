@@ -51,14 +51,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0 ml-4">
+      <div className="flex items-center gap-1.5 shrink-0 ml-4">
         {/* Comment Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors group/comment"
+          className="flex items-center gap-1.5 px-3 py-2 text-gray-400 hover:text-emerald-800 transition-colors group/comment"
         >
           <MessageSquare className="w-4 h-4 group-hover/comment:scale-110 transition-transform" />
           <span className="text-xs font-bold">{commentCount}</span>
@@ -70,9 +70,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             onUpvote(product.id);
           }}
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg border-2 transition-all shadow-sm ${
+          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg border-2 transition-all shadow-sm active:scale-95 ${
             hasUpvoted 
-              ? 'bg-emerald-800 border-emerald-800 text-white' 
+              ? 'bg-emerald-800 border-emerald-800 text-white font-bold' 
               : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800'
           }`}
         >

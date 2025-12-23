@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send } from 'lucide-react';
+import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp } from 'lucide-react';
 import { Product, Comment } from '../types';
 
 interface ProductDetailProps {
@@ -28,9 +28,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   useEffect(() => {
     if (scrollToComments && discussionRef.current) {
-      setTimeout(() => {
+      // Small delay to ensure the component is fully mounted and rendered
+      const timer = setTimeout(() => {
         discussionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [scrollToComments]);
 
@@ -153,13 +155,30 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         {comment.is_maker && (
                           <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
                         )}
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                      </div>
+                      <p className="text-gray-600 text-base leading-relaxed mb-2">
+                        {comment.text}
+                      </p>
+                      
+                      {/* Product Hunt Style Action Bar */}
+                      <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                        <button className="flex items-center gap-1 hover:text-emerald-800 transition-colors">
+                          <ArrowBigUp className="w-3.5 h-3.5" />
+                          Upvote ({comment.upvotes_count || 0})
+                        </button>
+                        <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
+                          <Flag className="w-3 h-3" />
+                          Report
+                        </button>
+                        <button className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                          <Share2 className="w-3 h-3" />
+                          Share
+                        </button>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
                           {new Date(comment.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-base leading-relaxed">
-                        {comment.text}
-                      </p>
                     </div>
                   </div>
                 ))
