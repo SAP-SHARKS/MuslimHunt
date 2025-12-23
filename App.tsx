@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import ProductCard from './components/ProductCard';
@@ -55,23 +56,28 @@ const App: React.FC = () => {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      // Selecting all columns plus related comments
       const { data, error } = await supabase
         .from('products')
         .select('*, comments(*)')
         .order('created_at', { ascending: false });
 
       if (error) {
+        // Fix: Pass error as separate argument to console.error to avoid [object Object]
         console.error('Supabase fetch error details:', error);
         throw error;
       }
       
-      const fetchedProducts = (data && data.length > 0) ? (data as Product[]) : INITIAL_PRODUCTS;
-      setProducts(fetchedProducts);
+      // If database is connected and returns data, use it. 
+      if (data && data.length > 0) {
+        setProducts(data as Product[]);
+      } else {
+        console.log('Database is empty, loading mock data.');
+        setProducts(INITIAL_PRODUCTS);
+      }
 
       if (selectedProduct) {
-        const updated = fetchedProducts.find(p => p.id === selectedProduct.id);
-        if (updated) setSelectedProduct(updated);
+        const updated = (data || []).find(p => p.id === selectedProduct.id);
+        if (updated) setSelectedProduct(updated as Product);
       }
       
       const session = await supabase.auth.getSession();
@@ -88,6 +94,7 @@ const App: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Fetch operation failed:', err);
+      // Fallback to mock data on network error so UI remains functional
       setProducts(INITIAL_PRODUCTS);
     } finally {
       setIsLoading(false);
@@ -129,7 +136,7 @@ const App: React.FC = () => {
       }
       await fetchProducts();
     } catch (err: any) {
-      console.error('Upvote error:', err);
+      console.error('Upvote error details:', err);
     }
   };
 
@@ -156,7 +163,7 @@ const App: React.FC = () => {
         setView(View.HOME);
       }
     } catch (err: any) {
-      console.error('Launch error:', err);
+      console.error('Launch error details:', err);
     }
   };
 
@@ -166,29 +173,30 @@ const App: React.FC = () => {
       return;
     }
     
-    // Explicitly mapping 'text' as the column for the message
+    // Explicit mapping: ensuring product_id uses the real database UUID from selectedProduct.id
     const newCommentData = {
-      product_id: selectedProduct.id,
+      product_id: selectedProduct.id, 
       user_id: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
-      text: text, 
+      text: text, // This MUST match the column name 'text' in your Supabase table
       is_maker: selectedProduct.user_id === user.id,
     };
 
     try {
-      // Removing .single() and using .select() for better reliability on insertion
+      // Fix: Removed .single() and used .select() to get back an array for more resilient error handling
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
         .select();
 
       if (error) {
+        // Fix: Explicitly log the error message and details to avoid [object Object]
         console.error('Supabase Error Details:', error.message, error.details);
         throw error;
       }
 
-      // Update local state immediately with the first row returned
+      // If data[0] exists, it's our newly saved comment row
       if (data && data[0]) {
         const savedComment = data[0] as Comment;
         setProducts(prev => prev.map(p => {
@@ -197,7 +205,7 @@ const App: React.FC = () => {
               ...p, 
               comments: [savedComment, ...(p.comments || [])] 
             };
-            // Sync the currently viewed product state
+            // Sync the currently viewed product detail state immediately
             if (selectedProduct.id === p.id) {
               setSelectedProduct(updatedProduct as Product);
             }
@@ -207,8 +215,12 @@ const App: React.FC = () => {
         }));
       }
     } catch (err: any) {
-      console.error("Full technical error:", err);
-      alert(`Error: ${err.message || "Could not save comment. Check browser console for details."}`);
+      console.error("Full technical error details:", err);
+      // Helpful tip for the UUID error 'invalid input syntax for type uuid: "2"'
+      const tip = selectedProduct.id.length < 30 
+        ? " (Tip: You're trying to comment on a mock product with an invalid UUID. Please comment on a real product launched into the database.)" 
+        : "";
+      alert(`Error: ${err.message || "Could not save comment."}${tip}`);
     }
   };
 
