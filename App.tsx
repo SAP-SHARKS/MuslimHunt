@@ -7,7 +7,7 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment } from './types';
-import { Sparkles, X, Search, Loader2 } from 'lucide-react';
+import { Sparkles, X, Search, Loader2, Rocket } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 import { INITIAL_PRODUCTS } from './constants';
@@ -62,18 +62,13 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Fix: Pass error as separate argument to console.error to avoid [object Object]
         console.error('Supabase fetch error details:', error);
         throw error;
       }
       
-      // If database is connected and returns data, use it. 
-      if (data && data.length > 0) {
-        setProducts(data as Product[]);
-      } else {
-        console.log('Database is empty, loading mock data.');
-        setProducts(INITIAL_PRODUCTS);
-      }
+      // FIX: If the fetch is successful, we use the returned data even if it's empty [].
+      // We no longer fallback to INITIAL_PRODUCTS here because mock IDs break database constraints.
+      setProducts(data as Product[] || []);
 
       if (selectedProduct) {
         const updated = (data || []).find(p => p.id === selectedProduct.id);
@@ -94,8 +89,10 @@ const App: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Fetch operation failed:', err);
-      // Fallback to mock data on network error so UI remains functional
-      setProducts(INITIAL_PRODUCTS);
+      // ONLY use mock data if the network request fails completely, to keep UI from being a blank screen
+      if (products.length === 0) {
+        setProducts(INITIAL_PRODUCTS);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -172,31 +169,34 @@ const App: React.FC = () => {
       console.error("User must be logged in to comment.");
       return;
     }
+
+    // GUARD: Prevent commenting on mock products (placeholders)
+    if (selectedProduct.id.startsWith('00000000')) {
+      alert("You cannot comment on sample products. Please launch your own real product or comment on a product retrieved from the live database.");
+      return;
+    }
     
-    // Explicit mapping: ensuring product_id uses the real database UUID from selectedProduct.id
+    // Explicit mapping: ensuring product_id uses the real database UUID
     const newCommentData = {
       product_id: selectedProduct.id, 
       user_id: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
-      text: text, // This MUST match the column name 'text' in your Supabase table
-      is_maker: selectedProduct.user_id === user.id,
+      text: text, 
+      is_maker: selectedProduct.user_id === user.id, // Maker Ownership Check
     };
 
     try {
-      // Fix: Removed .single() and used .select() to get back an array for more resilient error handling
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
         .select();
 
       if (error) {
-        // Fix: Explicitly log the error message and details to avoid [object Object]
         console.error('Supabase Error Details:', error.message, error.details);
         throw error;
       }
 
-      // If data[0] exists, it's our newly saved comment row
       if (data && data[0]) {
         const savedComment = data[0] as Comment;
         setProducts(prev => prev.map(p => {
@@ -205,7 +205,6 @@ const App: React.FC = () => {
               ...p, 
               comments: [savedComment, ...(p.comments || [])] 
             };
-            // Sync the currently viewed product detail state immediately
             if (selectedProduct.id === p.id) {
               setSelectedProduct(updatedProduct as Product);
             }
@@ -216,11 +215,7 @@ const App: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Full technical error details:", err);
-      // Helpful tip for the UUID error 'invalid input syntax for type uuid: "2"'
-      const tip = selectedProduct.id.length < 30 
-        ? " (Tip: You're trying to comment on a mock product with an invalid UUID. Please comment on a real product launched into the database.)" 
-        : "";
-      alert(`Error: ${err.message || "Could not save comment."}${tip}`);
+      alert(`Error: ${err.message || "Could not save comment."}`);
     }
   };
 
@@ -351,82 +346,88 @@ const App: React.FC = () => {
         )}
 
         <main className="space-y-16">
-          {groupedProducts.today.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
-                <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
-              </div>
-              <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.today.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          {totalResults > 0 ? (
+            <>
+              {groupedProducts.today.length > 0 && (
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xs font-black text-emerald-800/40 uppercase tracking-[0.3em]">Freshly Launched</h2>
+                    <div className="h-[1px] flex-1 bg-emerald-50 ml-6"></div>
+                  </div>
+                  <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                    {groupedProducts.today.map(p => (
+                      <ProductCard 
+                        key={p.id} 
+                        product={p} 
+                        onUpvote={handleUpvote} 
+                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                        onClick={(prod) => handleProductClick(prod)}
+                        onCommentClick={(prod) => handleProductClick(prod, true)}
+                        searchQuery={searchQuery}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-          {groupedProducts.yesterday.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
-                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-              </div>
-              <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.yesterday.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+              {groupedProducts.yesterday.length > 0 && (
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">Trending Yesterday</h2>
+                    <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+                  </div>
+                  <div className="space-y-3 bg-white/50 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                    {groupedProducts.yesterday.map(p => (
+                      <ProductCard 
+                        key={p.id} 
+                        product={p} 
+                        onUpvote={handleUpvote} 
+                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                        onClick={(prod) => handleProductClick(prod)}
+                        onCommentClick={(prod) => handleProductClick(prod, true)}
+                        searchQuery={searchQuery}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
 
-          {groupedProducts.past.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
-                <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
-              </div>
-              <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {groupedProducts.past.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => handleProductClick(prod)}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-          
-          {searchQuery && totalResults === 0 && (
-            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
-              <Search className="w-12 h-12 text-emerald-100 mb-4" />
-              <p className="text-emerald-900/20 font-serif text-3xl italic mb-2">No products found</p>
-              <p className="text-gray-400">Try adjusting your search terms</p>
+              {groupedProducts.past.length > 0 && (
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xs font-black text-gray-300 uppercase tracking-[0.3em]">The Archives</h2>
+                    <div className="h-[1px] flex-1 bg-gray-50 ml-6"></div>
+                  </div>
+                  <div className="space-y-3 bg-white/30 rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
+                    {groupedProducts.past.map(p => (
+                      <ProductCard 
+                        key={p.id} 
+                        product={p} 
+                        onUpvote={handleUpvote} 
+                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                        onClick={(prod) => handleProductClick(prod)}
+                        onCommentClick={(prod) => handleProductClick(prod, true)}
+                        searchQuery={searchQuery}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center px-8">
+              <Rocket className="w-16 h-16 text-emerald-100 mb-6" />
+              <p className="text-emerald-900 font-serif text-3xl italic mb-3">The launchpad is ready.</p>
+              <p className="text-gray-500 max-w-sm mx-auto mb-8">
+                {searchQuery 
+                  ? `No products found matching "${searchQuery}".`
+                  : "Be the first to share your Halal-conscious tech product with the global Muslim community."}
+              </p>
               <button
-                onClick={() => setSearchQuery('')}
-                className="mt-6 px-6 py-3 bg-emerald-800 text-white rounded-xl font-bold hover:bg-emerald-900 transition-colors"
+                onClick={() => searchQuery ? setSearchQuery('') : setView(View.SUBMIT)}
+                className="px-8 py-4 bg-emerald-800 text-white rounded-2xl font-black hover:bg-emerald-900 transition-all shadow-xl active:scale-95"
               >
-                Clear Search
+                {searchQuery ? 'Clear Search' : 'Launch First Product'}
               </button>
             </div>
           )}
