@@ -55,15 +55,15 @@ const App: React.FC = () => {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      // Updated: Selecting all columns plus related comments
+      // Selecting all columns plus related comments
       const { data, error } = await supabase
         .from('products')
         .select('*, comments(*)')
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Better error logging to avoid [object Object]
-        console.error('Supabase fetch error:', error.message, error.details, error.hint);
+        // Improved logging: Passing the object as a separate argument to prevent [object Object]
+        console.error('Supabase fetch error details:', error);
         throw error;
       }
       
@@ -88,7 +88,8 @@ const App: React.FC = () => {
         setVotes(voteSet);
       }
     } catch (err: any) {
-      console.error('Supabase fetch error catch block:', err?.message || err);
+      // Catch-all for network or unexpected errors
+      console.error('Fetch operation failed:', err);
       setProducts(INITIAL_PRODUCTS);
     } finally {
       setIsLoading(false);
@@ -130,7 +131,7 @@ const App: React.FC = () => {
       }
       await fetchProducts();
     } catch (err: any) {
-      console.error('Upvote failed:', err?.message || err);
+      console.error('Upvote error:', err);
     }
   };
 
@@ -157,37 +158,42 @@ const App: React.FC = () => {
         setView(View.HOME);
       }
     } catch (err: any) {
-      console.error('Launch failed:', err?.message || err);
+      console.error('Launch error:', err);
     }
   };
 
-  // Fixed: handleAddComment logic as requested with Supabase insert and immediate state update
   const handleAddComment = async (text: string) => {
+    // 1. Validation: Ensure user is logged in and a product is selected
     if (!user || !selectedProduct) {
       console.error("User must be logged in to comment.");
       return;
     }
     
+    // 2. Prepare the comment data to match your Supabase table schema
+    // Explicitly mapping 'text' as the column for the message
     const newCommentData = {
       product_id: selectedProduct.id,
       user_id: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
-      text: text,
+      text: text, 
       is_maker: selectedProduct.user_id === user.id,
     };
 
     try {
-      // 1. Insert into Supabase 'comments' table
+      // 3. Insert into Supabase 'comments' table
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Comment submission error details:', error);
+        throw error;
+      }
 
-      // 2. Update local state immediately so the user sees their comment
+      // 4. Update local state immediately so the user sees their comment
       if (data) {
         setProducts(prev => prev.map(p => {
           if (p.id === selectedProduct.id) {
@@ -205,8 +211,8 @@ const App: React.FC = () => {
         }));
       }
     } catch (err: any) {
-      console.error("Error posting comment:", err?.message || err);
-      alert("Failed to post comment. Please check your connection.");
+      console.error("Failed to post comment:", err);
+      alert("Failed to post comment. Please check your connection or database schema.");
     }
   };
 
