@@ -8,6 +8,7 @@ export interface Profile {
 export interface Comment {
   id: string;
   user_id: string;
+  product_id: string;
   username: string;
   avatar_url: string;
   text: string;
@@ -18,13 +19,14 @@ export interface Comment {
 
 export interface Product {
   id: string;
+  slug?: string;
   created_at: string;
   name: string;
   description: string;
   tagline: string;
-  url: string;
+  website_url: string;
   logo_url: string;
-  founder_id: string;
+  user_id: string;
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';

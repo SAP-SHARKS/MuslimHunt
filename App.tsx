@@ -6,35 +6,10 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment } from './types';
-import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, X, Search } from 'lucide-react';
+import { Sparkles, X, Search, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
-
-function ConnectionDebug() {
-  // Use optional chaining to prevent crashes if import.meta.env is not yet available
-  const url = (import.meta as any)?.env?.VITE_SUPA_URL;
-  const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
-  const geminiKey = process.env.API_KEY;
-  
-  return (
-    <div style={{ 
-      background: url && key ? '#e6fffa' : '#ffeeee', 
-      padding: '10px', 
-      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
-      position: 'fixed', 
-      top: 0, 
-      right: 0, 
-      zIndex: 9999, 
-      fontSize: '10px', 
-      color: url && key ? '#234e52' : '#880000', 
-      borderRadius: '0 0 0 12px',
-      pointerEvents: 'none'
-    }}>
-      Supa: {url ? '✅' : '❌'} | Gemini: {geminiKey ? '✅' : '❌'}
-    </div>
-  );
-}
+import { INITIAL_PRODUCTS } from './constants';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -76,87 +51,138 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load persistence for products/votes
-  useEffect(() => {
-    const savedProducts = localStorage.getItem('mh_products_v4');
-    const savedVotes = localStorage.getItem('mh_votes');
+  // Fetch data directly from Supabase (Source of Truth)
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, comments(*)')
+        .order('created_at', { ascending: false });
 
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    else setProducts(INITIAL_PRODUCTS);
+      if (error) throw error;
+      
+      // If DB is empty or call fails, use INITIAL_PRODUCTS as a fallback to keep app functional
+      const fetchedProducts = (data && data.length > 0) ? (data as Product[]) : INITIAL_PRODUCTS;
+      setProducts(fetchedProducts);
 
-    if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
-    
-    setIsLoading(false);
-  }, []);
-
-  // Sync persistence
-  useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('mh_products_v4', JSON.stringify(products));
-      localStorage.setItem('mh_votes', JSON.stringify(Array.from(votes)));
+      // Refresh currently selected product if in detail view
+      if (selectedProduct) {
+        const updated = fetchedProducts.find(p => p.id === selectedProduct.id);
+        if (updated) setSelectedProduct(updated);
+      }
+      
+      // Fetch user's votes from cloud
+      const session = await supabase.auth.getSession();
+      const currentUserId = session.data.session?.user?.id;
+      if (currentUserId) {
+        const { data: voteData } = await supabase
+          .from('votes')
+          .select('product_id')
+          .eq('user_id', currentUserId);
+        
+        const voteSet = new Set<string>();
+        voteData?.forEach(v => voteSet.add(`${currentUserId}_${v.product_id}`));
+        setVotes(voteSet);
+      }
+    } catch (err) {
+      console.error('Supabase fetch error, using fallback data:', err);
+      setProducts(INITIAL_PRODUCTS);
+    } finally {
+      setIsLoading(false);
     }
-  }, [products, votes, isLoading]);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setView(View.HOME);
+    setVotes(new Set());
   };
 
-  const handleUpvote = (productId: string) => {
+  const handleUpvote = async (productId: string) => {
     if (!user) {
       setView(View.LOGIN);
       return;
     }
 
     const voteKey = `${user.id}_${productId}`;
-    setVotes(prev => {
-      const next = new Set(prev);
-      if (next.has(voteKey)) {
-        next.delete(voteKey);
-        setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count - 1 } : p));
+    const hasVoted = votes.has(voteKey);
+
+    try {
+      if (hasVoted) {
+        await supabase.from('votes').delete().match({ user_id: user.id, product_id: productId });
+        const p = products.find(prod => prod.id === productId);
+        if (p) {
+          await supabase.from('products').update({ upvotes_count: Math.max(0, (p.upvotes_count || 1) - 1) }).eq('id', productId);
+        }
       } else {
-        next.add(voteKey);
-        setProducts(curr => curr.map(p => p.id === productId ? { ...p, upvotes_count: p.upvotes_count + 1 } : p));
+        await supabase.from('votes').insert({ user_id: user.id, product_id: productId });
+        const p = products.find(prod => prod.id === productId);
+        if (p) {
+          await supabase.from('products').update({ upvotes_count: (p.upvotes_count || 0) + 1 }).eq('id', productId);
+        }
       }
-      return next;
-    });
+      // Re-fetch to sync for all users
+      await fetchProducts();
+    } catch (err) {
+      console.error('Upvote failed:', err);
+    }
   };
 
-  const handleNewProduct = (formData: any) => {
-    const newProduct: Product = {
-      ...formData,
-      id: Math.random().toString(36).substr(2, 9),
-      created_at: new Date().toISOString(),
-      founder_id: user?.id || 'anonymous',
-      upvotes_count: 0,
-      comments: []
-    };
-    setProducts([newProduct, ...products]);
-    setView(View.HOME);
+  const handleNewProduct = async (formData: any) => {
+    if (!user) return;
+    
+    try {
+      // Map frontend 'url' to 'website_url' and 'founder_id' to 'user_id' per schema
+      const { data, error } = await supabase.from('products').insert([{
+        name: formData.name,
+        website_url: formData.url,
+        tagline: formData.tagline,
+        description: formData.description,
+        logo_url: formData.logo_url,
+        category: formData.category,
+        halal_status: formData.halal_status,
+        sadaqah_info: formData.sadaqah_info,
+        user_id: user.id,
+        upvotes_count: 0
+      }]).select();
+
+      if (error) throw error;
+      if (data) {
+        await fetchProducts();
+        setView(View.HOME);
+      }
+    } catch (err) {
+      console.error('Cloud submission failed:', err);
+    }
   };
 
-  const handleAddComment = (text: string) => {
+  const handleAddComment = async (text: string) => {
     if (!user || !selectedProduct) return;
     
-    const newComment: Comment = {
-      id: 'c_' + Math.random().toString(36).substr(2, 9),
-      user_id: user.id,
-      username: user.username,
-      avatar_url: user.avatar_url,
-      text,
-      created_at: new Date().toISOString(),
-      is_maker: selectedProduct.founder_id === user.id,
-      upvotes_count: 0
-    };
+    try {
+      // Cloud Storage: Save to database so it persists across browsers/devices
+      const { error } = await supabase.from('comments').insert([{
+        product_id: selectedProduct.id,
+        user_id: user.id,
+        username: user.username,
+        avatar_url: user.avatar_url,
+        text: text,
+        is_maker: selectedProduct.user_id === user.id,
+        upvotes_count: 0
+      }]);
 
-    setProducts(prev => prev.map(p => {
-      if (p.id === selectedProduct.id) {
-        const updated = { ...p, comments: [newComment, ...(p.comments || [])] };
-        setSelectedProduct(updated);
-        return updated;
-      }
-      return p;
-    }));
+      if (error) throw error;
+      
+      // Refresh to pull updated cloud state
+      await fetchProducts();
+    } catch (err) {
+      console.error('Comment insertion failed:', err);
+    }
   };
 
   const handleViewProfile = (userId: string, username: string, email: string, avatar: string) => {
@@ -179,10 +205,7 @@ const App: React.FC = () => {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
     
-    // First filter by search query
     const filteredProducts = searchProducts(products, searchQuery);
-    
-    // Then sort by upvotes
     const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
     
     return {
@@ -196,6 +219,15 @@ const App: React.FC = () => {
   }, [products, searchQuery]);
 
   const renderContent = () => {
+    if (isLoading && products.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-12 h-12 text-emerald-800 animate-spin mb-4" />
+          <p className="text-emerald-900 font-serif text-xl italic">Gathering the Ummah's best...</p>
+        </div>
+      );
+    }
+
     if (view === View.LOGIN) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -346,7 +378,7 @@ const App: React.FC = () => {
             </section>
           )}
           
-          {!products.length && !searchQuery && (
+          {!isLoading && !products.length && !searchQuery && (
             <div className="text-center py-32 bg-white border-4 border-dashed border-emerald-50 rounded-[4rem] flex flex-col items-center justify-center">
               <Sparkles className="w-12 h-12 text-emerald-100 mb-4" />
               <p className="text-emerald-900/20 font-serif text-3xl italic">Awaiting the next great launch...</p>
@@ -373,7 +405,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 selection:bg-emerald-100 selection:text-emerald-900">
-      <ConnectionDebug />
       <Navbar 
         user={user} 
         currentView={view} 
