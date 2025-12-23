@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock } from 'lucide-react';
+import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, Sparkles } from 'lucide-react';
 import { Product, Comment } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
@@ -30,6 +30,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   scrollToComments = false
 }) => {
   const [commentText, setCommentText] = useState('');
+  const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<number | null>(null);
   const discussionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +60,68 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     navigator.clipboard.writeText(shareUrl);
     alert('Link to comment copied to clipboard!');
   };
+
+  const handleMouseEnter = (commentId: string) => {
+    if (hoverTimeoutRef.current) window.clearTimeout(hoverTimeoutRef.current);
+    setHoveredCommentId(commentId);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      setHoveredCommentId(null);
+    }, 300);
+  };
+
+  const UserHoverCard = ({ comment }: { comment: Comment }) => (
+    <div 
+      className="absolute bottom-full left-0 mb-4 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[1.5rem] p-6 z-50 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+      onMouseEnter={() => handleMouseEnter(comment.id)}
+      onMouseLeave={handleMouseLeave}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-50 shrink-0 shadow-sm">
+          <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 text-lg leading-tight">{comment.username}</h4>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded font-black uppercase tracking-wider">
+              {comment.is_maker ? 'Maker' : 'Contributor'}
+            </span>
+            {comment.is_maker && <Sparkles className="w-3 h-3 text-emerald-500" />}
+          </div>
+        </div>
+      </div>
+      
+      <p className="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
+        Building the future of Halal tech. Currently working on <span className="text-emerald-800 font-bold">Global Ummah</span> solutions.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4 mb-6 pt-6 border-t border-gray-50">
+        <div className="text-center">
+          <p className="font-black text-gray-900 text-lg leading-none">1.4k</p>
+          <p className="text-[10px] uppercase font-bold text-gray-400 mt-1 tracking-tighter">Followers</p>
+        </div>
+        <div className="text-center border-l border-gray-50">
+          <p className="font-black text-gray-900 text-lg leading-none">840</p>
+          <p className="text-[10px] uppercase font-bold text-gray-400 mt-1 tracking-tighter">Points</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button className="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98]">
+          Follow
+        </button>
+        <button 
+          onClick={() => onViewProfile(comment.user_id)}
+          className="px-4 py-2.5 bg-emerald-800 text-white rounded-xl font-bold text-sm hover:bg-emerald-900 transition-all active:scale-[0.98]"
+        >
+          Profile
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4">
@@ -139,27 +203,48 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               ) : (
                 product.comments?.map((comment: Comment) => {
                   const hasUpvotedComment = commentVotes.has(`${user?.id}_${comment.id}`);
+                  const isHovered = hoveredCommentId === comment.id;
+
                   return (
-                    <div key={comment.id} className="flex gap-4 group">
-                      <button 
-                        className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
-                        onClick={() => onViewProfile(comment.user_id)}
+                    <div key={comment.id} className="flex gap-4 group relative">
+                      {/* Avatar Trigger */}
+                      <div 
+                        className="relative"
+                        onMouseEnter={() => handleMouseEnter(comment.id)}
+                        onMouseLeave={handleMouseLeave}
                       >
-                        <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
-                      </button>
-                      <div className="flex-1">
+                        <button 
+                          className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
+                          onClick={() => onViewProfile(comment.user_id)}
+                        >
+                          <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+                        </button>
+                        {isHovered && <UserHoverCard comment={comment} />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <button 
-                            className={`font-bold text-sm cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
-                            onClick={() => onViewProfile(comment.user_id)}
+                          {/* Name Trigger */}
+                          <div 
+                            className="relative"
+                            onMouseEnter={() => handleMouseEnter(comment.id)}
+                            onMouseLeave={handleMouseLeave}
                           >
-                            {comment.username}
-                          </button>
+                            <button 
+                              className={`font-bold text-sm cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                              onClick={() => onViewProfile(comment.user_id)}
+                            >
+                              {comment.username}
+                            </button>
+                            {/* Card logic handles itself via visibility check if needed, 
+                                but wrapping both name and avatar in parent-level trigger is cleaner */}
+                          </div>
+
                           {comment.is_maker && (
                             <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
                           )}
                         </div>
-                        <p className="text-gray-600 text-base leading-relaxed">{comment.text}</p>
+                        <p className="text-gray-600 text-base leading-relaxed break-words">{comment.text}</p>
                         
                         <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400">
                           <button 
