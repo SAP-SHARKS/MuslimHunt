@@ -202,15 +202,11 @@ const App: React.FC = () => {
       setIsLoading(true);
       try {
         // Fetch products
-        let { data: dbProducts, error: pError } = await supabase
-          .from('products')
-          .select('*');
-
-        // If table is empty or doesn't exist, fallback to INITIAL_PRODUCTS
+        let { data: dbProducts } = await supabase.from('products').select('*');
         const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
 
         // Fetch all comments
-        let { data: dbComments, error: cError } = await supabase
+        let { data: dbComments } = await supabase
           .from('comments')
           .select('*')
           .order('created_at', { ascending: false });
@@ -223,12 +219,16 @@ const App: React.FC = () => {
 
         const productsWithComments = baseProducts.map(p => ({
           ...p,
-          comments: commentsMap[p.id] || []
+          comments: [
+            ...(commentsMap[p.id] || []),
+            ...(INITIAL_PRODUCTS.find(ip => ip.id === p.id)?.comments || [])
+          ].filter((c, index, self) => index === self.findIndex((t) => t.id === c.id)) // Filter unique IDs
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         }));
 
         setProducts(productsWithComments);
 
-        // Recover votes from local storage for now (as upvotes are currently local)
+        // Recover votes from local storage
         const savedVotes = localStorage.getItem('mh_votes_v5');
         const savedCVotes = localStorage.getItem('mh_cvotes_v5');
         if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
@@ -248,7 +248,7 @@ const App: React.FC = () => {
   // Real-time Subscriptions for Comments
   useEffect(() => {
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('comments-realtime')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'comments' },
@@ -257,10 +257,15 @@ const App: React.FC = () => {
           setProducts(prev => prev.map(p => {
             if (p.id === newComment.product_id) {
               const existingComments = p.comments || [];
-              // Prevent duplicates
               if (existingComments.some(c => c.id === newComment.id)) return p;
-              const updated = { ...p, comments: [newComment, ...existingComments] };
-              // If we are currently looking at this product detail, update it too
+              
+              // Determine if this is the maker
+              const commentWithMakerStatus = {
+                ...newComment,
+                is_maker: newComment.user_id === p.founder_id
+              };
+
+              const updated = { ...p, comments: [commentWithMakerStatus, ...existingComments] };
               if (selectedProduct?.id === p.id) {
                 setSelectedProduct(updated);
               }
@@ -277,7 +282,7 @@ const App: React.FC = () => {
     };
   }, [selectedProduct]);
 
-  // Sync state to local storage (for offline persistence of votes)
+  // Sync state to local storage
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
@@ -323,7 +328,7 @@ const App: React.FC = () => {
       setView(View.PROFILE);
     } catch (err) {
       console.error("Error loading user profile:", err);
-      alert("Could not load user profile details. Please try again.");
+      alert("Could not load user profile details.");
     } finally {
       setIsLoading(false);
     }
@@ -405,16 +410,24 @@ const App: React.FC = () => {
     };
 
     try {
+      // Direct insertion to Supabase. Table 'comments' must exist.
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase Error Details:", error.code, error.message, error.details);
+        throw error;
+      }
 
-      // Local state update as fallback/speed optimization (subscription will also trigger)
+      // Optimization: Update state immediately while subscription propagates globally
       if (data && data[0]) {
-        const persistedComment = data[0] as Comment;
+        const persistedComment = {
+          ...data[0],
+          is_maker: data[0].user_id === selectedProduct.founder_id
+        } as Comment;
+
         setProducts(prev => prev.map(p => {
           if (p.id === selectedProduct.id) {
             const currentComments = p.comments || [];
@@ -426,9 +439,9 @@ const App: React.FC = () => {
           return p;
         }));
       }
-    } catch (err) {
-      console.error("Error posting comment:", err);
-      alert("Bismillah, something went wrong while posting your comment. Please try again.");
+    } catch (err: any) {
+      console.error("Critical error in handleAddComment:", err);
+      alert(`Bismillah, we couldn't post your comment. Error: ${err.message || 'Check database connection'}.`);
     }
   };
 
@@ -544,7 +557,7 @@ const App: React.FC = () => {
                 };
 
                 return section.data.length > 0 && (
-                  <section key={section.title}>
+                  <section key={section.id}>
                     <div className="flex items-center justify-between mb-6">
                       <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
                       <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
