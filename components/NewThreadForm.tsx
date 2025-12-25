@@ -1,6 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Bold, Italic, List, Link as LinkIcon, Code, Home, MessageSquare, Hash, Info, Search, ChevronDown, Check } from 'lucide-react';
+import { 
+  X, Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, 
+  Quote, AtSign, Image as ImageIcon, BarChart2, Home, 
+  MessageSquare, Hash, Info, Search, ChevronDown, Check 
+} from 'lucide-react';
 
 interface NewThreadFormProps {
   onCancel: () => void;
@@ -18,7 +22,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
   const [formData, setFormData] = useState({
     forumId: 'p/general',
     title: '',
-    body: '' // This will store HTML
+    body: '' // Stores HTML string
   });
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -26,6 +30,29 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
   const [showTitleError, setShowTitleError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Sync editor content to state without re-rendering the editor to maintain cursor position
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setFormData(prev => ({ ...prev, body: editorRef.current?.innerHTML || '' }));
+    }
+  };
+
+  // Handle keyboard shortcuts (Cmd/Ctrl + B, I)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        handleFormat('bold');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+        e.preventDefault();
+        handleFormat('italic');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -63,24 +90,31 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
   const handleFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
+    handleEditorInput();
   };
 
-  const ToolbarIcon = ({ icon: Icon, label, onClick }: { icon: any, label: string, onClick: () => void }) => (
-    <button 
-      type="button" 
-      onClick={onClick}
-      title={label}
-      className="p-1.5 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded transition-colors"
-    >
-      <Icon className="w-4 h-4" />
-    </button>
+  const ToolbarButton = ({ icon: Icon, label, tooltip, onClick }: { icon: any, label: string, tooltip: string, onClick: () => void }) => (
+    <div className="relative group">
+      <button 
+        type="button" 
+        onClick={onClick}
+        aria-label={label}
+        className="p-1.5 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded transition-colors"
+      >
+        <Icon className="w-4 h-4" />
+      </button>
+      {/* Tooltip */}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-[10px] font-bold rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+        {tooltip}
+      </div>
+    </div>
   );
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
         {/* Left Sidebar Navigation */}
-        <aside className="hidden lg:block space-y-8">
+        <aside className="hidden lg:block space-y-8 sticky top-24 h-fit">
           <nav className="space-y-1">
             <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-emerald-800 bg-emerald-50 rounded-xl">
               <Home className="w-4 h-4" /> Home
@@ -120,7 +154,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
 
           <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-[2rem] shadow-sm overflow-hidden">
             <div className="p-8 space-y-8">
-              {/* Custom Searchable Forum Selection */}
+              {/* Searchable Forum Selection */}
               <div className="space-y-2 relative" ref={dropdownRef}>
                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Select Forum</label>
                 <div 
@@ -143,7 +177,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
                           value={forumSearch}
                           onChange={(e) => setForumSearch(e.target.value)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-0"
+                          className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-lg text-sm focus:ring-0 outline-none"
                         />
                       </div>
                     </div>
@@ -163,6 +197,11 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
                           {formData.forumId === forum.id && <Check className="w-4 h-4 text-emerald-800" />}
                         </div>
                       ))}
+                      {filteredForums.length === 0 && (
+                        <div className="px-4 py-6 text-center text-sm text-gray-400 italic">
+                          No forums found
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -184,40 +223,44 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
                   }}
                   placeholder="What's on your mind?"
                   className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none transition-all text-lg font-bold placeholder:text-gray-300 ${
-                    showTitleError ? 'border-red-500 bg-red-50' : 'border-transparent focus:bg-white focus:border-emerald-800'
+                    showTitleError ? 'border-red-500 bg-red-50 focus:border-red-500' : 'border-transparent focus:bg-white focus:border-emerald-800'
                   }`}
                 />
               </div>
 
-              {/* Body Content with Toolbar & Rich Text Editor */}
+              {/* Body Content with Rich Text Editor & Tooltips */}
               <div className="space-y-2">
                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Body</label>
-                <div className="border border-gray-100 rounded-2xl overflow-hidden focus-within:border-emerald-800 transition-all">
-                  <div className="flex items-center gap-1 px-3 py-2 bg-gray-50 border-b border-gray-100">
-                    <ToolbarIcon icon={Bold} label="Bold" onClick={() => handleFormat('bold')} />
-                    <ToolbarIcon icon={Italic} label="Italic" onClick={() => handleFormat('italic')} />
+                <div className="border border-gray-100 rounded-2xl overflow-hidden focus-within:border-emerald-800 transition-all bg-white">
+                  <div className="flex flex-wrap items-center gap-1 px-3 py-2 bg-gray-50 border-b border-gray-100">
+                    <ToolbarButton icon={Bold} label="Bold" tooltip="Bold (Toggle with cmd & b)" onClick={() => handleFormat('bold')} />
+                    <ToolbarButton icon={Italic} label="Italic" tooltip="Italic (Toggle with cmd & i)" onClick={() => handleFormat('italic')} />
                     <div className="w-[1px] h-4 bg-gray-200 mx-1" />
-                    <ToolbarIcon icon={List} label="Bullet List" onClick={() => handleFormat('insertUnorderedList')} />
-                    <ToolbarIcon icon={LinkIcon} label="Link" onClick={() => {
+                    <ToolbarButton icon={ListOrdered} label="Ordered List" tooltip="Ordered list" onClick={() => handleFormat('insertOrderedList')} />
+                    <ToolbarButton icon={List} label="Bullet List" tooltip="Bullet list" onClick={() => handleFormat('insertUnorderedList')} />
+                    <div className="w-[1px] h-4 bg-gray-200 mx-1" />
+                    <ToolbarButton icon={LinkIcon} label="Link" tooltip="Link" onClick={() => {
                       const url = prompt('Enter the link URL:');
                       if (url) handleFormat('createLink', url);
                     }} />
-                    <ToolbarIcon icon={Code} label="Code Block" onClick={() => {
-                      // Simple code block implementation
-                      handleFormat('formatBlock', '<pre>');
-                    }} />
+                    <ToolbarButton icon={Code} label="Code Block" tooltip="Code block" onClick={() => handleFormat('formatBlock', 'pre')} />
+                    <ToolbarButton icon={Quote} label="Blockquote" tooltip="Blockquote" onClick={() => handleFormat('formatBlock', 'blockquote')} />
+                    <div className="w-[1px] h-4 bg-gray-200 mx-1" />
+                    <ToolbarButton icon={AtSign} label="Mention" tooltip="Mention @user or @product" onClick={() => {}} />
+                    <ToolbarButton icon={ImageIcon} label="Image" tooltip="Upload an image" onClick={() => {}} />
+                    <ToolbarButton icon={BarChart2} label="Poll" tooltip="Add poll" onClick={() => {}} />
                   </div>
                   
-                  {/* contentEditable div for Rich Text */}
+                  {/* Rich Text area */}
                   <div className="relative">
                     <div 
                       ref={editorRef}
                       contentEditable
-                      onInput={(e) => setFormData({ ...formData, body: (e.target as HTMLDivElement).innerHTML })}
-                      className="w-full px-5 py-4 bg-white outline-none min-h-[200px] text-base leading-relaxed text-gray-700 prose prose-emerald max-w-none"
+                      onInput={handleEditorInput}
+                      className="w-full px-5 py-4 bg-white outline-none min-h-[250px] text-base leading-relaxed text-gray-700 prose prose-emerald max-w-none"
                     />
-                    {(!formData.body || formData.body === '<br>') && (
-                      <div className="absolute top-4 left-5 pointer-events-none text-gray-300 text-lg">
+                    {(!formData.body || formData.body === '<br>' || formData.body === '') && (
+                      <div className="absolute top-4 left-5 pointer-events-none text-gray-300 text-lg font-medium">
                         Body
                       </div>
                     )}
