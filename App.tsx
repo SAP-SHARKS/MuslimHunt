@@ -8,7 +8,7 @@ import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, X, Search, Loader2 } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
@@ -36,6 +36,45 @@ function ConnectionDebug() {
   );
 }
 
+const TrendingSidebar: React.FC = () => (
+  <aside className="hidden lg:block w-72 shrink-0 space-y-8">
+    <section>
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-4 h-4 text-emerald-800" />
+        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Trending Threads</h3>
+      </div>
+      <div className="space-y-4">
+        {[
+          { title: "Building in Public: My journey from 0 to 100 users", comments: 24 },
+          { title: "Which tech stack is best for Halal e-commerce?", comments: 18 },
+          { title: "Seeking Beta Testers for a new prayer app", comments: 42 },
+        ].map((thread, i) => (
+          <div key={i} className="group cursor-pointer">
+            <h4 className="text-sm font-medium text-gray-800 group-hover:text-emerald-800 transition-colors leading-snug mb-1">
+              {thread.title}
+            </h4>
+            <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+              <MessageSquare className="w-3 h-3" />
+              {thread.comments} comments
+            </div>
+          </div>
+        ))}
+        <button className="flex items-center gap-1 text-[10px] font-black text-emerald-800 uppercase tracking-[0.2em] pt-2 hover:translate-x-1 transition-transform">
+          View all discussions <ArrowRight className="w-3 h-3" />
+        </button>
+      </div>
+    </section>
+
+    <section className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+      <h3 className="text-xs font-black text-emerald-900 uppercase tracking-[0.2em] mb-2">Weekly Newsletter</h3>
+      <p className="text-sm text-emerald-800/70 mb-4 leading-relaxed font-medium">Get the best Muslim tech products delivered to your inbox every Friday.</p>
+      <button className="w-full bg-emerald-800 text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-emerald-900 transition-all active:scale-[0.98]">
+        Subscribe
+      </button>
+    </section>
+  </aside>
+);
+
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
@@ -48,7 +87,6 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
 
-  // Auth State Listener
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -77,7 +115,6 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load Persistence (Mocking Supabase for now)
   useEffect(() => {
     const savedProducts = localStorage.getItem('mh_products_v5');
     const savedVotes = localStorage.getItem('mh_votes_v5');
@@ -92,7 +129,6 @@ const App: React.FC = () => {
     setIsLoading(false);
   }, []);
 
-  // Sync Persistence
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem('mh_products_v5', JSON.stringify(products));
@@ -109,7 +145,6 @@ const App: React.FC = () => {
   const handleViewProfile = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Restore dynamic profile clicking logic: Fetch clicked user's data from Supabase
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -129,7 +164,6 @@ const App: React.FC = () => {
           website_url: profile.website_url
         });
       } else {
-        // Fallback for missing profile records
         setSelectedProfile({
           id: userId,
           username: 'Community Member',
@@ -296,48 +330,50 @@ const App: React.FC = () => {
       );
     }
 
-    // Default: Home View with full main section mapping
     return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <header className="mb-12 text-center md:text-left md:flex md:items-center md:justify-between border-b border-emerald-50 pb-12 overflow-hidden">
-          <div>
-            <div className="flex items-center justify-center md:justify-start gap-2 text-emerald-800 font-black mb-4">
+      <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-12">
+        <div className="flex-1">
+          <header className="mb-12 border-b border-emerald-50 pb-8">
+            <div className="flex items-center gap-2 text-emerald-800 font-black mb-4">
               <Sparkles className="w-5 h-5" />
               <span className="text-xs tracking-[0.2em] uppercase">Halal Trust Layer</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-emerald-900 leading-[1.05] tracking-tight whitespace-nowrap lg:whitespace-normal">
-              Discovery for the <br /><span className="text-emerald-700 italic">Modern Ummah.</span>
+            <h1 className="text-4xl md:text-5xl font-serif font-bold text-emerald-900 leading-tight">
+              Top Products Launching <br /><span className="text-emerald-700 italic">Today.</span>
             </h1>
-          </div>
-        </header>
+          </header>
 
-        <main className="space-y-16">
-          {[
-            { title: 'Freshly Launched', data: groupedProducts.today, color: 'emerald' },
-            { title: 'Trending Yesterday', data: groupedProducts.yesterday, color: 'gray' },
-            { title: 'The Archives', data: groupedProducts.past, color: 'gray' }
-          ].map(section => section.data.length > 0 && (
-            <section key={section.title}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
-                <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
-              </div>
-              <div className="space-y-3 bg-white rounded-[2.5rem] border border-gray-100 p-3 shadow-sm">
-                {section.data.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={handleProductClick}
-                    onCommentClick={(prod) => handleProductClick(prod, true)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </main>
+          <main className="space-y-16">
+            {[
+              { title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald', showRank: true },
+              { title: 'Trending Yesterday', data: groupedProducts.yesterday, color: 'gray', showRank: false },
+              { title: 'The Archives', data: groupedProducts.past, color: 'gray', showRank: false }
+            ].map(section => section.data.length > 0 && (
+              <section key={section.title}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
+                  <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
+                </div>
+                <div className="space-y-1 bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                  {section.data.map((p, idx) => (
+                    <ProductCard 
+                      key={p.id} 
+                      product={p} 
+                      onUpvote={handleUpvote} 
+                      hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                      onClick={handleProductClick}
+                      onCommentClick={(prod) => handleProductClick(prod, true)}
+                      searchQuery={searchQuery}
+                      rank={section.showRank ? idx + 1 : undefined}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </main>
+        </div>
+        
+        <TrendingSidebar />
       </div>
     );
   };

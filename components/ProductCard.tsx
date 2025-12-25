@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ChevronUp, MessageSquare } from 'lucide-react';
+import { ChevronUp, MessageSquare, Triangle } from 'lucide-react';
 import { Product } from '../types';
 import { highlightSearchTerm } from '../utils/searchUtils';
 
@@ -11,6 +11,7 @@ interface ProductCardProps {
   onClick: (product: Product) => void;
   onCommentClick: (product: Product) => void;
   searchQuery?: string;
+  rank?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ 
@@ -19,64 +20,89 @@ const ProductCard: React.FC<ProductCardProps> = ({
   hasUpvoted, 
   onClick, 
   onCommentClick,
-  searchQuery = '' 
+  searchQuery = '',
+  rank
 }) => {
   const highlightedName = highlightSearchTerm(product.name, searchQuery);
   const highlightedTagline = highlightSearchTerm(product.tagline, searchQuery);
   const commentCount = product.comments?.length || 0;
 
+  // Mock tags for professional aesthetic
+  const tags = [product.category, 'Web', 'Free'];
+
   return (
     <div 
-      className="group flex items-center justify-between p-4 bg-white border border-transparent hover:border-emerald-100 hover:bg-emerald-50/30 rounded-xl transition-all cursor-pointer"
+      className="group flex items-center justify-between p-5 bg-white border-b border-gray-50 last:border-0 hover:bg-emerald-50/20 transition-all cursor-pointer"
       onClick={() => onClick(product)}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-100">
+      <div className="flex items-center gap-5 flex-1 min-w-0">
+        {/* Ranking Number */}
+        {rank !== undefined && (
+          <div className="hidden sm:flex w-6 shrink-0 text-lg font-serif italic text-gray-300 group-hover:text-emerald-800/30 transition-colors">
+            {rank}.
+          </div>
+        )}
+
+        {/* Logo */}
+        <div className="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-all">
           <img src={product.logo_url} alt={product.name} className="w-full h-full object-cover" />
         </div>
         
+        {/* Info Area */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 
-              className="text-lg font-bold text-gray-900 group-hover:text-emerald-800 transition-colors"
-              dangerouslySetInnerHTML={{ __html: highlightedName }}
-            />
-            <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium uppercase tracking-wider">
-              {product.category}
-            </span>
-          </div>
+          <h3 
+            className="text-lg font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug"
+            dangerouslySetInnerHTML={{ __html: highlightedName }}
+          />
           <p 
-            className="text-gray-600 text-sm line-clamp-1"
+            className="text-gray-500 text-sm line-clamp-1 mb-2 font-medium"
             dangerouslySetInnerHTML={{ __html: highlightedTagline }}
           />
+          
+          {/* Tags List */}
+          <div className="flex items-center gap-2 overflow-hidden">
+            {tags.map((tag, i) => (
+              <React.Fragment key={tag}>
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap">
+                  {tag}
+                </span>
+                {i < tags.length - 1 && (
+                  <span className="text-[8px] text-gray-300">•</span>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+      {/* Action Buttons (Right Side) */}
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-4">
+        {/* Comment Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all"
+          className="flex flex-col items-center justify-center min-w-[3.5rem] h-16 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95"
         >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[10px] font-bold mt-1">{commentCount}</span>
+          <MessageSquare className="w-5 h-5 mb-0.5" />
+          <span className="text-[11px] font-black tracking-tighter">{commentCount}</span>
         </button>
 
+        {/* Upvote Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onUpvote(product.id);
           }}
-          className={`flex flex-col items-center justify-center w-14 h-14 rounded-lg border-2 transition-all shrink-0 ${
+          className={`flex flex-col items-center justify-center min-w-[4rem] h-16 rounded-xl border-2 transition-all shrink-0 active:scale-95 ${
             hasUpvoted 
-              ? 'bg-emerald-800 border-emerald-800 text-white' 
-              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800 shadow-sm'
+              ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg shadow-emerald-900/20' 
+              : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800 hover:shadow-sm'
           }`}
         >
-          <ChevronUp className={`w-5 h-5 ${hasUpvoted ? 'animate-bounce' : ''}`} />
-          <span className="text-xs font-bold leading-none mt-1">{product.upvotes_count}</span>
+          <Triangle className={`w-4 h-4 mb-0.5 ${hasUpvoted ? 'fill-white' : ''}`} />
+          <span className="text-xs font-black tracking-tighter">{product.upvotes_count}</span>
         </button>
       </div>
     </div>
