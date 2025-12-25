@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Globe, Sparkles, X } from 'lucide-react';
+import { Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Globe, Sparkles, X, MessageSquare } from 'lucide-react';
 import { User, View } from '../types';
 
 interface NavbarProps {
@@ -12,7 +13,7 @@ interface NavbarProps {
   onViewProfile?: () => void;
 }
 
-const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any }[] }> = ({ label, items }) => {
+const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any; onClick?: () => void }[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="relative group" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
@@ -23,7 +24,11 @@ const NavDropdown: React.FC<{ label: string; items: { label: string; icon?: any 
       {isOpen && (
         <div className="absolute top-full left-0 w-56 bg-white border border-gray-100 shadow-xl rounded-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {items.map((item, i) => (
-            <button key={i} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-800 transition-colors text-left">
+            <button 
+              key={i} 
+              onClick={item.onClick}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-800 transition-colors text-left"
+            >
               {item.icon && <item.icon className="w-4 h-4 opacity-70" />}
               {item.label}
             </button>
@@ -66,17 +71,17 @@ const Navbar: React.FC<NavbarProps> = ({
           <NavDropdown 
             label="Best Products" 
             items={[
-              { label: 'Halal Tech', icon: Globe },
-              { label: 'EdTech', icon: BookOpen },
-              { label: 'FinTech', icon: Sparkles },
+              { label: 'Halal Tech', icon: Globe, onClick: () => setView(View.HOME) },
+              { label: 'EdTech', icon: BookOpen, onClick: () => setView(View.HOME) },
+              { label: 'FinTech', icon: Sparkles, onClick: () => setView(View.HOME) },
             ]} 
           />
           <NavDropdown 
             label="Community" 
             items={[
+              { label: 'Forum Home', icon: MessageSquare, onClick: () => setView(View.FORUM_HOME) },
               { label: 'Halaqas', icon: Users },
-              { label: 'Events', icon: Globe },
-              { label: 'Maker Discussions', icon: Users },
+              { label: 'Maker Discussions', icon: Users, onClick: () => setView(View.FORUM_HOME) },
             ]} 
           />
           <NavDropdown 

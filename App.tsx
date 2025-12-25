@@ -7,6 +7,7 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import NewThreadForm from './components/NewThreadForm';
+import ForumHome from './components/ForumHome';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
@@ -43,7 +44,12 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
     <div className="sticky top-24 space-y-8">
       <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Trending Discussions</h3>
+          <h3 
+            className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800"
+            onClick={() => setView(View.FORUM_HOME)}
+          >
+            Trending Discussions
+          </h3>
           <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
         </div>
         
@@ -78,7 +84,7 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
               icon: "🤖"
             }
           ].map((thread, i) => (
-            <div key={i} className="group cursor-pointer">
+            <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
               <div className="flex items-start gap-3">
                 <span className="text-lg leading-none pt-0.5">{thread.icon}</span>
                 <div className="flex-1">
@@ -108,7 +114,10 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
         </div>
 
         <div className="mt-8 space-y-4 pt-6 border-t border-gray-50">
-          <button className="w-full text-center text-sm font-bold text-gray-500 hover:text-emerald-800 transition-colors">
+          <button 
+            onClick={() => setView(View.FORUM_HOME)}
+            className="w-full text-center text-sm font-bold text-gray-500 hover:text-emerald-800 transition-colors"
+          >
             View all
           </button>
           
@@ -483,7 +492,8 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => setView(View.HOME)} /></div>;
     if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
-    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.HOME)} onSubmit={(data) => { console.log('Thread created:', data); setView(View.HOME); }} />;
+    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.FORUM_HOME)} onSubmit={(data) => { console.log('Thread created:', data); setView(View.FORUM_HOME); }} />;
+    if (view === View.FORUM_HOME) return <ForumHome setView={setView} user={user} />;
 
     if (view === View.PROFILE && selectedProfile) {
       return (
