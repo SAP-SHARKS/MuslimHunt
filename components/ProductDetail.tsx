@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, Sparkles } from 'lucide-react';
+import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, Sparkles, Triangle } from 'lucide-react';
 import { Product, Comment } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
@@ -171,7 +171,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
 
             {user ? (
-              <form onSubmit={handleSubmitComment} className="mb-10 flex gap-4">
+              <form onSubmit={handleSubmitComment} className="mb-6 flex gap-4">
                 <button 
                   type="button"
                   onClick={() => onViewProfile(user.id)}
@@ -192,12 +192,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </form>
             ) : (
-              <div className="p-6 bg-gray-50 rounded-2xl text-center mb-10 border border-dashed border-gray-200">
+              <div className="p-6 bg-gray-50 rounded-2xl text-center mb-6 border border-dashed border-gray-200">
                 <p className="text-gray-500 font-medium">Please sign in to join the discussion.</p>
               </div>
             )}
 
-            <div className="space-y-8">
+            {/* Tightened Spacing for Comments List */}
+            <div className="space-y-4">
               {product.comments?.length === 0 ? (
                 <div className="text-center py-8 text-gray-400 italic">No comments yet. Start the conversation!</div>
               ) : (
@@ -206,15 +207,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   const isHovered = hoveredCommentId === comment.id;
 
                   return (
-                    <div key={comment.id} className="flex gap-4 group relative">
-                      {/* Avatar Trigger */}
+                    <div key={comment.id} className="flex gap-4 group relative py-2">
+                      {/* Avatar Trigger - Tighter gap */}
                       <div 
-                        className="relative"
+                        className="relative shrink-0"
                         onMouseEnter={() => handleMouseEnter(comment.id)}
                         onMouseLeave={handleMouseLeave}
                       >
                         <button 
-                          className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
+                          className="w-10 h-10 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
                           onClick={() => onViewProfile(comment.user_id)}
                         >
                           <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
@@ -223,8 +224,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          {/* Name Trigger */}
+                        <div className="flex items-center gap-2 mb-0.5">
                           <div 
                             className="relative"
                             onMouseEnter={() => handleMouseEnter(comment.id)}
@@ -236,40 +236,42 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                             >
                               {comment.username}
                             </button>
-                            {/* Card logic handles itself via visibility check if needed, 
-                                but wrapping both name and avatar in parent-level trigger is cleaner */}
                           </div>
-
                           {comment.is_maker && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase">Maker</span>
+                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase tracking-tighter">Maker</span>
                           )}
                         </div>
-                        <p className="text-gray-600 text-base leading-relaxed break-words">{comment.text}</p>
                         
-                        <div className="flex items-center gap-4 mt-3 text-xs font-bold text-gray-400">
+                        <p className="text-gray-600 text-sm md:text-base leading-relaxed break-words font-medium">
+                          {comment.text}
+                        </p>
+                        
+                        {/* Calibrated Meta-Info Line tucked closely */}
+                        <div className="flex items-center gap-2 mt-2 text-[11px] font-black text-gray-400 uppercase tracking-tighter">
                           <button 
                             onClick={() => onCommentUpvote(product.id, comment.id)}
-                            className={`flex items-center gap-1 transition-colors uppercase tracking-tighter ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
+                            className={`flex items-center gap-1 transition-colors ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
                           >
-                            <ArrowBigUp className={`w-3.5 h-3.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
+                            <Triangle className={`w-2.5 h-2.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
                             <span>Upvote ({comment.upvotes_count || 0})</span>
                           </button>
+                          <span className="text-gray-200">•</span>
                           <button 
                             onClick={() => handleShareComment(comment.id)}
-                            className="flex items-center gap-1 hover:text-blue-500 transition-colors uppercase tracking-tighter"
+                            className="hover:text-emerald-800 transition-colors"
                           >
-                            <Share2 className="w-3.5 h-3.5" />
-                            <span>Share</span>
+                            Share
                           </button>
+                          <span className="text-gray-200">•</span>
                           <button 
                             onClick={() => handleReportComment(comment.id, comment.username)}
-                            className="flex items-center gap-1 hover:text-red-500 transition-colors uppercase tracking-tighter"
+                            className="hover:text-red-500 transition-colors"
                           >
-                            <Flag className="w-3.5 h-3.5" />
-                            <span>Report</span>
+                            Report
                           </button>
-                          <div className="flex items-center gap-1 uppercase tracking-tighter">
-                            <Clock className="w-3.5 h-3.5" />
+                          <span className="text-gray-200">•</span>
+                          <div className="flex items-center gap-1 text-gray-300">
+                            <Clock className="w-3 h-3" />
                             <span>{formatTimeAgo(comment.created_at)}</span>
                           </div>
                         </div>

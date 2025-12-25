@@ -11,7 +11,7 @@ interface ForumHomeProps {
 const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
   const [forumSearch, setForumSearch] = useState('');
 
-  // Mock data for forum threads
+  // Mock data for forum threads including optional image_url
   const threads = [
     {
       id: 'f1',
@@ -23,6 +23,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
         headline: 'Maker of QuranFlow'
       },
       preview: "I started this journey three months ago with just a simple idea to help the Ummah track their Zakat more efficiently. Here's what I learned about consistency and community feedback...",
+      image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
       upvotes: 156,
       comments: 24,
       created_at: '2025-05-10T10:00:00Z',
@@ -54,6 +55,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
         headline: 'CTO @ HalalWealth'
       },
       preview: "Salaam everyone! I've been in the industry for 15 years. Happy to answer questions about scaling, compliance, or getting started in FinTech from a technical perspective.",
+      image_url: 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&q=80',
       upvotes: 310,
       comments: 42,
       created_at: '2025-05-09T15:00:00Z',
@@ -228,9 +230,20 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
                   <h2 className="text-2xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors mb-3 leading-tight tracking-tight">
                     {thread.title}
                   </h2>
-                  <p className="text-gray-500 text-[15px] line-clamp-2 leading-relaxed font-medium max-w-4xl">
+                  <p className="text-gray-500 text-[15px] line-clamp-2 leading-relaxed font-medium max-w-4xl mb-6">
                     {thread.preview}
                   </p>
+
+                  {/* High-Fidelity Image Post Support */}
+                  {thread.image_url && (
+                    <div className="mb-6 rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-50 aspect-video relative group/img">
+                      <img 
+                        src={thread.image_url} 
+                        alt={thread.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" 
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex sm:flex-col items-center gap-3 sm:shrink-0 sm:pt-1">
