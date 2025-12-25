@@ -86,7 +86,14 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
-  const [isTodayExpanded, setIsTodayExpanded] = useState(false);
+  
+  // Refactored expansion states into a single object for multiple sections
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    today: false,
+    yesterday: false,
+    lastWeek: false,
+    lastMonth: false
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -276,18 +283,29 @@ const App: React.FC = () => {
   };
 
   const groupedProducts = useMemo(() => {
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const now = Date.now();
+    const todayStr = new Date().toDateString();
+    const yesterdayStr = new Date(now - 86400000).toDateString();
+    const lastWeekLimit = now - 7 * 24 * 60 * 60 * 1000;
+    const lastMonthLimit = now - 30 * 24 * 60 * 60 * 1000;
     
     const filteredProducts = searchProducts(products, searchQuery);
     const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
     
     return {
-      today: sorted.filter(p => new Date(p.created_at).toDateString() === today),
-      yesterday: sorted.filter(p => new Date(p.created_at).toDateString() === yesterday),
-      past: sorted.filter(p => {
-        const d = new Date(p.created_at).toDateString();
-        return d !== today && d !== yesterday;
+      today: sorted.filter(p => new Date(p.created_at).toDateString() === todayStr),
+      yesterday: sorted.filter(p => new Date(p.created_at).toDateString() === yesterdayStr),
+      lastWeek: sorted.filter(p => {
+        const d = new Date(p.created_at);
+        const dateStr = d.toDateString();
+        const time = d.getTime();
+        return dateStr !== todayStr && dateStr !== yesterdayStr && time > lastWeekLimit;
+      }),
+      lastMonth: sorted.filter(p => {
+        const d = new Date(p.created_at);
+        const dateStr = d.toDateString();
+        const time = d.getTime();
+        return dateStr !== todayStr && dateStr !== yesterdayStr && time <= lastWeekLimit && time > lastMonthLimit;
       })
     };
   }, [products, searchQuery]);
@@ -346,13 +364,21 @@ const App: React.FC = () => {
 
           <main className="space-y-16">
             {[
-              { title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald', showRank: true },
-              { title: 'Trending Yesterday', data: groupedProducts.yesterday, color: 'gray', showRank: false },
-              { title: 'The Archives', data: groupedProducts.past, color: 'gray', showRank: false }
+              { id: 'today', title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald' },
+              { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday, color: 'gray' },
+              { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek, color: 'gray' },
+              { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, color: 'gray' }
             ].map(section => {
-              const isToday = section.title === 'Top Products Launching Today';
-              const displayData = isToday && !isTodayExpanded ? section.data.slice(0, 5) : section.data;
-              const hasMore = isToday && section.data.length > 5 && !isTodayExpanded;
+              const isExpanded = expandedSections[section.id];
+              const displayData = isExpanded ? section.data : section.data.slice(0, 5);
+              const hasMore = section.data.length > 5 && !isExpanded;
+              
+              const buttonTextMap: Record<string, string> = {
+                today: "See all of today's products",
+                yesterday: "See all of yesterday's top products",
+                lastWeek: "See all of last week's top products",
+                lastMonth: "See all of last month's top products"
+              };
 
               return section.data.length > 0 && (
                 <section key={section.title}>
@@ -370,16 +396,16 @@ const App: React.FC = () => {
                         onClick={handleProductClick}
                         onCommentClick={(prod) => handleProductClick(prod, true)}
                         searchQuery={searchQuery}
-                        rank={section.showRank ? idx + 1 : undefined}
+                        rank={idx + 1}
                       />
                     ))}
                   </div>
                   {hasMore && (
                     <button 
-                      onClick={() => setIsTodayExpanded(true)}
+                      onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
                       className="w-full py-4 mt-4 border border-gray-100 rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all bg-white/50"
                     >
-                      See all of today's products
+                      {buttonTextMap[section.id]}
                     </button>
                   )}
                 </section>
