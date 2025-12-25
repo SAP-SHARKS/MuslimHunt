@@ -167,6 +167,7 @@ const App: React.FC = () => {
     lastMonth: false
   });
 
+  // Initial Auth Check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -195,27 +196,94 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch Products and Comments from Supabase
   useEffect(() => {
-    const savedProducts = localStorage.getItem('mh_products_v5');
-    const savedVotes = localStorage.getItem('mh_votes_v5');
-    const savedCVotes = localStorage.getItem('mh_cvotes_v5');
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch products
+        let { data: dbProducts, error: pError } = await supabase
+          .from('products')
+          .select('*');
 
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    else setProducts(INITIAL_PRODUCTS);
+        // If table is empty or doesn't exist, fallback to INITIAL_PRODUCTS
+        const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
 
-    if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
-    if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
-    
-    setIsLoading(false);
+        // Fetch all comments
+        let { data: dbComments, error: cError } = await supabase
+          .from('comments')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        const commentsMap = (dbComments || []).reduce((acc: any, comment: any) => {
+          if (!acc[comment.product_id]) acc[comment.product_id] = [];
+          acc[comment.product_id].push(comment);
+          return acc;
+        }, {});
+
+        const productsWithComments = baseProducts.map(p => ({
+          ...p,
+          comments: commentsMap[p.id] || []
+        }));
+
+        setProducts(productsWithComments);
+
+        // Recover votes from local storage for now (as upvotes are currently local)
+        const savedVotes = localStorage.getItem('mh_votes_v5');
+        const savedCVotes = localStorage.getItem('mh_cvotes_v5');
+        if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
+        if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
+
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setProducts(INITIAL_PRODUCTS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
+  // Real-time Subscriptions for Comments
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'comments' },
+        (payload) => {
+          const newComment = payload.new as Comment;
+          setProducts(prev => prev.map(p => {
+            if (p.id === newComment.product_id) {
+              const existingComments = p.comments || [];
+              // Prevent duplicates
+              if (existingComments.some(c => c.id === newComment.id)) return p;
+              const updated = { ...p, comments: [newComment, ...existingComments] };
+              // If we are currently looking at this product detail, update it too
+              if (selectedProduct?.id === p.id) {
+                setSelectedProduct(updated);
+              }
+              return updated;
+            }
+            return p;
+          }));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedProduct]);
+
+  // Sync state to local storage (for offline persistence of votes)
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('mh_products_v5', JSON.stringify(products));
       localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
       localStorage.setItem('mh_cvotes_v5', JSON.stringify(Array.from(commentVotes)));
     }
-  }, [products, votes, commentVotes, isLoading]);
+  }, [votes, commentVotes, isLoading]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -323,29 +391,45 @@ const App: React.FC = () => {
     setView(View.HOME);
   };
 
-  const handleAddComment = (text: string) => {
+  const handleAddComment = async (text: string) => {
     if (!user || !selectedProduct) return;
     
-    const newComment: Comment = {
-      id: 'c_' + Math.random().toString(36).substr(2, 9),
-      user_id: user.id,
+    const newCommentData = {
       product_id: selectedProduct.id,
+      user_id: user.id,
       username: user.username,
       avatar_url: user.avatar_url,
       text,
       created_at: new Date().toISOString(),
-      is_maker: selectedProduct.founder_id === user.id,
       upvotes_count: 0
     };
 
-    setProducts(prev => prev.map(p => {
-      if (p.id === selectedProduct.id) {
-        const updated = { ...p, comments: [newComment, ...(p.comments || [])] };
-        setSelectedProduct(updated);
-        return updated;
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .insert([newCommentData])
+        .select();
+
+      if (error) throw error;
+
+      // Local state update as fallback/speed optimization (subscription will also trigger)
+      if (data && data[0]) {
+        const persistedComment = data[0] as Comment;
+        setProducts(prev => prev.map(p => {
+          if (p.id === selectedProduct.id) {
+            const currentComments = p.comments || [];
+            if (currentComments.some(c => c.id === persistedComment.id)) return p;
+            const updated = { ...p, comments: [persistedComment, ...currentComments] };
+            if (selectedProduct?.id === p.id) setSelectedProduct(updated);
+            return updated;
+          }
+          return p;
+        }));
       }
-      return p;
-    }));
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      alert("Bismillah, something went wrong while posting your comment. Please try again.");
+    }
   };
 
   const handleProductClick = (product: Product, andScrollToComments: boolean = false) => {
@@ -355,11 +439,11 @@ const App: React.FC = () => {
   };
 
   const groupedProducts = useMemo(() => {
-    const now = Date.now();
+    const nowTs = Date.now();
     const todayStr = new Date().toDateString();
-    const yesterdayStr = new Date(now - 86400000).toDateString();
-    const lastWeekLimit = now - 7 * 24 * 60 * 60 * 1000;
-    const lastMonthLimit = now - 30 * 24 * 60 * 60 * 1000;
+    const yesterdayStr = new Date(nowTs - 86400000).toDateString();
+    const lastWeekLimit = nowTs - 7 * 24 * 60 * 60 * 1000;
+    const lastMonthLimit = nowTs - 30 * 24 * 60 * 60 * 1000;
     
     const filteredProducts = searchProducts(products, searchQuery);
     const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
@@ -436,54 +520,61 @@ const App: React.FC = () => {
           </header>
 
           <main className="space-y-16">
-            {[
-              { id: 'today', title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald' },
-              { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday, color: 'gray' },
-              { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek, color: 'gray' },
-              { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, color: 'gray' }
-            ].map(section => {
-              const isExpanded = expandedSections[section.id];
-              const displayData = isExpanded ? section.data : section.data.slice(0, 5);
-              const hasMore = section.data.length > 5 && !isExpanded;
-              
-              const buttonTextMap: Record<string, string> = {
-                today: "See all of today's products",
-                yesterday: "See all of yesterday's top products",
-                lastWeek: "See all of last week's top products",
-                lastMonth: "See all of last month's top products"
-              };
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                <div className="w-12 h-12 border-4 border-emerald-800/20 border-t-emerald-800 rounded-full animate-spin"></div>
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading products...</p>
+              </div>
+            ) : (
+              [
+                { id: 'today', title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald' },
+                { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday, color: 'gray' },
+                { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek, color: 'gray' },
+                { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, color: 'gray' }
+              ].map(section => {
+                const isExpanded = expandedSections[section.id];
+                const displayData = isExpanded ? section.data : section.data.slice(0, 5);
+                const hasMore = section.data.length > 5 && !isExpanded;
+                
+                const buttonTextMap: Record<string, string> = {
+                  today: "See all of today's products",
+                  yesterday: "See all of yesterday's top products",
+                  lastWeek: "See all of last week's top products",
+                  lastMonth: "See all of last month's top products"
+                };
 
-              return section.data.length > 0 && (
-                <section key={section.title}>
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
-                    <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
-                  </div>
-                  <div className="space-y-1 bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                    {displayData.map((p, idx) => (
-                      <ProductCard 
-                        key={p.id} 
-                        product={p} 
-                        onUpvote={handleUpvote} 
-                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                        onClick={handleProductClick}
-                        onCommentClick={(prod) => handleProductClick(prod, true)}
-                        searchQuery={searchQuery}
-                        rank={idx + 1}
-                      />
-                    ))}
-                  </div>
-                  {hasMore && (
-                    <button 
-                      onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
-                      className="w-full py-4 mt-4 border border-gray-100 rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all bg-white/50"
-                    >
-                      {buttonTextMap[section.id]}
-                    </button>
-                  )}
-                </section>
-              );
-            })}
+                return section.data.length > 0 && (
+                  <section key={section.title}>
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
+                      <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
+                    </div>
+                    <div className="space-y-1 bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                      {displayData.map((p, idx) => (
+                        <ProductCard 
+                          key={p.id} 
+                          product={p} 
+                          onUpvote={handleUpvote} 
+                          hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                          onClick={handleProductClick}
+                          onCommentClick={(prod) => handleProductClick(prod, true)}
+                          searchQuery={searchQuery}
+                          rank={idx + 1}
+                        />
+                      ))}
+                    </div>
+                    {hasMore && (
+                      <button 
+                        onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
+                        className="w-full py-4 mt-4 border border-gray-100 rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all bg-white/50"
+                      >
+                        {buttonTextMap[section.id]}
+                      </button>
+                    )}
+                  </section>
+                );
+              })
+            )}
           </main>
         </div>
         
