@@ -2,7 +2,6 @@
 import React, { useState, useRef } from 'react';
 import { Home, MessageSquare, Search, PlusSquare, Hash, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
 import { View, Comment } from '../types';
-import { TrendingSidebar } from '../App';
 
 interface RecentCommentsProps {
   setView: (view: View) => void;
@@ -142,7 +141,7 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
   );
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-8">
+    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-12">
       {/* Left Sidebar Navigation */}
       <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
         <div className="space-y-4">
@@ -177,7 +176,7 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
         </section>
       </aside>
 
-      {/* Main Recent Comments Feed */}
+      {/* Main Recent Comments Feed - Expanded central column */}
       <main className="flex-1 space-y-8">
         <header className="mb-12 border-b border-emerald-50 pb-8">
           <div>
@@ -227,7 +226,7 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-600 text-[15px] leading-relaxed line-clamp-2">
+                      <p className="text-gray-600 text-[15px] leading-relaxed line-clamp-2 max-w-4xl">
                         <span className="font-bold text-gray-900 mr-1">{comment.author.name}:</span>
                         {comment.text}
                       </p>
@@ -245,9 +244,6 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
           </button>
         </div>
       </main>
-
-      {/* Right Sidebar */}
-      <TrendingSidebar user={user} setView={setView} />
     </div>
   );
 };

@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Home, MessageSquare, Search, PlusSquare, Hash, Triangle, ChevronDown, Sparkles, Clock, ArrowUpRight, Filter } from 'lucide-react';
 import { View } from '../types';
-import { TrendingSidebar } from '../App';
 
 interface ForumHomeProps {
   setView: (view: View) => void;
@@ -101,8 +100,8 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-8">
-      {/* Left Sidebar Navigation - Consistent with NewThreadForm */}
+    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-12">
+      {/* Left Sidebar Navigation */}
       <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
         <div className="space-y-4">
           <div className="relative group">
@@ -163,7 +162,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
         </div>
       </aside>
 
-      {/* Main Forum Feed - High-Density central column */}
+      {/* Main Forum Feed - Expanded central column with no right sidebar */}
       <main className="flex-1 space-y-6">
         <header className="flex items-center justify-between mb-8 border-b border-emerald-50 pb-8">
           <div>
@@ -226,10 +225,10 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
                     </div>
                   </div>
 
-                  <h2 className="text-2xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors mb-3 leading-tight tracking-tight max-w-2xl">
+                  <h2 className="text-2xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors mb-3 leading-tight tracking-tight">
                     {thread.title}
                   </h2>
-                  <p className="text-gray-500 text-[15px] line-clamp-2 leading-relaxed font-medium">
+                  <p className="text-gray-500 text-[15px] line-clamp-2 leading-relaxed font-medium max-w-4xl">
                     {thread.preview}
                   </p>
                 </div>
@@ -255,9 +254,6 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
           </div>
         </div>
       </main>
-
-      {/* Right Sidebar - Reusing TrendingSidebar */}
-      <TrendingSidebar user={user} setView={setView} />
     </div>
   );
 };
