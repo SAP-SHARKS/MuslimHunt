@@ -86,6 +86,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
+  const [isTodayExpanded, setIsTodayExpanded] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -348,28 +349,42 @@ const App: React.FC = () => {
               { title: 'Top Products Launching Today', data: groupedProducts.today, color: 'emerald', showRank: true },
               { title: 'Trending Yesterday', data: groupedProducts.yesterday, color: 'gray', showRank: false },
               { title: 'The Archives', data: groupedProducts.past, color: 'gray', showRank: false }
-            ].map(section => section.data.length > 0 && (
-              <section key={section.title}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
-                  <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
-                </div>
-                <div className="space-y-1 bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                  {section.data.map((p, idx) => (
-                    <ProductCard 
-                      key={p.id} 
-                      product={p} 
-                      onUpvote={handleUpvote} 
-                      hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                      onClick={handleProductClick}
-                      onCommentClick={(prod) => handleProductClick(prod, true)}
-                      searchQuery={searchQuery}
-                      rank={section.showRank ? idx + 1 : undefined}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+            ].map(section => {
+              const isToday = section.title === 'Top Products Launching Today';
+              const displayData = isToday && !isTodayExpanded ? section.data.slice(0, 5) : section.data;
+              const hasMore = isToday && section.data.length > 5 && !isTodayExpanded;
+
+              return section.data.length > 0 && (
+                <section key={section.title}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className={`text-xs font-black text-${section.color}-800/40 uppercase tracking-[0.3em]`}>{section.title}</h2>
+                    <div className={`h-[1px] flex-1 bg-${section.color}-50 ml-6`}></div>
+                  </div>
+                  <div className="space-y-1 bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                    {displayData.map((p, idx) => (
+                      <ProductCard 
+                        key={p.id} 
+                        product={p} 
+                        onUpvote={handleUpvote} 
+                        hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                        onClick={handleProductClick}
+                        onCommentClick={(prod) => handleProductClick(prod, true)}
+                        searchQuery={searchQuery}
+                        rank={section.showRank ? idx + 1 : undefined}
+                      />
+                    ))}
+                  </div>
+                  {hasMore && (
+                    <button 
+                      onClick={() => setIsTodayExpanded(true)}
+                      className="w-full py-4 mt-4 border border-gray-100 rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all bg-white/50"
+                    >
+                      See all of today's products
+                    </button>
+                  )}
+                </section>
+              );
+            })}
           </main>
         </div>
         
