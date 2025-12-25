@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, Sparkles, Triangle } from 'lucide-react';
 import { Product, Comment } from '../types';
@@ -161,21 +160,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
           </div>
 
-          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-8 sm:p-12 scroll-mt-20">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold text-emerald-900 flex items-center gap-3">
-                <MessageSquare className="w-6 h-6" />
+          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2rem] shadow-sm p-6 sm:p-8 scroll-mt-20">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
                 Discussion
               </h3>
-              <span className="text-gray-400 font-medium">{product.comments?.length || 0} comments</span>
+              <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{product.comments?.length || 0} comments</span>
             </div>
 
             {user ? (
-              <form onSubmit={handleSubmitComment} className="mb-6 flex gap-4">
+              <form onSubmit={handleSubmitComment} className="mb-8 flex gap-3">
                 <button 
                   type="button"
                   onClick={() => onViewProfile(user.id)}
-                  className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-200 active:scale-95 transition-transform cursor-pointer"
+                  className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-gray-200 active:scale-95 transition-transform cursor-pointer"
                 >
                   <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                 </button>
@@ -184,30 +183,30 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     placeholder="Ask the maker a question..."
-                    className="w-full px-5 py-3 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-xl outline-none transition-all pr-12"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-xl outline-none transition-all pr-12 text-sm"
                   />
-                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors">
+                  <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors">
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
               </form>
             ) : (
-              <div className="p-6 bg-gray-50 rounded-2xl text-center mb-6 border border-dashed border-gray-200">
-                <p className="text-gray-500 font-medium">Please sign in to join the discussion.</p>
+              <div className="p-5 bg-gray-50 rounded-2xl text-center mb-8 border border-dashed border-gray-200">
+                <p className="text-gray-500 text-sm font-medium">Please sign in to join the discussion.</p>
               </div>
             )}
 
-            {/* Tightened Spacing for Comments List */}
+            {/* High-Density Comments List - Adjusted per prompt */}
             <div className="space-y-4">
               {product.comments?.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 italic">No comments yet. Start the conversation!</div>
+                <div className="text-center py-12 text-gray-400 italic text-sm">No comments yet. Start the conversation!</div>
               ) : (
                 product.comments?.map((comment: Comment) => {
                   const hasUpvotedComment = commentVotes.has(`${user?.id}_${comment.id}`);
                   const isHovered = hoveredCommentId === comment.id;
 
                   return (
-                    <div key={comment.id} className="flex gap-4 group relative py-2">
+                    <div key={comment.id} className="flex gap-3 group relative py-1 border-b border-gray-50 last:border-0 pb-4 last:pb-0">
                       {/* Avatar Trigger - Tighter gap */}
                       <div 
                         className="relative shrink-0"
@@ -215,7 +214,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                         onMouseLeave={handleMouseLeave}
                       >
                         <button 
-                          className="w-10 h-10 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95"
+                          className="w-9 h-9 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95 shadow-sm"
                           onClick={() => onViewProfile(comment.user_id)}
                         >
                           <img src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
@@ -224,30 +223,30 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
+                        <div className="flex items-center gap-1.5 mb-0.5">
                           <div 
                             className="relative"
                             onMouseEnter={() => handleMouseEnter(comment.id)}
                             onMouseLeave={handleMouseLeave}
                           >
                             <button 
-                              className={`font-bold text-sm cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                              className={`font-bold text-[13px] cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
                               onClick={() => onViewProfile(comment.user_id)}
                             >
                               {comment.username}
                             </button>
                           </div>
                           {comment.is_maker && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase tracking-tighter">Maker</span>
+                            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase tracking-tighter">Maker</span>
                           )}
                         </div>
                         
-                        <p className="text-gray-600 text-sm md:text-base leading-relaxed break-words font-medium">
+                        <p className="text-gray-600 text-sm leading-snug break-words font-medium">
                           {comment.text}
                         </p>
                         
-                        {/* Calibrated Meta-Info Line tucked closely */}
-                        <div className="flex items-center gap-2 mt-2 text-[11px] font-black text-gray-400 uppercase tracking-tighter">
+                        {/* High-Fidelity Meta Bar - tuck closely with mt-1.5 and tracking-tighter */}
+                        <div className="flex items-center gap-3 mt-1.5 text-[11px] font-black text-gray-400 uppercase tracking-tighter">
                           <button 
                             onClick={() => onCommentUpvote(product.id, comment.id)}
                             className={`flex items-center gap-1 transition-colors ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}

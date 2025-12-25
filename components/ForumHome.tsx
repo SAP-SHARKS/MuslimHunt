@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Home, MessageSquare, Search, PlusSquare, Hash, Triangle, ChevronDown, Sparkles, Clock, ArrowUpRight, Filter } from 'lucide-react';
 import { View } from '../types';
@@ -190,78 +189,78 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
           {threads.map((thread) => (
             <div 
               key={thread.id} 
-              className="group bg-white border border-gray-100 rounded-[2.5rem] p-6 sm:p-10 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all cursor-pointer"
+              className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-emerald-200 hover:shadow-2xl hover:shadow-emerald-900/5 transition-all cursor-pointer"
             >
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-8">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-4 mb-5">
-                    <span className="text-[10px] font-black text-emerald-800 uppercase tracking-[0.15em] bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <span className="text-[10px] font-black text-emerald-800 uppercase tracking-[0.15em] bg-emerald-50 px-2 py-0.5 rounded-md">
                       {thread.forum}
                     </span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-emerald-50 shadow-sm ring-2 ring-transparent group-hover:ring-emerald-100 transition-all">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full overflow-hidden border border-emerald-50 shadow-sm ring-2 ring-transparent group-hover:ring-emerald-100 transition-all">
                         <img src={thread.author.avatar} alt={thread.author.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-none">
+                        <span className="text-[12px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-none">
                           {thread.author.name}
                         </span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mt-0.5">
                           {thread.author.headline}
                         </span>
                       </div>
                     </div>
                     {thread.is_pinned && (
-                      <span className="flex items-center gap-1.5 text-[9px] font-black text-white uppercase tracking-widest bg-emerald-800 px-2.5 py-1 rounded-lg shadow-sm shadow-emerald-900/20">
-                        <Sparkles className="w-3 h-3 fill-emerald-300 text-emerald-300" /> Pinned
+                      <span className="flex items-center gap-1 text-[9px] font-black text-white uppercase tracking-widest bg-emerald-800 px-2 py-0.5 rounded shadow-sm shadow-emerald-900/10">
+                        <Sparkles className="w-2.5 h-2.5 fill-emerald-300 text-emerald-300" /> Pinned
                       </span>
                     )}
-                    <div className="flex items-center gap-4 text-[11px] font-bold text-gray-300 uppercase tracking-tighter ml-auto sm:ml-4">
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-gray-300 uppercase tracking-tighter ml-auto sm:ml-4">
                       <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> {formatTime(thread.created_at)}
+                        <Clock className="w-3 h-3" /> {formatTime(thread.created_at)}
                       </div>
-                      <div className="flex items-center gap-1.5 text-emerald-600/70">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500/50 animate-pulse" />
+                      <div className="flex items-center gap-1 text-emerald-600/70">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-pulse" />
                         {thread.online} active
                       </div>
                     </div>
                   </div>
 
-                  <h2 className="text-2xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors mb-3 leading-tight tracking-tight">
+                  <h2 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors mb-2 leading-tight tracking-tight">
                     {thread.title}
                   </h2>
-                  <p className="text-gray-500 text-[15px] line-clamp-2 leading-relaxed font-medium max-w-4xl mb-6">
+                  <p className="text-gray-500 text-[14px] line-clamp-2 leading-snug font-medium max-w-3xl mb-4">
                     {thread.preview}
                   </p>
 
-                  {/* High-Fidelity Image Post Support */}
+                  {/* High-Fidelity Image Display - Updated per prompt */}
                   {thread.image_url && (
-                    <div className="mb-6 rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-50 aspect-video relative group/img">
+                    <div className="mb-4 rounded-xl overflow-hidden border border-gray-100 shadow-sm bg-gray-50 max-h-[400px] relative group/img">
                       <img 
                         src={thread.image_url} 
                         alt={thread.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" 
+                        className="w-full h-full max-h-[400px] object-cover transition-transform duration-700 group-hover/img:scale-105" 
                       />
                     </div>
                   )}
                 </div>
 
-                <div className="flex sm:flex-col items-center gap-3 sm:shrink-0 sm:pt-1">
-                  <div className="flex flex-col items-center justify-center min-w-[4.5rem] h-20 rounded-2xl border border-gray-50 bg-gray-50/20 text-gray-400 group-hover:bg-white group-hover:border-emerald-50 transition-all shadow-inner group-hover:shadow-none">
-                    <MessageSquare className="w-6 h-6 mb-1 opacity-70" />
-                    <span className="text-[13px] font-black">{thread.comments}</span>
+                <div className="flex sm:flex-col items-center gap-2 sm:shrink-0 sm:pt-1">
+                  <div className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border border-gray-50 bg-gray-50/10 text-gray-400 group-hover:bg-white group-hover:border-emerald-50 transition-all">
+                    <MessageSquare className="w-4 h-4 mb-0.5 opacity-70" />
+                    <span className="text-[12px] font-black">{thread.comments}</span>
                   </div>
-                  <button className="flex flex-col items-center justify-center min-w-[4.5rem] h-20 rounded-2xl border-2 border-gray-100 bg-white text-gray-400 hover:border-emerald-800 hover:text-emerald-800 transition-all active:scale-95 shadow-sm hover:shadow-lg group/upvote">
-                    <Triangle className="w-5 h-5 mb-1 group-hover/upvote:fill-emerald-800 transition-colors" />
-                    <span className="text-[13px] font-black">{thread.upvotes}</span>
+                  <button className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 border-gray-100 bg-white text-gray-400 hover:border-emerald-800 hover:text-emerald-800 transition-all active:scale-95 shadow-sm group/upvote">
+                    <Triangle className="w-4 h-4 mb-0.5 group-hover/upvote:fill-emerald-800 transition-colors" />
+                    <span className="text-[12px] font-black">{thread.upvotes}</span>
                   </button>
                 </div>
               </div>
             </div>
           ))}
           
-          <div className="py-16 text-center">
-            <button className="px-12 py-4 bg-white border border-gray-100 rounded-2xl text-[13px] font-black uppercase tracking-widest text-gray-400 hover:text-emerald-800 hover:border-emerald-800 transition-all shadow-sm active:scale-95">
+          <div className="py-12 text-center">
+            <button className="px-10 py-3.5 bg-white border border-gray-100 rounded-xl text-[12px] font-black uppercase tracking-widest text-gray-400 hover:text-emerald-800 hover:border-emerald-800 transition-all shadow-sm active:scale-95">
               Load more discussions
             </button>
           </div>
