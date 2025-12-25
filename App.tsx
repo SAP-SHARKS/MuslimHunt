@@ -40,7 +40,7 @@ function ConnectionDebug() {
   );
 }
 
-const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
+export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
   <aside className="hidden lg:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
       <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
@@ -181,13 +181,13 @@ const App: React.FC = () => {
         setView(View.FORUM_HOME);
       } else if (path === '/recent-comments') {
         setView(View.RECENT_COMMENTS);
-      } else {
+      } else if (path === '/') {
         setView(View.HOME);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
-    handlePopState(); // Initial check
+    handlePopState(); // Initial check on load
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);

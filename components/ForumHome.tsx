@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { Home, MessageSquare, Search, Plus, Hash, Triangle, ChevronDown, Sparkles, Clock, Users, ArrowUpRight, TrendingUp, Filter } from 'lucide-react';
+import { Home, MessageSquare, Search, PlusSquare, Hash, Triangle, ChevronDown, Sparkles, Clock, ArrowUpRight, Filter } from 'lucide-react';
 import { View } from '../types';
+import { TrendingSidebar } from '../App';
 
 interface ForumHomeProps {
   setView: (view: View) => void;
@@ -81,10 +82,28 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
+  const TOPIC_FORUMS = [
+    'p/general', 'p/vibecoding', 'p/ama', 'p/introduce-yourself', 'p/self-promotion'
+  ];
+
+  const SidebarLink = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
+    <button 
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-xl ${
+        active 
+        ? 'text-emerald-800 bg-emerald-50 font-bold' 
+        : 'text-gray-500 hover:text-emerald-800 hover:bg-emerald-50'
+      }`}
+    >
+      <Icon className={`w-4 h-4 ${active ? 'text-emerald-800' : 'text-gray-400 opacity-70'}`} />
+      {label}
+    </button>
+  );
+
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-12">
-      {/* Left Sidebar Navigation - Replicated Product Hunt Architecture */}
-      <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit">
+    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-8">
+      {/* Left Sidebar Navigation - Consistent with NewThreadForm */}
+      <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
         <div className="space-y-4">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
@@ -93,53 +112,28 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
               placeholder="Search all threads..."
               value={forumSearch}
               onChange={(e) => setForumSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/10 focus:border-emerald-700 transition-all font-bold placeholder:text-gray-300 shadow-sm"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-emerald-900/5 focus:border-emerald-800 transition-all font-bold placeholder:text-gray-300 shadow-sm"
             />
           </div>
 
           <nav className="space-y-1">
-            <button 
-              onClick={() => setView(View.FORUM_HOME)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-emerald-800 bg-emerald-50 rounded-xl"
-            >
-              <div className="flex items-center gap-3">
-                <Home className="w-4 h-4" /> Home
-              </div>
-            </button>
-            <button 
-              onClick={() => setView(View.RECENT_COMMENTS)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-4 h-4" /> Recent comments
-              </div>
-            </button>
+            <SidebarLink icon={Home} label="Home" active={true} onClick={() => setView(View.FORUM_HOME)} />
+            <SidebarLink icon={MessageSquare} label="Recent comments" onClick={() => setView(View.RECENT_COMMENTS)} />
+            <SidebarLink icon={Search} label="Search all threads" onClick={() => {}} />
+            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)} />
           </nav>
-
-          <button 
-            onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)}
-            className="w-full flex items-center justify-center gap-2 bg-emerald-800 text-white py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/10 active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4" /> Start new thread
-          </button>
         </div>
 
         <section>
           <h3 className="px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Topic Forums</h3>
-          <div className="space-y-1">
-            {[
-              { id: 'p/general', count: 124 },
-              { id: 'p/vibecoding', count: 42 },
-              { id: 'p/ama', count: 18 },
-              { id: 'p/show-and-tell', count: 86 }
-            ].map((forum) => (
-              <button key={forum.id} className="w-full flex items-center justify-between px-4 py-2 text-[13px] font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all group">
-                <div className="flex items-center gap-3">
-                  <Hash className="w-3.5 h-3.5 opacity-50" /> {forum.id}
-                </div>
-                <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity font-black bg-emerald-100 px-1.5 py-0.5 rounded text-emerald-800">
-                  {forum.count}
-                </span>
+          <div className="space-y-0.5">
+            {TOPIC_FORUMS.map((fid) => (
+              <button 
+                key={fid} 
+                className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all"
+              >
+                <Hash className="w-3.5 h-3.5 opacity-40" /> 
+                <span className="truncate">{fid}</span>
               </button>
             ))}
           </div>
@@ -147,10 +141,10 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
 
         <section>
           <h3 className="px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Product Forums</h3>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {['QuranFlow', 'HalalWallet', 'ArabicHero'].map((product) => (
               <button key={product} className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all">
-                <div className="w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-800 uppercase shadow-sm">
+                <div className="w-5 h-5 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[9px] font-black text-emerald-800 uppercase shadow-sm">
                   {product[0]}
                 </div>
                 {product}
@@ -159,7 +153,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
           </div>
         </section>
 
-        <div className="p-8 bg-emerald-900 rounded-[2.5rem] text-white shadow-xl shadow-emerald-900/10 relative overflow-hidden">
+        <div className="p-8 bg-emerald-900 rounded-[2rem] text-white shadow-xl shadow-emerald-900/10 relative overflow-hidden">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-emerald-800 rounded-full blur-2xl opacity-50" />
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-3 relative z-10">Ummah Voice</p>
           <p className="text-sm font-bold leading-relaxed relative z-10">Join 12,000+ Muslim builders shaping the future of Halal tech.</p>
@@ -170,7 +164,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
       </aside>
 
       {/* Main Forum Feed - High-Density central column */}
-      <main className="flex-1 space-y-8">
+      <main className="flex-1 space-y-6">
         <header className="flex items-center justify-between mb-8 border-b border-emerald-50 pb-8">
           <div>
             <div className="flex items-center gap-2 text-emerald-800 mb-2">
@@ -261,6 +255,9 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
           </div>
         </div>
       </main>
+
+      {/* Right Sidebar - Reusing TrendingSidebar */}
+      <TrendingSidebar user={user} setView={setView} />
     </div>
   );
 };

@@ -1,7 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { Home, MessageSquare, Search, Plus, Hash, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
+import { Home, MessageSquare, Search, PlusSquare, Hash, Sparkles, Clock, ArrowUpRight } from 'lucide-react';
 import { View, Comment } from '../types';
+import { TrendingSidebar } from '../App';
 
 interface RecentCommentsProps {
   setView: (view: View) => void;
@@ -126,10 +127,24 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
     </div>
   );
 
+  const SidebarLink = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
+    <button 
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-xl ${
+        active 
+        ? 'text-emerald-800 bg-emerald-50 font-bold' 
+        : 'text-gray-500 hover:text-emerald-800 hover:bg-emerald-50'
+      }`}
+    >
+      <Icon className={`w-4 h-4 ${active ? 'text-emerald-800' : 'text-gray-400 opacity-70'}`} />
+      {label}
+    </button>
+  );
+
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-12">
+    <div className="max-w-7xl mx-auto py-8 px-4 flex flex-col lg:flex-row gap-8">
       {/* Left Sidebar Navigation */}
-      <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit">
+      <aside className="hidden lg:block w-72 shrink-0 space-y-10 sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
         <div className="space-y-4">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
@@ -138,45 +153,24 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
               placeholder="Search all threads..."
               value={forumSearch}
               onChange={(e) => setForumSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700/10 focus:border-emerald-700 transition-all font-bold placeholder:text-gray-300 shadow-sm"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-emerald-900/5 focus:border-emerald-800 transition-all font-bold placeholder:text-gray-300 shadow-sm"
             />
           </div>
 
           <nav className="space-y-1">
-            <button 
-              onClick={() => setView(View.FORUM_HOME)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <Home className="w-4 h-4" /> Home
-              </div>
-            </button>
-            <button 
-              onClick={() => setView(View.RECENT_COMMENTS)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-emerald-800 bg-emerald-50 rounded-xl"
-            >
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-4 h-4" /> Recent comments
-              </div>
-            </button>
+            <SidebarLink icon={Home} label="Home" onClick={() => setView(View.FORUM_HOME)} />
+            <SidebarLink icon={MessageSquare} label="Recent comments" active={true} onClick={() => setView(View.RECENT_COMMENTS)} />
+            <SidebarLink icon={Search} label="Search all threads" onClick={() => {}} />
+            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)} />
           </nav>
-
-          <button 
-            onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)}
-            className="w-full flex items-center justify-center gap-2 bg-emerald-800 text-white py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg active:scale-95"
-          >
-            <Plus className="w-4 h-4" /> Start new thread
-          </button>
         </div>
 
         <section>
           <h3 className="px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Topic Forums</h3>
-          <div className="space-y-1">
-            {['p/general', 'p/vibecoding', 'p/ama', 'p/show-and-tell'].map((fid) => (
-              <button key={fid} className="w-full flex items-center justify-between px-4 py-2 text-[13px] font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all">
-                <div className="flex items-center gap-3">
-                  <Hash className="w-3.5 h-3.5 opacity-50" /> {fid}
-                </div>
+          <div className="space-y-0.5">
+            {['p/general', 'p/vibecoding', 'p/ama', 'p/introduce-yourself'].map((fid) => (
+              <button key={fid} className="w-full flex items-center gap-3 px-4 py-2 text-[13px] font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all">
+                <Hash className="w-3.5 h-3.5 opacity-40" /> {fid}
               </button>
             ))}
           </div>
@@ -251,6 +245,9 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
           </button>
         </div>
       </main>
+
+      {/* Right Sidebar */}
+      <TrendingSidebar user={user} setView={setView} />
     </div>
   );
 };
