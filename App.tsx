@@ -6,9 +6,10 @@ import ProductDetail from './components/ProductDetail';
 import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
+import NewThreadForm from './components/NewThreadForm';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
@@ -36,7 +37,7 @@ function ConnectionDebug() {
   );
 }
 
-const TrendingSidebar: React.FC = () => (
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
   <aside className="hidden lg:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
       <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -105,10 +106,18 @@ const TrendingSidebar: React.FC = () => (
           ))}
         </div>
 
-        <button className="w-full mt-6 flex items-center justify-center gap-2 text-[10px] font-black text-emerald-800 uppercase tracking-[0.2em] py-3 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-all group">
-          View all discussions 
-          <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-        </button>
+        <div className="mt-8 space-y-4 pt-6 border-t border-gray-50">
+          <button className="w-full text-center text-sm font-bold text-gray-500 hover:text-emerald-800 transition-colors">
+            View all
+          </button>
+          
+          <button 
+            onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)}
+            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-100 py-3 rounded-xl text-xs font-black text-gray-700 uppercase tracking-widest hover:border-emerald-800 hover:text-emerald-800 hover:bg-emerald-50 transition-all shadow-sm active:scale-95"
+          >
+            <Plus className="w-4 h-4" /> Start new thread
+          </button>
+        </div>
       </section>
 
       <section className="bg-emerald-800 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 overflow-hidden relative">
@@ -376,6 +385,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => setView(View.HOME)} /></div>;
     if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
+    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.HOME)} onSubmit={(data) => { console.log('Thread created:', data); setView(View.HOME); }} />;
 
     if (view === View.PROFILE && selectedProfile) {
       return (
@@ -477,7 +487,7 @@ const App: React.FC = () => {
           </main>
         </div>
         
-        <TrendingSidebar />
+        <TrendingSidebar user={user} setView={setView} />
       </div>
     );
   };

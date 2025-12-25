@@ -1,4 +1,5 @@
 
+
 export interface Profile {
   id: string;
   username: string;
@@ -59,5 +60,6 @@ export enum View {
   SUBMIT = 'submit',
   DETAIL = 'detail',
   LOGIN = 'login',
-  PROFILE = 'profile'
+  PROFILE = 'profile',
+  NEW_THREAD = 'new_thread'
 }
