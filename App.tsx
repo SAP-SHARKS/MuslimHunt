@@ -7,6 +7,7 @@ import SubmitForm from './components/SubmitForm';
 import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import NewThreadForm from './components/NewThreadForm';
+import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus } from 'lucide-react';
@@ -609,6 +610,7 @@ const App: React.FC = () => {
         onViewProfile={() => user && handleViewProfile(user.id)}
       />
       <div className="pt-4">{renderContent()}</div>
+      <Footer />
     </div>
   );
 };
