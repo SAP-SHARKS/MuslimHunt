@@ -48,7 +48,7 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
             className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800"
             onClick={() => setView(View.FORUM_HOME)}
           >
-            Trending Discussions
+            Community Discussions
           </h3>
           <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
         </div>
@@ -75,13 +75,6 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
               upvotes: 310, 
               online: 15,
               icon: "🙏"
-            },
-            { 
-              title: "The future of Ethical AI in the Muslim world", 
-              comments: 31, 
-              upvotes: 204, 
-              online: 5,
-              icon: "🤖"
             }
           ].map((thread, i) => (
             <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
@@ -102,7 +95,7 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
                       {thread.comments}
                     </div>
                     <span>•</span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 text-emerald-600/70">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                       {thread.online} online
                     </div>
@@ -116,9 +109,9 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
         <div className="mt-8 space-y-4 pt-6 border-t border-gray-50">
           <button 
             onClick={() => setView(View.FORUM_HOME)}
-            className="w-full text-center text-sm font-bold text-gray-500 hover:text-emerald-800 transition-colors"
+            className="w-full text-center text-xs font-black text-emerald-800 hover:text-emerald-900 transition-colors uppercase tracking-widest"
           >
-            View all
+            Visit Community Home
           </button>
           
           <button 
