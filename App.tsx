@@ -12,7 +12,7 @@ import RecentComments from './components/RecentComments';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
@@ -44,62 +44,71 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
   <aside className="hidden xl:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
       <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
           <h3 
-            className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
+            className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
             onClick={() => setView(View.FORUM_HOME)}
           >
-            Hot Discussions
+            Trending Forum Threads
           </h3>
-          <TrendingUp className="w-4 h-4 text-emerald-800" />
+          <TrendingUp className="w-4 h-4 text-emerald-800 opacity-50" />
         </div>
         
-        <div className="space-y-8">
+        <div className="space-y-7">
           {[
             { 
-              title: "Building in Public: My journey from 0 to 100 users", 
+              tag: "p/producthunt",
+              title: "What are your favorite Halal-certified apps for 2025?", 
               comments: 24, 
               upvotes: 156, 
               online: 8,
-              icon: "🚀"
+              icon: Layout
             },
             { 
+              tag: "p/vibecoding",
               title: "Which tech stack is best for Halal e-commerce?", 
               comments: 18, 
               upvotes: 92, 
               online: 12,
-              icon: "💻"
+              icon: Hash
             },
             { 
+              tag: "p/general",
               title: "Seeking Beta Testers for a new prayer app", 
               comments: 42, 
               upvotes: 310, 
               online: 15,
-              icon: "🙏"
+              icon: Users
             }
           ].map((thread, i) => (
             <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
-              <div className="flex items-start gap-3">
-                <span className="text-xl leading-none pt-0.5">{thread.icon}</span>
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug mb-2">
-                    {thread.title}
-                  </h4>
-                  <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-                    <div className="flex items-center gap-1">
-                      <Triangle className="w-2.5 h-2.5 fill-gray-400" />
-                      {thread.upvotes}
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-2.5 h-2.5" />
-                      {thread.comments}
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1 text-emerald-600/70 font-black">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {thread.online}
-                    </div>
+              <div className="flex flex-col gap-1.5">
+                {/* Forum Tag Line */}
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-emerald-800 transition-colors">
+                  <thread.icon className="w-3 h-3 opacity-60" />
+                  <span>{thread.tag}</span>
+                </div>
+                
+                {/* Thread Title */}
+                <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">
+                  {thread.title}
+                </h4>
+
+                {/* Interaction Stat Line - High Density */}
+                <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                  <div className="flex items-center gap-1">
+                    <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
+                    {thread.upvotes}
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="w-2.5 h-2.5" />
+                    {thread.comments}
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-1.5 text-emerald-600/70 font-black">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {thread.online} online
                   </div>
                 </div>
               </div>
@@ -110,9 +119,9 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
         <div className="mt-10 space-y-4 pt-8 border-t border-gray-50">
           <button 
             onClick={() => setView(View.FORUM_HOME)}
-            className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-black text-emerald-800 hover:text-emerald-900 transition-colors uppercase tracking-[0.2em]"
+            className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 transition-colors uppercase tracking-[0.2em]"
           >
-            Enter Community Home <ArrowRight className="w-3.5 h-3.5" />
+            View all discussions <ArrowRight className="w-3.5 h-3.5" />
           </button>
           
           <button 
@@ -386,9 +395,6 @@ const App: React.FC = () => {
     updateView(View.HOME);
   };
 
-  /**
-   * Added logic for missing handleAddComment and component rendering.
-   */
   const handleAddComment = async (text: string) => {
     if (!user || !selectedProduct) return;
     
@@ -416,6 +422,46 @@ const App: React.FC = () => {
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
 
+  // High-Fidelity Historical Grouping Logic
+  const groupedProducts = useMemo(() => {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const yesterdayStart = todayStart - 86400000;
+    const lastWeekStart = todayStart - 7 * 86400000;
+    const lastMonthStart = todayStart - 30 * 86400000;
+
+    const grouped = {
+      today: [] as Product[],
+      yesterday: [] as Product[],
+      lastWeek: [] as Product[],
+      lastMonth: [] as Product[]
+    };
+
+    filteredProducts.forEach(p => {
+      const time = new Date(p.created_at).getTime();
+      if (time >= todayStart) grouped.today.push(p);
+      else if (time >= yesterdayStart) grouped.yesterday.push(p);
+      else if (time >= lastWeekStart) grouped.lastWeek.push(p);
+      else if (time >= lastMonthStart) grouped.lastMonth.push(p);
+    });
+
+    // Sort each group by upvotes
+    const sortFn = (a: Product, b: Product) => b.upvotes_count - a.upvotes_count;
+    grouped.today.sort(sortFn);
+    grouped.yesterday.sort(sortFn);
+    grouped.lastWeek.sort(sortFn);
+    grouped.lastMonth.sort(sortFn);
+
+    return grouped;
+  }, [filteredProducts]);
+
+  const feedSections = [
+    { id: 'today', title: "Top Products Launching Today", data: groupedProducts.today, buttonText: "See all of today's products" },
+    { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday, buttonText: "See all of yesterday's top products" },
+    { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek, buttonText: "See all of last week's top products" },
+    { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, buttonText: "See all of last month's top products" }
+  ];
+
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
       <ConnectionDebug />
@@ -431,28 +477,62 @@ const App: React.FC = () => {
 
       <main className="pb-20">
         {view === View.HOME && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex gap-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
               <header className="mb-12">
                 <div className="flex items-center gap-2 text-emerald-800 mb-2">
                   <Sparkles className="w-4 h-4 fill-emerald-800" />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
                 </div>
-                <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4">Top products today</h2>
+                <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
               </header>
-              <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                {filteredProducts.map((p, i) => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    rank={i + 1}
-                    onUpvote={handleUpvote} 
-                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
-                    onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }}
-                    onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }}
-                    searchQuery={searchQuery}
-                  />
-                ))}
+
+              <div className="space-y-16">
+                {feedSections.map((section) => {
+                  if (section.data.length === 0) return null;
+                  
+                  const isExpanded = expandedSections[section.id];
+                  const displayData = isExpanded ? section.data : section.data.slice(0, 5);
+                  const showButton = !isExpanded && section.data.length > 5;
+
+                  return (
+                    <section key={section.id} className="relative">
+                      <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
+                        <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
+                        {!isExpanded && section.data.length > 5 && (
+                          <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{section.data.length} Total</span>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
+                        {displayData.map((p, i) => (
+                          <ProductCard 
+                            key={p.id} 
+                            product={p} 
+                            rank={i + 1}
+                            onUpvote={handleUpvote} 
+                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }}
+                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }}
+                            searchQuery={searchQuery}
+                          />
+                        ))}
+                      </div>
+
+                      {showButton && (
+                        <div className="mt-8 flex justify-center">
+                          <button 
+                            onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
+                            className="group flex items-center gap-4 px-10 py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-widest text-emerald-800 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-[0.98]"
+                          >
+                            {section.buttonText}
+                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        </div>
+                      )}
+                    </section>
+                  );
+                })}
               </div>
             </div>
             <TrendingSidebar user={user} setView={updateView} />
