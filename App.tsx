@@ -8,7 +8,7 @@ import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { searchProducts } from './utils/searchUtils';
 
@@ -37,41 +37,105 @@ function ConnectionDebug() {
 }
 
 const TrendingSidebar: React.FC = () => (
-  <aside className="hidden lg:block w-72 shrink-0 space-y-8">
-    <section>
-      <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-4 h-4 text-emerald-800" />
-        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Trending Threads</h3>
-      </div>
-      <div className="space-y-4">
-        {[
-          { title: "Building in Public: My journey from 0 to 100 users", comments: 24 },
-          { title: "Which tech stack is best for Halal e-commerce?", comments: 18 },
-          { title: "Seeking Beta Testers for a new prayer app", comments: 42 },
-        ].map((thread, i) => (
-          <div key={i} className="group cursor-pointer">
-            <h4 className="text-sm font-medium text-gray-800 group-hover:text-emerald-800 transition-colors leading-snug mb-1">
-              {thread.title}
-            </h4>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
-              <MessageSquare className="w-3 h-3" />
-              {thread.comments} comments
+  <aside className="hidden lg:block w-80 shrink-0">
+    <div className="sticky top-24 space-y-8">
+      <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Trending Discussions</h3>
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
+        </div>
+        
+        <div className="space-y-6">
+          {[
+            { 
+              title: "Building in Public: My journey from 0 to 100 users", 
+              comments: 24, 
+              upvotes: 156, 
+              online: 8,
+              icon: "🚀"
+            },
+            { 
+              title: "Which tech stack is best for Halal e-commerce?", 
+              comments: 18, 
+              upvotes: 92, 
+              online: 12,
+              icon: "💻"
+            },
+            { 
+              title: "Seeking Beta Testers for a new prayer app", 
+              comments: 42, 
+              upvotes: 310, 
+              online: 15,
+              icon: "🙏"
+            },
+            { 
+              title: "The future of Ethical AI in the Muslim world", 
+              comments: 31, 
+              upvotes: 204, 
+              online: 5,
+              icon: "🤖"
+            }
+          ].map((thread, i) => (
+            <div key={i} className="group cursor-pointer">
+              <div className="flex items-start gap-3">
+                <span className="text-lg leading-none pt-0.5">{thread.icon}</span>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug mb-2">
+                    {thread.title}
+                  </h4>
+                  <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                    <div className="flex items-center gap-1">
+                      <Triangle className="w-2.5 h-2.5 fill-gray-400" />
+                      {thread.upvotes}
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <MessageSquare className="w-2.5 h-2.5" />
+                      {thread.comments}
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      {thread.online} online
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-        <button className="flex items-center gap-1 text-[10px] font-black text-emerald-800 uppercase tracking-[0.2em] pt-2 hover:translate-x-1 transition-transform">
-          View all discussions <ArrowRight className="w-3 h-3" />
-        </button>
-      </div>
-    </section>
+          ))}
+        </div>
 
-    <section className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
-      <h3 className="text-xs font-black text-emerald-900 uppercase tracking-[0.2em] mb-2">Weekly Newsletter</h3>
-      <p className="text-sm text-emerald-800/70 mb-4 leading-relaxed font-medium">Get the best Muslim tech products delivered to your inbox every Friday.</p>
-      <button className="w-full bg-emerald-800 text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-emerald-900 transition-all active:scale-[0.98]">
-        Subscribe
-      </button>
-    </section>
+        <button className="w-full mt-6 flex items-center justify-center gap-2 text-[10px] font-black text-emerald-800 uppercase tracking-[0.2em] py-3 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-all group">
+          View all discussions 
+          <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+        </button>
+      </section>
+
+      <section className="bg-emerald-800 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Sparkles className="w-24 h-24 rotate-12" />
+        </div>
+        <div className="relative z-10">
+          <h3 className="text-xs font-black text-emerald-300 uppercase tracking-[0.2em] mb-4">Weekly Newsletter</h3>
+          <p className="text-base font-bold text-white mb-6 leading-relaxed">
+            Get the best Muslim tech products delivered to your inbox every Friday.
+          </p>
+          <div className="space-y-3">
+            <input 
+              type="email" 
+              placeholder="Email address"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl outline-none focus:bg-white/20 transition-all text-sm placeholder:text-emerald-200/50"
+            />
+            <button className="w-full bg-white text-emerald-900 py-3.5 rounded-xl text-sm font-black shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]">
+              Subscribe Now
+            </button>
+          </div>
+          <p className="mt-4 text-[10px] text-emerald-200/50 font-medium text-center italic">
+            No spam, just pure Halal tech goodness.
+          </p>
+        </div>
+      </section>
+    </div>
   </aside>
 );
 
@@ -87,7 +151,6 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   
-  // Refactored expansion states into a single object for multiple sections
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false,
     yesterday: false,
