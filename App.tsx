@@ -8,6 +8,7 @@ import Auth from './components/Auth';
 import UserProfile from './components/UserProfile';
 import NewThreadForm from './components/NewThreadForm';
 import ForumHome from './components/ForumHome';
+import RecentComments from './components/RecentComments';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
@@ -444,6 +445,7 @@ const App: React.FC = () => {
     if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
     if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.FORUM_HOME)} onSubmit={(data) => { setView(View.FORUM_HOME); }} />;
     if (view === View.FORUM_HOME) return <ForumHome setView={setView} user={user} />;
+    if (view === View.RECENT_COMMENTS) return <RecentComments setView={setView} user={user} onViewProfile={handleViewProfile} />;
 
     if (view === View.PROFILE && selectedProfile) {
       return (

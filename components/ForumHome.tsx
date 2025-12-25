@@ -106,7 +106,10 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
                 <Home className="w-4 h-4" /> Home
               </div>
             </button>
-            <button className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all">
+            <button 
+              onClick={() => setView(View.RECENT_COMMENTS)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all"
+            >
               <div className="flex items-center gap-3">
                 <MessageSquare className="w-4 h-4" /> Recent comments
               </div>

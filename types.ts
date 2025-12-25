@@ -61,5 +61,6 @@ export enum View {
   LOGIN = 'login',
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
-  FORUM_HOME = 'forum_home'
+  FORUM_HOME = 'forum_home',
+  RECENT_COMMENTS = 'recent_comments'
 }

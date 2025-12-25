@@ -5,10 +5,12 @@ import {
   Quote, AtSign, Image as ImageIcon, BarChart2, Home, 
   MessageSquare, Hash, Info, Search, ChevronDown, Check 
 } from 'lucide-react';
+import { View } from '../types';
 
 interface NewThreadFormProps {
   onCancel: () => void;
   onSubmit: (data: any) => void;
+  setView: (view: View) => void;
 }
 
 const FORUM_OPTIONS = [
@@ -18,7 +20,7 @@ const FORUM_OPTIONS = [
   { id: 'p/promo', label: 'Self-Promotion' }
 ];
 
-const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => {
+const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView }) => {
   const [formData, setFormData] = useState({
     forumId: 'p/general',
     title: '',
@@ -120,10 +122,16 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit }) => 
         {/* Left Sidebar Navigation */}
         <aside className="hidden lg:block space-y-8 sticky top-24 h-fit">
           <nav className="space-y-1">
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-emerald-800 bg-emerald-50 rounded-xl">
+            <button 
+              onClick={() => setView(View.FORUM_HOME)}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-emerald-800 bg-emerald-50 rounded-xl"
+            >
               <Home className="w-4 h-4" /> Home
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all">
+            <button 
+              onClick={() => setView(View.RECENT_COMMENTS)}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all"
+            >
               <MessageSquare className="w-4 h-4" /> Recent comments
             </button>
           </nav>
