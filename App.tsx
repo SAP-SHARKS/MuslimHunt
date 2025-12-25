@@ -42,18 +42,18 @@ function ConnectionDebug() {
 const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
   <aside className="hidden lg:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
-      <section className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-8">
           <h3 
-            className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800"
+            className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
             onClick={() => setView(View.FORUM_HOME)}
           >
-            Community Discussions
+            Hot Discussions
           </h3>
-          <TrendingUp className="w-3.5 h-3.5 text-emerald-800" />
+          <TrendingUp className="w-4 h-4 text-emerald-800" />
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-8">
           {[
             { 
               title: "Building in Public: My journey from 0 to 100 users", 
@@ -79,7 +79,7 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
           ].map((thread, i) => (
             <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
               <div className="flex items-start gap-3">
-                <span className="text-lg leading-none pt-0.5">{thread.icon}</span>
+                <span className="text-xl leading-none pt-0.5">{thread.icon}</span>
                 <div className="flex-1">
                   <h4 className="text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug mb-2">
                     {thread.title}
@@ -95,9 +95,9 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
                       {thread.comments}
                     </div>
                     <span>•</span>
-                    <div className="flex items-center gap-1 text-emerald-600/70">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                      {thread.online} online
+                    <div className="flex items-center gap-1 text-emerald-600/70 font-black">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {thread.online}
                     </div>
                   </div>
                 </div>
@@ -106,44 +106,44 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void 
           ))}
         </div>
 
-        <div className="mt-8 space-y-4 pt-6 border-t border-gray-50">
+        <div className="mt-10 space-y-4 pt-8 border-t border-gray-50">
           <button 
             onClick={() => setView(View.FORUM_HOME)}
-            className="w-full text-center text-xs font-black text-emerald-800 hover:text-emerald-900 transition-colors uppercase tracking-widest"
+            className="w-full flex items-center justify-center gap-2 py-2 text-[11px] font-black text-emerald-800 hover:text-emerald-900 transition-colors uppercase tracking-[0.2em]"
           >
-            Visit Community Home
+            Enter Community Home <ArrowRight className="w-3.5 h-3.5" />
           </button>
           
           <button 
             onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-100 py-3 rounded-xl text-xs font-black text-gray-700 uppercase tracking-widest hover:border-emerald-800 hover:text-emerald-800 hover:bg-emerald-50 transition-all shadow-sm active:scale-95"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" /> Start new thread
           </button>
         </div>
       </section>
 
-      <section className="bg-emerald-800 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <Sparkles className="w-24 h-24 rotate-12" />
+      <section className="bg-[#042119] rounded-[2.5rem] p-10 text-white shadow-2xl shadow-emerald-900/20 overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+          <Sparkles className="w-32 h-32 rotate-12" />
         </div>
         <div className="relative z-10">
-          <h3 className="text-xs font-black text-emerald-300 uppercase tracking-[0.2em] mb-4">Weekly Newsletter</h3>
-          <p className="text-base font-bold text-white mb-6 leading-relaxed">
-            Get the best Muslim tech products delivered to your inbox every Friday.
+          <h3 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.25em] mb-4">The Weekly Dispatch</h3>
+          <p className="text-lg font-bold text-white mb-8 leading-relaxed">
+            Curated Halal tech products delivered every Friday.
           </p>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <input 
               type="email" 
-              placeholder="Email address"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl outline-none focus:bg-white/20 transition-all text-sm placeholder:text-emerald-200/50"
+              placeholder="Your email address"
+              className="w-full px-5 py-4 bg-emerald-900/50 border border-emerald-800 rounded-2xl outline-none focus:bg-emerald-900 focus:border-emerald-700 transition-all text-sm placeholder:text-emerald-700 font-medium"
             />
-            <button className="w-full bg-white text-emerald-900 py-3.5 rounded-xl text-sm font-black shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]">
-              Subscribe Now
+            <button className="w-full bg-emerald-700 hover:bg-emerald-600 text-white py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all active:scale-[0.98]">
+              Join the list
             </button>
           </div>
-          <p className="mt-4 text-[10px] text-emerald-200/50 font-medium text-center italic">
-            No spam, just pure Halal tech goodness.
+          <p className="mt-6 text-[10px] text-emerald-800 font-black text-center uppercase tracking-tighter italic">
+            Trusted by 12,000+ Founders
           </p>
         </div>
       </section>
@@ -247,43 +247,6 @@ const App: React.FC = () => {
 
     fetchData();
   }, []);
-
-  // Real-time Subscriptions for Comments
-  useEffect(() => {
-    const channel = supabase
-      .channel('comments-realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments' },
-        (payload) => {
-          const newComment = payload.new as Comment;
-          setProducts(prev => prev.map(p => {
-            if (p.id === newComment.product_id) {
-              const existingComments = p.comments || [];
-              if (existingComments.some(c => c.id === newComment.id)) return p;
-              
-              // Determine if this is the maker
-              const commentWithMakerStatus = {
-                ...newComment,
-                is_maker: newComment.user_id === p.founder_id
-              };
-
-              const updated = { ...p, comments: [commentWithMakerStatus, ...existingComments] };
-              if (selectedProduct?.id === p.id) {
-                setSelectedProduct(updated);
-              }
-              return updated;
-            }
-            return p;
-          }));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedProduct]);
 
   // Sync state to local storage
   useEffect(() => {
@@ -413,18 +376,13 @@ const App: React.FC = () => {
     };
 
     try {
-      // Direct insertion to Supabase. Table 'comments' must exist.
       const { data, error } = await supabase
         .from('comments')
         .insert([newCommentData])
         .select();
 
-      if (error) {
-        console.error("Supabase Error Details:", error.code, error.message, error.details);
-        throw error;
-      }
+      if (error) throw error;
 
-      // Optimization: Update state immediately while subscription propagates globally
       if (data && data[0]) {
         const persistedComment = {
           ...data[0],
@@ -444,7 +402,6 @@ const App: React.FC = () => {
       }
     } catch (err: any) {
       console.error("Critical error in handleAddComment:", err);
-      alert(`Bismillah, we couldn't post your comment. Error: ${err.message || 'Check database connection'}.`);
     }
   };
 
@@ -485,7 +442,7 @@ const App: React.FC = () => {
   const renderContent = () => {
     if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => setView(View.HOME)} /></div>;
     if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
-    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.FORUM_HOME)} onSubmit={(data) => { console.log('Thread created:', data); setView(View.FORUM_HOME); }} />;
+    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.FORUM_HOME)} onSubmit={(data) => { setView(View.FORUM_HOME); }} />;
     if (view === View.FORUM_HOME) return <ForumHome setView={setView} user={user} />;
 
     if (view === View.PROFILE && selectedProfile) {
@@ -553,13 +510,6 @@ const App: React.FC = () => {
                 const displayData = isExpanded ? section.data : section.data.slice(0, 5);
                 const hasMore = section.data.length > 5 && !isExpanded;
                 
-                const buttonTextMap: Record<string, string> = {
-                  today: "See all of today's products",
-                  yesterday: "See all of yesterday's top products",
-                  lastWeek: "See all of last week's top products",
-                  lastMonth: "See all of last month's top products"
-                };
-
                 return section.data.length > 0 && (
                   <section key={section.id}>
                     <div className="flex items-center justify-between mb-6">
@@ -585,7 +535,7 @@ const App: React.FC = () => {
                         onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
                         className="w-full py-4 mt-4 border border-gray-100 rounded-full text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all bg-white/50"
                       >
-                        {buttonTextMap[section.id]}
+                        See all of {section.id === 'today' ? "today's" : section.id === 'yesterday' ? "yesterday's" : section.id === 'lastWeek' ? "last week's" : "last month's"} products
                       </button>
                     )}
                   </section>
