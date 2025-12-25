@@ -171,6 +171,40 @@ const App: React.FC = () => {
     lastMonth: false
   });
 
+  // Handle browser navigation for permalinks
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/p/new') {
+        setView(View.NEW_THREAD);
+      } else if (path === '/forums') {
+        setView(View.FORUM_HOME);
+      } else if (path === '/recent-comments') {
+        setView(View.RECENT_COMMENTS);
+      } else {
+        setView(View.HOME);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    handlePopState(); // Initial check
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Centralized view update with URL pushState
+  const updateView = (newView: View) => {
+    setView(newView);
+    const path = newView === View.NEW_THREAD ? '/p/new' 
+               : newView === View.FORUM_HOME ? '/forums'
+               : newView === View.RECENT_COMMENTS ? '/recent-comments'
+               : '/';
+    
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+  };
+
   // Initial Auth Check
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -205,11 +239,9 @@ const App: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch products
         let { data: dbProducts } = await supabase.from('products').select('*');
         const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
 
-        // Fetch all comments
         let { data: dbComments } = await supabase
           .from('comments')
           .select('*')
@@ -226,13 +258,12 @@ const App: React.FC = () => {
           comments: [
             ...(commentsMap[p.id] || []),
             ...(INITIAL_PRODUCTS.find(ip => ip.id === p.id)?.comments || [])
-          ].filter((c, index, self) => index === self.findIndex((t) => t.id === c.id)) // Filter unique IDs
+          ].filter((c, index, self) => index === self.findIndex((t) => t.id === c.id))
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         }));
 
         setProducts(productsWithComments);
 
-        // Recover votes from local storage
         const savedVotes = localStorage.getItem('mh_votes_v5');
         const savedCVotes = localStorage.getItem('mh_cvotes_v5');
         if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
@@ -249,7 +280,6 @@ const App: React.FC = () => {
     fetchData();
   }, []);
 
-  // Sync state to local storage
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
@@ -259,7 +289,7 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setView(View.HOME);
+    updateView(View.HOME);
   };
 
   const handleViewProfile = async (userId: string) => {
@@ -295,7 +325,6 @@ const App: React.FC = () => {
       setView(View.PROFILE);
     } catch (err) {
       console.error("Error loading user profile:", err);
-      alert("Could not load user profile details.");
     } finally {
       setIsLoading(false);
     }
@@ -306,7 +335,6 @@ const App: React.FC = () => {
       setView(View.LOGIN);
       return;
     }
-
     const voteKey = `${user.id}_${productId}`;
     setVotes(prev => {
       const next = new Set(prev);
@@ -326,14 +354,11 @@ const App: React.FC = () => {
       setView(View.LOGIN);
       return;
     }
-
     const voteKey = `${user.id}_${commentId}`;
     setCommentVotes(prev => {
       const next = new Set(prev);
       const isUpvoting = !next.has(voteKey);
-      
       if (isUpvoting) next.add(voteKey); else next.delete(voteKey);
-      
       setProducts(curr => curr.map(p => {
         if (p.id === productId) {
           const updatedComments = (p.comments || []).map(c => 
@@ -345,7 +370,6 @@ const App: React.FC = () => {
         }
         return p;
       }));
-
       return next;
     });
   };
@@ -360,12 +384,11 @@ const App: React.FC = () => {
       comments: []
     };
     setProducts([newProduct, ...products]);
-    setView(View.HOME);
+    updateView(View.HOME);
   };
 
   const handleAddComment = async (text: string) => {
     if (!user || !selectedProduct) return;
-    
     const newCommentData = {
       product_id: selectedProduct.id,
       user_id: user.id,
@@ -375,21 +398,11 @@ const App: React.FC = () => {
       created_at: new Date().toISOString(),
       upvotes_count: 0
     };
-
     try {
-      const { data, error } = await supabase
-        .from('comments')
-        .insert([newCommentData])
-        .select();
-
+      const { data, error } = await supabase.from('comments').insert([newCommentData]).select();
       if (error) throw error;
-
       if (data && data[0]) {
-        const persistedComment = {
-          ...data[0],
-          is_maker: data[0].user_id === selectedProduct.founder_id
-        } as Comment;
-
+        const persistedComment = { ...data[0], is_maker: data[0].user_id === selectedProduct.founder_id } as Comment;
         setProducts(prev => prev.map(p => {
           if (p.id === selectedProduct.id) {
             const currentComments = p.comments || [];
@@ -418,10 +431,8 @@ const App: React.FC = () => {
     const yesterdayStr = new Date(nowTs - 86400000).toDateString();
     const lastWeekLimit = nowTs - 7 * 24 * 60 * 60 * 1000;
     const lastMonthLimit = nowTs - 30 * 24 * 60 * 60 * 1000;
-    
     const filteredProducts = searchProducts(products, searchQuery);
     const sorted = [...filteredProducts].sort((a, b) => b.upvotes_count - a.upvotes_count);
-    
     return {
       today: sorted.filter(p => new Date(p.created_at).toDateString() === todayStr),
       yesterday: sorted.filter(p => new Date(p.created_at).toDateString() === yesterdayStr),
@@ -441,11 +452,11 @@ const App: React.FC = () => {
   }, [products, searchQuery]);
 
   const renderContent = () => {
-    if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => setView(View.HOME)} /></div>;
-    if (view === View.SUBMIT) return <SubmitForm onCancel={() => setView(View.HOME)} onSubmit={handleNewProduct} />;
-    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => setView(View.FORUM_HOME)} onSubmit={(data) => { setView(View.FORUM_HOME); }} />;
-    if (view === View.FORUM_HOME) return <ForumHome setView={setView} user={user} />;
-    if (view === View.RECENT_COMMENTS) return <RecentComments setView={setView} user={user} onViewProfile={handleViewProfile} />;
+    if (view === View.LOGIN) return <div className="flex flex-col items-center justify-center min-h-[80vh]"><Auth onSuccess={() => updateView(View.HOME)} /></div>;
+    if (view === View.SUBMIT) return <SubmitForm onCancel={() => updateView(View.HOME)} onSubmit={handleNewProduct} />;
+    if (view === View.NEW_THREAD) return <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={(data) => { updateView(View.FORUM_HOME); }} setView={updateView} />;
+    if (view === View.FORUM_HOME) return <ForumHome setView={updateView} user={user} />;
+    if (view === View.RECENT_COMMENTS) return <RecentComments setView={updateView} user={user} onViewProfile={handleViewProfile} />;
 
     if (view === View.PROFILE && selectedProfile) {
       return (
@@ -454,7 +465,7 @@ const App: React.FC = () => {
           currentUser={user}
           products={products}
           votes={votes}
-          onBack={() => setView(View.HOME)}
+          onBack={() => updateView(View.HOME)}
           onProductClick={(prod) => handleProductClick(prod)}
           onCommentClick={(prod) => handleProductClick(prod, true)}
           onUpvote={handleUpvote}
@@ -468,7 +479,7 @@ const App: React.FC = () => {
           product={selectedProduct} 
           user={user}
           onBack={() => {
-            setView(View.HOME);
+            updateView(View.HOME);
             setShouldScrollToComments(false);
           }}
           onUpvote={handleUpvote}
@@ -511,7 +522,6 @@ const App: React.FC = () => {
                 const isExpanded = expandedSections[section.id];
                 const displayData = isExpanded ? section.data : section.data.slice(0, 5);
                 const hasMore = section.data.length > 5 && !isExpanded;
-                
                 return section.data.length > 0 && (
                   <section key={section.id}>
                     <div className="flex items-center justify-between mb-6">
@@ -546,8 +556,7 @@ const App: React.FC = () => {
             )}
           </main>
         </div>
-        
-        <TrendingSidebar user={user} setView={setView} />
+        <TrendingSidebar user={user} setView={updateView} />
       </div>
     );
   };
@@ -558,7 +567,7 @@ const App: React.FC = () => {
       <Navbar 
         user={user} 
         currentView={view} 
-        setView={setView} 
+        setView={updateView} 
         onLogout={handleLogout} 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
