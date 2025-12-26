@@ -2,33 +2,42 @@ import React, { useState } from 'react';
 import { 
   Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Compass
+  Rocket, Compass, Mail, FileText, Flame, Calendar
 } from 'lucide-react';
 import { User, View } from '../types';
 
-interface NavDropdownProps {
+interface DropdownItem {
   label: string;
-  items: { label: string; icon?: any; onClick?: () => void }[];
+  subtext: string;
+  icon: any;
+  colorClass: string;
+  bgClass: string;
+  onClick?: () => void;
 }
 
-const NavDropdown: React.FC<NavDropdownProps> = ({ label, items }) => {
+const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="relative group" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+    <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
       <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-800 py-4 transition-colors">
         {label}
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 w-56 bg-white border border-gray-100 shadow-xl rounded-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-0 w-80 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
           {items.map((item, i) => (
             <button 
               key={i} 
               onClick={item.onClick}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 hover:bg-emerald-50 hover:text-emerald-800 transition-colors text-left"
+              className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left group/item"
             >
-              {item.icon && <item.icon className="w-4 h-4 opacity-70" />}
-              {item.label}
+              <div className={`w-10 h-10 ${item.bgClass} rounded-xl flex items-center justify-center ${item.colorClass} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
+                <item.icon className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col pt-0.5">
+                <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors">{item.label}</p>
+                <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1">{item.subtext}</p>
+              </div>
             </button>
           ))}
         </div>
@@ -62,10 +71,10 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
   ];
 
   return (
-    <div className="relative group" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+    <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
       <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-800 py-4 transition-colors">
         Best Products
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
@@ -146,53 +155,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
   );
 };
 
-const LaunchesDropdown: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="relative group" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
-      <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-800 py-4 transition-colors">
-        Launches
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      
-      {isOpen && (
-        <div className="absolute top-full left-0 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
-          <div className="flex flex-col">
-            {/* Launch Archive */}
-            <button 
-              onClick={() => { setView(View.HOME); setIsOpen(false); }}
-              className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left group/item"
-            >
-              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-600 shrink-0 group-hover/item:scale-110 transition-transform shadow-sm">
-                <Rocket className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col pt-0.5">
-                <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors">Launch archive</p>
-                <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1">Most-loved launches by the community</p>
-              </div>
-            </button>
-
-            {/* Launch Guide */}
-            <button 
-              onClick={() => { setView(View.HOME); setIsOpen(false); }}
-              className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left group/item"
-            >
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0 group-hover/item:scale-110 transition-transform shadow-sm">
-                <Compass className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col pt-0.5">
-                <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors">Launch Guide</p>
-                <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1">Checklists and pro tips for launching</p>
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 interface NavbarProps {
   user: User | null;
   currentView: View;
@@ -230,27 +192,95 @@ const Navbar: React.FC<NavbarProps> = ({
           </h1>
         </div>
 
-        {/* Navigation Links with relative anchor for dropdowns */}
+        {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-6 h-full">
           <BestProductsDropdown setView={setView} />
-          <LaunchesDropdown setView={setView} />
           
-          <NavDropdown 
+          <RichDropdown 
+            label="Launches" 
+            items={[
+              { 
+                label: 'Launch archive', 
+                subtext: 'Most-loved launches by the community', 
+                icon: Rocket, 
+                bgClass: 'bg-red-50', 
+                colorClass: 'text-red-600',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Launch Guide', 
+                subtext: 'Checklists and pro tips for launching', 
+                icon: Compass, 
+                bgClass: 'bg-blue-50', 
+                colorClass: 'text-blue-600',
+                onClick: () => setView(View.HOME)
+              },
+            ]} 
+          />
+          
+          <RichDropdown 
             label="Community" 
             items={[
-              { label: 'Forum Home', icon: MessageSquare, onClick: () => setView(View.FORUM_HOME) },
-              { label: 'Halaqas', icon: Users },
-              { label: 'Maker Discussions', icon: Users, onClick: () => setView(View.FORUM_HOME) },
+              { 
+                label: 'Forums', 
+                subtext: 'Ask questions, find support, and connect', 
+                icon: MessageSquare, 
+                bgClass: 'bg-purple-50', 
+                colorClass: 'text-purple-600',
+                onClick: () => setView(View.FORUM_HOME)
+              },
+              { 
+                label: 'Streaks', 
+                subtext: 'The most active community members', 
+                icon: Flame, 
+                bgClass: 'bg-red-50', 
+                colorClass: 'text-red-500',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Events', 
+                subtext: 'Meet others online and in-person', 
+                icon: Calendar, 
+                bgClass: 'bg-emerald-50', 
+                colorClass: 'text-emerald-600',
+                onClick: () => setView(View.HOME)
+              },
             ]} 
           />
-          <NavDropdown 
+
+          <RichDropdown 
             label="News" 
             items={[
-              { label: 'Weekly Newsletter', icon: BookOpen },
-              { label: 'Founder Stories', icon: Sparkles },
+              { 
+                label: 'Newsletter', 
+                subtext: 'The best of Muslim Hunt, every day', 
+                icon: Mail, 
+                bgClass: 'bg-purple-50', 
+                colorClass: 'text-purple-600',
+                onClick: () => {}
+              },
+              { 
+                label: 'Stories', 
+                subtext: 'Tech news, interviews, and tips from makers', 
+                icon: BookOpen, 
+                bgClass: 'bg-pink-50', 
+                colorClass: 'text-pink-600',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Changelog', 
+                subtext: 'New Muslim Hunt features and releases', 
+                icon: FileText, 
+                bgClass: 'bg-emerald-50', 
+                colorClass: 'text-emerald-600',
+                onClick: () => {}
+              },
             ]} 
           />
-          <button className="text-sm font-medium text-gray-600 hover:text-emerald-800 h-full">Advertise</button>
+
+          <button className="text-sm font-medium text-gray-600 hover:text-emerald-800 transition-colors py-4 px-1 flex items-center h-full">
+            Advertise
+          </button>
         </div>
 
         {/* Search */}
