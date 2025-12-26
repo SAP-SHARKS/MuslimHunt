@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar';
 import ProductCard from './components/ProductCard';
@@ -9,6 +8,7 @@ import UserProfile from './components/UserProfile';
 import NewThreadForm from './components/NewThreadForm';
 import ForumHome from './components/ForumHome';
 import RecentComments from './components/RecentComments';
+import Sponsor from './components/Sponsor';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
@@ -190,6 +190,8 @@ const App: React.FC = () => {
         setView(View.FORUM_HOME);
       } else if (path === '/forums/comments') {
         setView(View.RECENT_COMMENTS);
+      } else if (path === '/sponsor') {
+        setView(View.SPONSOR);
       } else if (path === '/') {
         setView(View.HOME);
       }
@@ -207,6 +209,7 @@ const App: React.FC = () => {
     if (newView === View.NEW_THREAD) path = '/p/new';
     else if (newView === View.FORUM_HOME) path = '/forums';
     else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
+    else if (newView === View.SPONSOR) path = '/sponsor';
     
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
@@ -590,6 +593,7 @@ const App: React.FC = () => {
 
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={handleViewProfile} />}
+        {view === View.SPONSOR && <Sponsor />}
       </main>
       <Footer />
     </div>

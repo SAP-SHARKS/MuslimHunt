@@ -278,7 +278,12 @@ const Navbar: React.FC<NavbarProps> = ({
             ]} 
           />
 
-          <button className="text-sm font-medium text-gray-600 hover:text-emerald-800 transition-colors py-4 px-1 flex items-center h-full">
+          <button 
+            onClick={() => setView(View.SPONSOR)}
+            className={`text-sm font-medium transition-colors py-4 px-1 flex items-center h-full ${
+              currentView === View.SPONSOR ? 'text-emerald-800' : 'text-gray-600 hover:text-emerald-800'
+            }`}
+          >
             Advertise
           </button>
         </div>
