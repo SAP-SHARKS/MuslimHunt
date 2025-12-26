@@ -600,7 +600,11 @@ const App: React.FC = () => {
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={handleViewProfile} />}
         {view === View.SPONSOR && <Sponsor />}
-        {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => updateView(View.SPONSOR)} />}
+        {view === View.NEWSLETTER && (
+          <div className="bg-white">
+            <Newsletter onSponsorClick={() => updateView(View.SPONSOR)} />
+          </div>
+        )}
       </main>
       <Footer />
     </div>

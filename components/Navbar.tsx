@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
+  Search, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
   Rocket, Compass, Mail, FileText, Flame, Calendar
 } from 'lucide-react';
@@ -311,22 +311,13 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-4">
           {/* Mobile Search Button */}
           <button
             onClick={() => setShowMobileSearch(true)}
             className="lg:hidden p-2 text-gray-600 hover:text-emerald-800 transition-colors"
           >
             <Search className="w-5 h-5" />
-          </button>
-
-          {/* Submit Button */}
-          <button 
-            onClick={() => user ? setView(View.SUBMIT) : setView(View.LOGIN)}
-            className="hidden lg:flex items-center gap-1.5 border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4 text-gray-400" />
-            Submit
           </button>
 
           {/* Subscribe Button */}
