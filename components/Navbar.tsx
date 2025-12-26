@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
-  MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star
+  MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
+  Rocket, Compass
 } from 'lucide-react';
 import { User, View } from '../types';
 
@@ -145,6 +146,53 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
   );
 };
 
+const LaunchesDropdown: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative group" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+      <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-800 py-4 transition-colors">
+        Launches
+        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+          <div className="flex flex-col">
+            {/* Launch Archive */}
+            <button 
+              onClick={() => { setView(View.HOME); setIsOpen(false); }}
+              className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left group/item"
+            >
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-600 shrink-0 group-hover/item:scale-110 transition-transform shadow-sm">
+                <Rocket className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col pt-0.5">
+                <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors">Launch archive</p>
+                <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1">Most-loved launches by the community</p>
+              </div>
+            </button>
+
+            {/* Launch Guide */}
+            <button 
+              onClick={() => { setView(View.HOME); setIsOpen(false); }}
+              className="w-full flex items-start gap-4 px-5 py-4 hover:bg-gray-50 transition-all text-left group/item"
+            >
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 shrink-0 group-hover/item:scale-110 transition-transform shadow-sm">
+                <Compass className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col pt-0.5">
+                <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors">Launch Guide</p>
+                <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1">Checklists and pro tips for launching</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface NavbarProps {
   user: User | null;
   currentView: View;
@@ -185,6 +233,7 @@ const Navbar: React.FC<NavbarProps> = ({
         {/* Navigation Links with relative anchor for dropdowns */}
         <div className="hidden md:flex items-center gap-6 h-full">
           <BestProductsDropdown setView={setView} />
+          <LaunchesDropdown setView={setView} />
           
           <NavDropdown 
             label="Community" 
