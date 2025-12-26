@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { 
   Search, Plus, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Compass, Mail, FileText, Flame, Calendar, Menu
+  Rocket, Compass, Mail, FileText, Flame, Calendar
 } from 'lucide-react';
 import { User, View } from '../types';
 
@@ -144,7 +143,7 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
                     <p className="text-[11px] font-bold leading-snug">Discover 50+ New Halal Startups this month.</p>
                   </div>
                   <div className="absolute -bottom-2 -right-2 opacity-10 group-hover/ad:scale-110 group-hover/ad:rotate-6 transition-transform">
-                    <Rocket className="w-12 h-12" />
+                    <Sparkles className="w-10 h-10" />
                   </div>
                 </div>
               </div>
@@ -156,7 +155,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
   );
 };
 
-// Fixed: Added Navbar component definition and default export to resolve the "no default export" error.
 interface NavbarProps {
   user: User | null;
   currentView: View;
@@ -176,139 +174,215 @@ const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   onViewProfile
 }) => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const communityItems: DropdownItem[] = [
-    { label: 'Discussions', subtext: 'Ask questions & share stories', icon: MessageSquare, colorClass: 'text-blue-600', bgClass: 'bg-blue-50', onClick: () => setView(View.FORUM_HOME) },
-    { label: 'Newsletter', subtext: 'The best products in your inbox', icon: Mail, colorClass: 'text-emerald-600', bgClass: 'bg-emerald-50', onClick: () => setView(View.NEWSLETTER) },
-    { label: 'Recent Comments', subtext: 'Live community interactions', icon: MessageSquare, colorClass: 'text-purple-600', bgClass: 'bg-purple-50', onClick: () => setView(View.RECENT_COMMENTS) },
-  ];
-
-  const resourcesItems: DropdownItem[] = [
-    { label: 'Sponsor', subtext: 'Reach the global Ummah', icon: Megaphone, colorClass: 'text-red-600', bgClass: 'bg-red-50', onClick: () => setView(View.SPONSOR) },
-    { label: 'Guidelines', subtext: 'Community standards', icon: BookOpen, colorClass: 'text-yellow-600', bgClass: 'bg-yellow-50' },
-  ];
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-[100] bg-white/80 backdrop-blur-md border-b border-emerald-50 h-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 h-full flex items-center justify-between gap-8">
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 sm:px-8">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 h-16">
         {/* Logo */}
         <div 
-          className="flex items-center gap-2 cursor-pointer group shrink-0" 
+          className="flex items-center gap-2 cursor-pointer shrink-0" 
           onClick={() => setView(View.HOME)}
         >
-          <div className="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/20 group-hover:scale-110 transition-transform">
-            <Sparkles className="w-6 h-6" />
+          <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
+            <span className="font-serif text-xl font-bold">M</span>
           </div>
-          <span className="text-xl font-serif font-bold text-emerald-900 tracking-tight hidden sm:block">Muslim Hunt</span>
+          <h1 className="hidden lg:block font-serif text-xl font-bold text-emerald-900 tracking-tight text-nowrap">
+            Muslim Hunt
+          </h1>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-6 h-full">
+        {/* Navigation Links */}
+        <div className="hidden md:flex items-center gap-6 h-full">
           <BestProductsDropdown setView={setView} />
-          <RichDropdown label="Community" items={communityItems} />
-          <RichDropdown label="Resources" items={resourcesItems} />
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md relative group hidden md:block">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
-          <input 
-            type="text" 
-            placeholder="Search products, makers, or topics..." 
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-medium placeholder:text-gray-400"
+          
+          <RichDropdown 
+            label="Launches" 
+            items={[
+              { 
+                label: 'Launch archive', 
+                subtext: 'Most-loved launches by the community', 
+                icon: Rocket, 
+                bgClass: 'bg-red-50', 
+                colorClass: 'text-red-600',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Launch Guide', 
+                subtext: 'Checklists and pro tips for launching', 
+                icon: Compass, 
+                bgClass: 'bg-blue-50', 
+                colorClass: 'text-blue-600',
+                onClick: () => setView(View.HOME)
+              },
+            ]} 
           />
+          
+          <RichDropdown 
+            label="Community" 
+            items={[
+              { 
+                label: 'Forums', 
+                subtext: 'Ask questions, find support, and connect', 
+                icon: MessageSquare, 
+                bgClass: 'bg-purple-50', 
+                colorClass: 'text-purple-600',
+                onClick: () => setView(View.FORUM_HOME)
+              },
+              { 
+                label: 'Streaks', 
+                subtext: 'The most active community members', 
+                icon: Flame, 
+                bgClass: 'bg-red-50', 
+                colorClass: 'text-red-500',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Events', 
+                subtext: 'Meet others online and in-person', 
+                icon: Calendar, 
+                bgClass: 'bg-emerald-50', 
+                colorClass: 'text-emerald-600',
+                onClick: () => setView(View.HOME)
+              },
+            ]} 
+          />
+
+          <RichDropdown 
+            label="News" 
+            items={[
+              { 
+                label: 'Newsletter', 
+                subtext: 'The best of Muslim Hunt, every day', 
+                icon: Mail, 
+                bgClass: 'bg-purple-50', 
+                colorClass: 'text-purple-600',
+                onClick: () => setView(View.NEWSLETTER)
+              },
+              { 
+                label: 'Stories', 
+                subtext: 'Tech news, interviews, and tips from makers', 
+                icon: BookOpen, 
+                bgClass: 'bg-pink-50', 
+                colorClass: 'text-pink-600',
+                onClick: () => setView(View.HOME)
+              },
+              { 
+                label: 'Changelog', 
+                subtext: 'New Muslim Hunt features and releases', 
+                icon: FileText, 
+                bgClass: 'bg-emerald-50', 
+                colorClass: 'text-emerald-600',
+                onClick: () => {}
+              },
+            ]} 
+          />
+
+          <button 
+            onClick={() => setView(View.SPONSOR)}
+            className={`text-sm font-medium transition-colors py-4 px-1 flex items-center h-full ${
+              currentView === View.SPONSOR ? 'text-emerald-800' : 'text-gray-600 hover:text-emerald-800'
+            }`}
+          >
+            Advertise
+          </button>
         </div>
 
-        {/* Right Side Actions */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {user ? (
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setView(View.SUBMIT)}
-                className="w-10 h-10 bg-emerald-50 text-emerald-800 rounded-xl flex items-center justify-center hover:bg-emerald-800 hover:text-white transition-all shadow-sm"
+        {/* Search */}
+        <div className="flex-1 max-w-sm hidden lg:block">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/10 focus:border-emerald-700 transition-all text-sm font-medium"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
               >
-                <Plus className="w-6 h-6" />
+                <X className="w-3 h-3" />
               </button>
-              <div className="h-8 w-[1px] bg-gray-100 hidden sm:block" />
-              <div className="relative group/user">
-                <button 
-                  onClick={onViewProfile}
-                  className="w-10 h-10 rounded-xl overflow-hidden border-2 border-emerald-50 shadow-sm hover:border-emerald-800 transition-all active:scale-95"
-                >
-                  <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                </button>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-xl rounded-2xl py-2 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all z-[110]">
-                  <button onClick={onViewProfile} className="w-full px-4 py-2 text-left text-sm font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                    <Users className="w-4 h-4" /> Profile
-                  </button>
-                  <button onClick={onLogout} className="w-full px-4 py-2 text-left text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2">
-                    <LogOut className="w-4 h-4" /> Logout
-                  </button>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Mobile Search Button */}
+          <button
+            onClick={() => setShowMobileSearch(true)}
+            className="lg:hidden p-2 text-gray-600 hover:text-emerald-800 transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
+          {/* Submit Button */}
+          <button 
+            onClick={() => user ? setView(View.SUBMIT) : setView(View.LOGIN)}
+            className="hidden lg:flex items-center gap-1.5 border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4 text-gray-400" />
+            Submit
+          </button>
+
+          {/* Subscribe Button */}
+          <button 
+            onClick={() => setView(View.NEWSLETTER)}
+            className="hidden lg:block border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:border-gray-400 transition-all active:scale-95"
+          >
+            Subscribe
+          </button>
+
+          {user ? (
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all group relative"
+                onClick={onViewProfile}
+              >
+                <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                  <p className="text-xs font-bold text-emerald-900 mb-1">{user.username}</p>
+                  <p className="text-[10px] text-gray-400">{user.email}</p>
                 </div>
               </div>
+              <button onClick={onLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setView(View.LOGIN)}
-                className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors"
-              >
-                Log in
-              </button>
-              <button 
-                onClick={() => setView(View.LOGIN)}
-                className="px-6 py-2.5 bg-emerald-800 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/10"
-              >
-                Join
-              </button>
-            </div>
+            <button 
+              onClick={() => setView(View.LOGIN)}
+              className="text-emerald-800 font-bold text-sm px-4 py-2 hover:bg-emerald-50 rounded-lg transition-colors"
+            >
+              Sign In
+            </button>
           )}
-          
-          {/* Mobile Menu Button */}
-          <button 
-            className="lg:hidden p-2 text-gray-400 hover:text-emerald-800 transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl z-[100] p-6 animate-in slide-in-from-top-2 duration-200">
-          <div className="space-y-6">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
+      {/* Mobile Search Modal */}
+      {showMobileSearch && (
+        <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={() => setShowMobileSearch(false)}>
+          <div className="bg-white p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-gray-50 rounded-xl outline-none"
+                autoFocus
+                className="flex-1 py-3 bg-transparent border-none outline-none text-lg"
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => { setView(View.HOME); setIsMobileMenuOpen(false); }} className="p-4 bg-gray-50 rounded-2xl text-left">
-                <Sparkles className="w-6 h-6 text-emerald-800 mb-2" />
-                <p className="font-bold text-gray-900 text-sm">Products</p>
-              </button>
-              <button onClick={() => { setView(View.FORUM_HOME); setIsMobileMenuOpen(false); }} className="p-4 bg-gray-50 rounded-2xl text-left">
-                <MessageSquare className="w-6 h-6 text-blue-600 mb-2" />
-                <p className="font-bold text-gray-900 text-sm">Forum</p>
-              </button>
-            </div>
-            <div className="space-y-2">
-              <button onClick={() => { setView(View.NEWSLETTER); setIsMobileMenuOpen(false); }} className="w-full p-4 hover:bg-gray-50 rounded-2xl text-left flex items-center gap-4">
-                <Mail className="w-5 h-5 text-emerald-600" />
-                <p className="font-bold text-gray-900">Newsletter</p>
-              </button>
-              <button onClick={() => { setView(View.SPONSOR); setIsMobileMenuOpen(false); }} className="w-full p-4 hover:bg-gray-50 rounded-2xl text-left flex items-center gap-4">
-                <Megaphone className="w-5 h-5 text-red-600" />
-                <p className="font-bold text-gray-900">Sponsor</p>
+              <button
+                onClick={() => setShowMobileSearch(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
           </div>
