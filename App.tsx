@@ -9,6 +9,7 @@ import NewThreadForm from './components/NewThreadForm';
 import ForumHome from './components/ForumHome';
 import RecentComments from './components/RecentComments';
 import Sponsor from './components/Sponsor';
+import Newsletter from './components/Newsletter';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
@@ -192,6 +193,8 @@ const App: React.FC = () => {
         setView(View.RECENT_COMMENTS);
       } else if (path === '/sponsor') {
         setView(View.SPONSOR);
+      } else if (path === '/newsletters') {
+        setView(View.NEWSLETTER);
       } else if (path === '/') {
         setView(View.HOME);
       }
@@ -210,6 +213,7 @@ const App: React.FC = () => {
     else if (newView === View.FORUM_HOME) path = '/forums';
     else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
     else if (newView === View.SPONSOR) path = '/sponsor';
+    else if (newView === View.NEWSLETTER) path = '/newsletters';
     
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
@@ -465,6 +469,8 @@ const App: React.FC = () => {
     { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, buttonText: "See all of last month's top products" }
   ];
 
+  const showSidebar = view === View.HOME;
+
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
       <ConnectionDebug />
@@ -538,7 +544,7 @@ const App: React.FC = () => {
                 })}
               </div>
             </div>
-            <TrendingSidebar user={user} setView={updateView} />
+            {showSidebar && <TrendingSidebar user={user} setView={updateView} />}
           </div>
         )}
 
@@ -594,6 +600,7 @@ const App: React.FC = () => {
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={handleViewProfile} />}
         {view === View.SPONSOR && <Sponsor />}
+        {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => updateView(View.SPONSOR)} />}
       </main>
       <Footer />
     </div>
