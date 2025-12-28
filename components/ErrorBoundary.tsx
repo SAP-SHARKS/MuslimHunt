@@ -1,7 +1,6 @@
 import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
-  // Making children optional resolves the "missing in type '{}'" error in index.tsx
   children?: ReactNode;
 }
 
@@ -10,9 +9,7 @@ interface State {
   error: Error | null;
 }
 
-// Fixed: Explicitly extending React.Component with Props and State generics
 class ErrorBoundary extends React.Component<Props, State> {
-  // Explicitly defining state as a class property for better type inference
   public state: State = {
     hasError: false,
     error: null
@@ -31,7 +28,6 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   render() {
-    // Now properly typed access to this.state
     if (this.state.hasError) {
       return (
         <div style={{ 
@@ -80,8 +76,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Fix: Explicitly casting 'this' to any to resolve TS error where 'props' is not correctly identified on the instance
-    return (this as any).props.children;
+    return (this as any).props.children || null;
   }
 }
 

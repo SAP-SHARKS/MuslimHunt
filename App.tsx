@@ -1,27 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Navbar from './components/Navbar';
-import ProductCard from './components/ProductCard';
-import ProductDetail from './components/ProductDetail';
-import SubmitForm from './components/SubmitForm';
-import Auth from './components/Auth';
-import UserProfile from './components/UserProfile';
-import NewThreadForm from './components/NewThreadForm';
-import ForumHome from './components/ForumHome';
-import RecentComments from './components/RecentComments';
-import Sponsor from './components/Sponsor';
-import Newsletter from './components/Newsletter';
-import Categories from './components/Categories';
-import Footer from './components/Footer';
-import { Product, User, View, Comment, Profile } from './types';
-import { INITIAL_PRODUCTS } from './constants';
+import Navbar from './components/Navbar.tsx';
+import ProductCard from './components/ProductCard.tsx';
+import ProductDetail from './components/ProductDetail.tsx';
+import SubmitForm from './components/SubmitForm.tsx';
+import Auth from './components/Auth.tsx';
+import UserProfile from './components/UserProfile.tsx';
+import NewThreadForm from './components/NewThreadForm.tsx';
+import ForumHome from './components/ForumHome.tsx';
+import RecentComments from './components/RecentComments.tsx';
+import Sponsor from './components/Sponsor.tsx';
+import Newsletter from './components/Newsletter.tsx';
+import Categories from './components/Categories.tsx';
+import Footer from './components/Footer.tsx';
+import { Product, User, View, Comment, Profile } from './types.ts';
+import { INITIAL_PRODUCTS } from './constants.tsx';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout } from 'lucide-react';
-import { supabase } from './lib/supabase';
-import { searchProducts } from './utils/searchUtils';
+import { supabase } from './lib/supabase.ts';
+import { searchProducts } from './utils/searchUtils.ts';
 
 function ConnectionDebug() {
   const url = (import.meta as any)?.env?.VITE_SUPA_URL;
   const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
-  // Safely check for process before accessing env
   const geminiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
   
   return (
@@ -217,23 +216,30 @@ const App: React.FC = () => {
     else if (newView === View.NEWSLETTER) path = '/newsletters';
     else if (newView === View.CATEGORIES) path = '/categories';
     
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
+    try {
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
+    } catch (e) {
+      console.warn('Could not update history state', e);
     }
   };
 
   // Initial Auth Check
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
-          avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
-        });
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        const session = data?.session;
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
+            avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          });
+        }
+      })
+      .catch(err => console.error("Session check failed", err));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -256,10 +262,10 @@ const App: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        let { data: dbProducts } = await supabase.from('products').select('*');
+        const { data: dbProducts } = await supabase.from('products').select('*');
         const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
 
-        let { data: dbComments } = await supabase
+        const { data: dbComments } = await supabase
           .from('comments')
           .select('*')
           .order('created_at', { ascending: false });
@@ -281,10 +287,14 @@ const App: React.FC = () => {
 
         setProducts(productsWithComments);
 
-        const savedVotes = localStorage.getItem('mh_votes_v5');
-        const savedCVotes = localStorage.getItem('mh_cvotes_v5');
-        if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
-        if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
+        try {
+          const savedVotes = localStorage.getItem('mh_votes_v5');
+          const savedCVotes = localStorage.getItem('mh_cvotes_v5');
+          if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
+          if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
+        } catch (e) {
+          console.warn('Storage access failed', e);
+        }
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -299,8 +309,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
-      localStorage.setItem('mh_cvotes_v5', JSON.stringify(Array.from(commentVotes)));
+      try {
+        localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
+        localStorage.setItem('mh_cvotes_v5', JSON.stringify(Array.from(commentVotes)));
+      } catch (e) {
+        console.warn('Storage saving failed', e);
+      }
     }
   }, [votes, commentVotes, isLoading]);
 
