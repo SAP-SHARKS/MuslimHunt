@@ -480,7 +480,7 @@ const App: React.FC = () => {
         onViewProfile={() => user && handleViewProfile(user.id)}
       />
 
-      <main className="pb-20">
+      <main className={view === View.NEWSLETTER ? "" : "pb-20"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">

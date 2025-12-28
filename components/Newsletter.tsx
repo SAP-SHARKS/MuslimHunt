@@ -152,7 +152,7 @@ const FrontierCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
     {item.subtext && (
       <p className="text-xs font-medium text-gray-400 mb-4">{item.subtext}</p>
     )}
-    <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium">
+    <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium text-left">
       {item.preview}
     </p>
     <div className="mt-auto rounded-xl overflow-hidden border border-gray-50 bg-gray-50 aspect-video">
@@ -182,7 +182,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
   };
 
   return (
-    <div className="bg-white min-h-screen font-sans">
+    <div className="bg-white min-h-0 font-sans">
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto py-24 sm:py-32 px-4 text-center">
         <div className="flex justify-center mb-10">
@@ -244,7 +244,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
       </section>
 
       {/* Archive Section */}
-      <section className="bg-gray-50/50 py-32 border-t border-gray-100">
+      <section className="bg-gray-50/50 pt-24 pb-10 border-t border-gray-100">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-24">
             <h2 className="text-5xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">
@@ -297,7 +297,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
           </div>
 
           {/* Social Proof Section */}
-          <div className="mt-40 text-center">
+          <div className="mt-24 text-center">
             <div className="mb-20">
               <h2 className="text-5xl font-serif font-bold text-emerald-900 mb-6 tracking-tight">
                 The people who know products
@@ -322,7 +322,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
             </div>
           </div>
 
-          <div className="mt-32 text-center">
+          <div className="mt-12 pb-0 text-center">
             <button className="px-10 py-4 bg-white border border-gray-200 rounded-full font-black text-[11px] uppercase tracking-[0.2em] text-emerald-800 hover:bg-emerald-50 hover:border-emerald-800 transition-all shadow-sm active:scale-95">
               Load More Archives
             </button>
