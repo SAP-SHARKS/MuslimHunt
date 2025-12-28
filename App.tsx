@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -11,6 +12,7 @@ import RecentComments from './components/RecentComments.tsx';
 import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
+import CategoryDetail from './components/CategoryDetail.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile } from './types.ts';
 import { INITIAL_PRODUCTS } from './constants.tsx';
@@ -195,6 +197,8 @@ const App: React.FC = () => {
         setView(View.NEWSLETTER);
       } else if (path === '/categories') {
         setView(View.CATEGORIES);
+      } else if (path === '/categories/ai-meeting-notetakers') {
+        setView(View.CATEGORY_DETAIL);
       } else if (path === '/') {
         setView(View.HOME);
       }
@@ -206,15 +210,18 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const updateView = (newView: View) => {
+  const updateView = (newView: View, customPath?: string) => {
     setView(newView);
-    let path = '/';
-    if (newView === View.NEW_THREAD) path = '/p/new';
-    else if (newView === View.FORUM_HOME) path = '/forums';
-    else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
-    else if (newView === View.SPONSOR) path = '/sponsor';
-    else if (newView === View.NEWSLETTER) path = '/newsletters';
-    else if (newView === View.CATEGORIES) path = '/categories';
+    let path = customPath || '/';
+    if (!customPath) {
+      if (newView === View.NEW_THREAD) path = '/p/new';
+      else if (newView === View.FORUM_HOME) path = '/forums';
+      else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
+      else if (newView === View.SPONSOR) path = '/sponsor';
+      else if (newView === View.NEWSLETTER) path = '/newsletters';
+      else if (newView === View.CATEGORIES) path = '/categories';
+      else if (newView === View.CATEGORY_DETAIL) path = '/categories/ai-meeting-notetakers';
+    }
     
     try {
       if (window.location.pathname !== path) {
@@ -222,6 +229,16 @@ const App: React.FC = () => {
       }
     } catch (e) {
       console.warn('Could not update history state', e);
+    }
+  };
+
+  const handleCategorySelect = (cat: string) => {
+    const slug = cat.toLowerCase().replace(/\s+/g, '-');
+    if (slug === 'ai-notetakers' || slug === 'ai-meeting-notetakers') {
+      updateView(View.CATEGORY_DETAIL);
+    } else {
+      setSearchQuery(cat);
+      updateView(View.HOME, `/categories/${slug}`);
     }
   };
 
@@ -495,11 +512,12 @@ const App: React.FC = () => {
         setView={updateView} 
         onLogout={handleLogout}
         searchQuery={searchQuery}
+        /* Fix: Use setSearchQuery from state for onSearchChange prop */
         onSearchChange={setSearchQuery}
         onViewProfile={() => user && handleViewProfile(user.id)}
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES) ? "" : "pb-20"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL) ? "" : "pb-20"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -623,10 +641,16 @@ const App: React.FC = () => {
         {view === View.CATEGORIES && (
           <Categories 
             onBack={() => updateView(View.HOME)} 
-            onCategorySelect={(cat) => {
-              setSearchQuery(cat);
-              updateView(View.HOME);
-            }} 
+            onCategorySelect={handleCategorySelect} 
+          />
+        )}
+        {view === View.CATEGORY_DETAIL && (
+          <CategoryDetail 
+            onBack={() => updateView(View.CATEGORIES)}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }}
+            onUpvote={handleUpvote}
+            hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)}
+            onCategorySelect={handleCategorySelect}
           />
         )}
       </main>

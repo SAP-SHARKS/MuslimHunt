@@ -64,5 +64,6 @@ export enum View {
   RECENT_COMMENTS = 'recent_comments',
   SPONSOR = 'sponsor',
   NEWSLETTER = 'newsletter',
-  CATEGORIES = 'categories'
+  CATEGORIES = 'categories',
+  CATEGORY_DETAIL = 'category_detail'
 }
