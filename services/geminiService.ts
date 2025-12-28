@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 // Guideline: Always use process.env.API_KEY. 
 // We verify its presence to avoid the "An API Key must be set" error thrown by the SDK.
-const apiKey = process.env.API_KEY;
+const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 if (!apiKey) {
@@ -23,7 +23,7 @@ export const geminiService = {
     
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: 'gemini-3-flash-preview',
         contents: `Create a catchy 1-sentence tagline for a product called "${name}" which is described as: "${description}". The product is for the Muslim tech community.`,
         config: {
           thinkingConfig: { thinkingBudget: 0 }
@@ -49,7 +49,7 @@ export const geminiService = {
     
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: 'gemini-3-flash-preview',
         contents: `Categorize this product description into one of these: Spirituality, Travel, Finance, Social, Education, Productivity, Food, Health. Description: "${description}"`,
         config: {
           responseMimeType: "application/json",

@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <script>
+        // Shim process and global for browser environment to prevent "Uncaught ReferenceError: process is not defined"
+        window.process = { env: { API_KEY: "" } };
+        window.global = window;
+
         tailwind.config = {
             theme: {
                 extend: {
@@ -54,6 +58,7 @@
     "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
     "vite": "https://esm.sh/vite@^7.3.0"
   }
 }

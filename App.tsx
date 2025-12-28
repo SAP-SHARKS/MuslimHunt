@@ -20,7 +20,8 @@ import { searchProducts } from './utils/searchUtils';
 function ConnectionDebug() {
   const url = (import.meta as any)?.env?.VITE_SUPA_URL;
   const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
-  const geminiKey = process.env.API_KEY;
+  // Safely check for process before accessing env
+  const geminiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
   
   return (
     <div style={{ 
