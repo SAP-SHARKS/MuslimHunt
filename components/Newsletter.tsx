@@ -14,7 +14,6 @@ interface ArchiveItem {
 interface Testimonial {
   text: string;
   author: string;
-  title: string;
   avatar: string;
 }
 
@@ -47,43 +46,67 @@ const LEADERBOARD_ARCHIVE: ArchiveItem[] = [
   }
 ];
 
-const FRONTIER_ARCHIVE: ArchiveItem[] = [
+const ROUNDUP_ARCHIVE: ArchiveItem[] = [
   {
-    id: 'f1',
+    id: 'r1',
     date: 'DECEMBER 16TH, 2025',
     title: 'Disney goes AI',
     subtext: 'Plus, five AI tools you may have missed',
-    preview: '',
-    featuredImage: 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?w=800&q=80'
+    preview: 'Exploring the intersection of storytelling and generative tools in the creative industry.',
+    featuredImage: 'https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?w=800&q=80',
+    topLaunches: [
+      { name: 'Veo Pro', icon: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=50&h=50&fit=crop' },
+      { name: 'VibeEdit', icon: 'https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=50&h=50&fit=crop' }
+    ]
   },
   {
-    id: 'f2',
+    id: 'r2',
     date: 'DECEMBER 9TH, 2025',
     title: 'The code-first generation',
     subtext: 'How Gen Z is rebuilding the web with Vibe Coding',
-    preview: '',
-    featuredImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80'
+    preview: 'A look into how modern developers are using intuitive tools to ship faster than ever.',
+    featuredImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80',
+    topLaunches: [
+      { name: 'Cursor Pro', icon: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=50&h=50&fit=crop' },
+      { name: 'GhostCode', icon: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=50&h=50&fit=crop' }
+    ]
   }
 ];
 
-const PEOPLE_TESTIMONIALS: Testimonial[] = [
+const FRONTIER_ARCHIVE: ArchiveItem[] = [
   {
-    text: "Muslim Hunt is the only newsletter I actually look forward to reading. The curation is world-class.",
-    author: "Cherry Jeffs",
-    title: "FOUNDER @ CREATIVE DEEN",
-    avatar: "https://i.pravatar.cc/150?u=cj"
+    id: 'f1',
+    date: 'OCTOBER 14TH, 2024',
+    title: 'The age of personal LLMs',
+    subtext: 'Running your own models on local hardware',
+    preview: 'Why local-first AI is the next major shift for privacy-conscious developers.',
+    featuredImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80',
   },
   {
-    text: "I've discovered three of my daily-use productivity tools right here. Highly recommended.",
-    author: "Bruno Thomazelli",
-    title: "PRODUCT DESIGNER @ HALALPAY",
-    avatar: "https://i.pravatar.cc/150?u=bt"
-  },
+    id: 'f2',
+    date: 'SEPTEMBER 30TH, 2024',
+    title: 'Beyond the screen',
+    subtext: 'Hardware startups are making a comeback',
+    preview: 'From wearable AI to smart home devices, physical tech is getting smarter.',
+    featuredImage: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&q=80',
+  }
+];
+
+const TESTIMONIALS: Testimonial[] = [
   {
-    text: "The stories behind the launches give me the motivation I need for my own startup journey.",
+    text: "Muslim Hunt is where I find my daily inspiration. The curation is unmatched.",
     author: "Samin Chowdhury",
-    title: "CTO @ UMMAH CONNECT",
-    avatar: "https://i.pravatar.cc/150?u=sc"
+    avatar: "https://i.pravatar.cc/150?u=samin"
+  },
+  {
+    text: "The only newsletter I actually read from top to bottom every single week.",
+    author: "Shelby Joy Scarbrough",
+    avatar: "https://i.pravatar.cc/150?u=shelby"
+  },
+  {
+    text: "It connects the dots between global tech trends and our communal values.",
+    author: "Omar Khalid",
+    avatar: "https://i.pravatar.cc/150?u=omar"
   }
 ];
 
@@ -102,7 +125,7 @@ const ArchiveCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
     </p>
     <div className="mt-auto pt-6 border-t border-gray-50">
       <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">Top Launches</p>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         {item.topLaunches?.map((launch, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md overflow-hidden border border-gray-50 shrink-0">
@@ -117,28 +140,27 @@ const ArchiveCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
 );
 
 const FrontierCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
-  <div className="bg-white border border-gray-100 rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all group flex flex-col h-full text-left">
-    <div className="p-8 pb-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight">
-          {item.title}
-        </h3>
-        <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em]">
-          {item.date}
-        </span>
-      </div>
-      <p className="text-gray-400 text-sm font-medium mb-4">
-        {item.subtext}
-      </p>
+  <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all group flex flex-col h-full text-left">
+    <div className="flex items-start justify-between mb-2">
+      <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-emerald-800 transition-colors">
+        {item.title}
+      </h3>
+      <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest shrink-0 mt-1">
+        {item.date}
+      </span>
     </div>
-    <div className="px-8 pb-8 flex-1">
-      <div className="aspect-video w-full rounded-xl overflow-hidden bg-gray-50 border border-gray-100">
-        <img 
-          src={item.featuredImage} 
-          alt={item.title} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-        />
-      </div>
+    {item.subtext && (
+      <p className="text-xs font-medium text-gray-400 mb-4">{item.subtext}</p>
+    )}
+    <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium">
+      {item.preview}
+    </p>
+    <div className="mt-auto rounded-xl overflow-hidden border border-gray-50 bg-gray-50 aspect-video">
+      <img 
+        src={item.featuredImage} 
+        alt={item.title} 
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+      />
     </div>
   </div>
 );
@@ -181,7 +203,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
 
         {!isSubscribed ? (
           <div className="max-w-xl mx-auto w-full">
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSubmit} className="flex flex-col sm:row gap-3">
               <input
                 type="email"
                 placeholder="Your email address..."
@@ -247,17 +269,56 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
               </div>
             </div>
 
+            {/* The Roundup */}
+            <div className="space-y-10">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-6">
+                <h3 className="text-2xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2 group cursor-pointer">
+                  The Roundup <ArrowRight className="w-6 h-6 text-emerald-800 group-hover:translate-x-1 transition-transform" />
+                </h3>
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Global Insights</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {ROUNDUP_ARCHIVE.map(item => <ArchiveCard key={item.id} item={item} />)}
+              </div>
+            </div>
+
             {/* The Frontier */}
             <div className="space-y-10">
               <div className="flex items-center justify-between border-b border-gray-100 pb-6">
                 <h3 className="text-2xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2 group cursor-pointer">
                   The Frontier <ArrowRight className="w-6 h-6 text-emerald-800 group-hover:translate-x-1 transition-transform" />
                 </h3>
-                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Tech Deep Dives</span>
+                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Technical Deep Dives</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {FRONTIER_ARCHIVE.map(item => <FrontierCard key={item.id} item={item} />)}
               </div>
+            </div>
+          </div>
+
+          {/* Social Proof Section */}
+          <div className="mt-40 text-center">
+            <div className="mb-20">
+              <h2 className="text-5xl font-serif font-bold text-emerald-900 mb-6 tracking-tight">
+                The people who know products
+              </h2>
+              <p className="text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
+                Curating only the best in tech is literally what we do. All day. Every day. We're very good at it.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+              {TESTIMONIALS.map((t, i) => (
+                <div key={i} className="flex flex-col items-center text-center">
+                  <p className="text-gray-600 text-[15px] font-medium leading-relaxed italic mb-6">
+                    "{t.text}"
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <img src={t.avatar} alt={t.author} className="w-6 h-6 rounded-full grayscale hover:grayscale-0 transition-all" />
+                    <span className="text-[11px] font-black text-gray-900 uppercase tracking-widest">{t.author}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -266,87 +327,6 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
               Load More Archives
             </button>
           </div>
-        </div>
-      </section>
-
-      {/* Centered Premium Testimonial Section */}
-      <section className="py-40 relative overflow-hidden bg-white">
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-          <Mail className="w-[40rem] h-[40rem] text-emerald-900" />
-        </div>
-        
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <p className="text-3xl sm:text-4xl font-serif italic font-bold text-emerald-900 leading-relaxed mb-12">
-            "Muslim Hunt has become my #1 source for discovering what's actually happening in the Ummah's tech scene. The weekly leaderboard is essential reading."
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-emerald-50 shadow-xl ring-4 ring-white">
-              <img src="https://i.pravatar.cc/150?u=omar" alt="Omar Al-Fayed" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <p className="font-black text-gray-900 text-sm tracking-tight mb-1">Omar Al-Fayed</p>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em]">CTO @ BARAKA TECH</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* People Who Know Products Section */}
-      <section className="py-32 bg-gray-50/30 border-y border-gray-100">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-24">
-            <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">
-              The people who know products
-            </h2>
-            <p className="text-xl text-gray-400 font-medium max-w-3xl mx-auto leading-relaxed">
-              Curating only the best in tech is literally what we do. All day. Every day. <br className="hidden sm:block" />
-              We're very good at it.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {PEOPLE_TESTIMONIALS.map((t, i) => (
-              <div key={i} className="flex flex-col h-full bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-lg transition-shadow">
-                <div className="mb-6 text-emerald-100">
-                  <Quote className="w-10 h-10 rotate-180 opacity-50 fill-emerald-50" />
-                </div>
-                <p className="text-lg font-serif italic text-gray-700 leading-relaxed mb-10 flex-1">
-                  "{t.text}"
-                </p>
-                <div className="flex items-center gap-4 pt-6 border-t border-gray-50">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-emerald-50">
-                    <img src={t.avatar} alt={t.author} className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">{t.author}</p>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t.title}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Footer */}
-      <section className="py-40 text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-800 mx-auto mb-10 shadow-inner">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-6 tracking-tight">
-            Ready to join the leaders?
-          </h2>
-          <p className="text-gray-500 font-medium mb-12">
-            Get the most impactful tech stories and product launches delivered directly to your inbox. 
-            Join our growing community of 12,000+ creators.
-          </p>
-          <button 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="px-16 py-5 bg-emerald-800 text-white rounded-[1.5rem] font-black text-lg hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/10 active:scale-95"
-          >
-            Subscribe for free
-          </button>
         </div>
       </section>
     </div>

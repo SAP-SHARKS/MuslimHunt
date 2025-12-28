@@ -1,8 +1,12 @@
-
 import React from 'react';
 import { Twitter, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
+import { View } from '../types';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  setView?: (view: View) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ setView }) => {
   const sections = [
     {
       title: "Engineering & Dev",
@@ -44,7 +48,6 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-[#042119] text-gray-400 py-16 mt-20 border-t border-emerald-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Main Category Links */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {sections.map((section) => (
             <div key={section.title}>
@@ -64,7 +67,6 @@ const Footer: React.FC = () => {
           ))}
         </div>
 
-        {/* Categories Grid Section */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 border-y border-emerald-900/20 mb-12">
           {categoriesGrid.map((group) => (
             <div key={group.title}>
@@ -84,17 +86,26 @@ const Footer: React.FC = () => {
           ))}
         </div>
 
-        {/* Bottom Bar */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-8 text-[11px] font-medium tracking-tight uppercase">
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3">
             <span className="text-gray-500 font-black tracking-widest">© 2025 MUSLIM HUNT</span>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Newsletter</a>
+            <button 
+              onClick={() => setView?.(View.NEWSLETTER)}
+              className="hover:text-emerald-400 transition-colors"
+            >
+              Newsletter
+            </button>
             <a href="#" className="hover:text-emerald-400 transition-colors">Apps</a>
             <a href="#" className="hover:text-emerald-400 transition-colors">About</a>
             <a href="#" className="hover:text-emerald-400 transition-colors">FAQ</a>
             <a href="#" className="hover:text-emerald-400 transition-colors">Terms</a>
             <a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Advertise</a>
+            <button 
+              onClick={() => setView?.(View.SPONSOR)}
+              className="hover:text-emerald-400 transition-colors"
+            >
+              Advertise
+            </button>
             <a href="#" className="hover:text-emerald-400 transition-colors italic">llms.txt</a>
             <a href="#" className="hover:text-emerald-400 transition-colors">Contact us</a>
           </div>

@@ -84,18 +84,15 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
           ].map((thread, i) => (
             <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
               <div className="flex flex-col gap-1.5">
-                {/* Forum Tag Line */}
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-emerald-800 transition-colors">
                   <thread.icon className="w-3 h-3 opacity-60" />
                   <span>{thread.tag}</span>
                 </div>
                 
-                {/* Thread Title */}
                 <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">
                   {thread.title}
                 </h4>
 
-                {/* Interaction Stat Line - High Density */}
                 <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
                   <div className="flex items-center gap-1">
                     <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
@@ -227,8 +224,8 @@ const App: React.FC = () => {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          username: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Member',
-          avatar_url: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
+          avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
         });
       }
     });
@@ -238,8 +235,8 @@ const App: React.FC = () => {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          username: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Member',
-          avatar_url: session.user.user_metadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
+          avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
         });
       } else {
         setUser(null);
@@ -452,7 +449,6 @@ const App: React.FC = () => {
       else if (time >= lastMonthStart) grouped.lastMonth.push(p);
     });
 
-    // Sort each group by upvotes
     const sortFn = (a: Product, b: Product) => b.upvotes_count - a.upvotes_count;
     grouped.today.sort(sortFn);
     grouped.yesterday.sort(sortFn);
@@ -606,7 +602,7 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-      <Footer />
+      <Footer setView={updateView} />
     </div>
   );
 };
