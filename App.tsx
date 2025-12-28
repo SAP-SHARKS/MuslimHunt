@@ -10,6 +10,7 @@ import ForumHome from './components/ForumHome';
 import RecentComments from './components/RecentComments';
 import Sponsor from './components/Sponsor';
 import Newsletter from './components/Newsletter';
+import Categories from './components/Categories';
 import Footer from './components/Footer';
 import { Product, User, View, Comment, Profile } from './types';
 import { INITIAL_PRODUCTS } from './constants';
@@ -193,6 +194,8 @@ const App: React.FC = () => {
         setView(View.SPONSOR);
       } else if (path === '/newsletters') {
         setView(View.NEWSLETTER);
+      } else if (path === '/categories') {
+        setView(View.CATEGORIES);
       } else if (path === '/') {
         setView(View.HOME);
       }
@@ -212,6 +215,7 @@ const App: React.FC = () => {
     else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
     else if (newView === View.SPONSOR) path = '/sponsor';
     else if (newView === View.NEWSLETTER) path = '/newsletters';
+    else if (newView === View.CATEGORIES) path = '/categories';
     
     if (window.location.pathname !== path) {
       window.history.pushState({}, '', path);
@@ -481,7 +485,7 @@ const App: React.FC = () => {
         onViewProfile={() => user && handleViewProfile(user.id)}
       />
 
-      <main className={view === View.NEWSLETTER ? "" : "pb-20"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES) ? "" : "pb-20"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -601,6 +605,15 @@ const App: React.FC = () => {
           <div className="bg-white">
             <Newsletter onSponsorClick={() => updateView(View.SPONSOR)} />
           </div>
+        )}
+        {view === View.CATEGORIES && (
+          <Categories 
+            onBack={() => updateView(View.HOME)} 
+            onCategorySelect={(cat) => {
+              setSearchQuery(cat);
+              updateView(View.HOME);
+            }} 
+          />
         )}
       </main>
       <Footer setView={updateView} />

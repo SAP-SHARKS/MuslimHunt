@@ -63,5 +63,6 @@ export enum View {
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',
   SPONSOR = 'sponsor',
-  NEWSLETTER = 'newsletter'
+  NEWSLETTER = 'newsletter',
+  CATEGORIES = 'categories'
 }

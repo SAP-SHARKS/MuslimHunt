@@ -48,27 +48,37 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
 
 const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ setView }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('Trending');
 
-  const categories = [
-    { label: 'Engineering & Development', icon: Code },
-    { label: 'LLMs', icon: Cpu },
-    { label: 'Productivity', icon: CheckSquare },
-    { label: 'Marketing & Sales', icon: Megaphone },
-    { label: 'Design & Creative', icon: Palette },
-    { label: 'Social & Community', icon: Users },
-    { label: 'Finance', icon: DollarSign },
-    { label: 'AI Agents', icon: Bot },
+  const mainSections = [
+    { id: 'Trending', label: 'Trending Categories', icon: Flame, isLink: true },
+    { id: 'Engineering', label: 'Engineering & Development', icon: Code },
+    { id: 'LLMs', label: 'LLMs', icon: Cpu },
+    { id: 'Productivity', label: 'Productivity', icon: CheckSquare },
+    { id: 'Marketing', label: 'Marketing & Sales', icon: Megaphone },
+    { id: 'Design', label: 'Design & Creative', icon: Palette },
+    { id: 'Social', label: 'Social & Community', icon: Users },
+    { id: 'Finance', label: 'Finance', icon: DollarSign },
   ];
 
-  const trending = [
-    'Vibe Coding Tools',
-    'AI Dictation Apps',
-    'AI notetakers',
-    'Code Review Tools',
-    'No-code Platforms',
-    'Figma Plugins',
-    'Static site generators'
-  ];
+  const categoryContent: Record<string, string[]> = {
+    Trending: [
+      'Vibe Coding Tools',
+      'AI Dictation Apps',
+      'AI notetakers',
+      'Code Review Tools',
+      'No-code Platforms',
+      'Figma Plugins',
+      'Static site generators'
+    ],
+    Engineering: ['AI Coding Agents', 'Code Editors', 'API Hubs', 'Vercel Rewrites', 'Rust Frameworks'],
+    LLMs: ['GPT-4o Wrappers', 'Claude Artifacts', 'Local Llama', 'Prompt Engineering'],
+    Productivity: ['Task Management', 'Focus Timers', 'Calendar Sync', 'CRM for Makers'],
+    Marketing: ['SEO Automators', 'Cold Email Tools', 'Social Scheduler', 'Ad Attribution'],
+    Design: ['UI Kits', 'Icon Sets', 'SVG Generators', 'Color Palette Tools'],
+    Social: ['Community Forums', 'Streaks & Gamification', 'Chat Widgets', 'User Moderation'],
+    Finance: ['Zakat Calculators', 'Halal Stock Filters', 'Islamic Banking', 'Expense Tracking']
+  };
 
   return (
     <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
@@ -78,8 +88,8 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
       </button>
       
       {isOpen && (
-        <div className="absolute top-full left-0 w-[580px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-b-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Featured Top Bar: Orbit Awards - Full Width */}
+        <div className="absolute top-full left-0 w-[620px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-b-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Featured Top Bar */}
           <div className="bg-gray-50/50 border-b border-gray-100 p-2">
             <button className="flex items-center gap-4 w-full hover:bg-white p-3 rounded-xl transition-all group/award text-left">
               <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center text-red-600 shadow-sm group-hover/award:scale-105 transition-transform shrink-0">
@@ -96,23 +106,38 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
           </div>
 
           <div className="flex divide-x divide-gray-100">
-            {/* Left Column: Categories */}
-            <div className="flex-[1.2] p-5">
-              <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 px-2">Categories</h3>
+            {/* Left Column: Navigation Sections */}
+            <div className="flex-[1.1] p-5">
+              <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 px-2">Browse</h3>
               <div className="grid grid-cols-1 gap-0.5">
-                {categories.map((cat, i) => (
+                {mainSections.map((section) => (
                   <button 
-                    key={i}
-                    onClick={() => { setView(View.HOME); setIsOpen(false); }}
-                    className="flex items-center gap-3 w-full px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 hover:text-emerald-800 rounded-xl transition-all text-left group/item"
+                    key={section.id}
+                    onMouseEnter={() => setActiveCategory(section.id)}
+                    onClick={() => {
+                      if (section.id === 'Trending') {
+                        setView(View.CATEGORIES);
+                        setIsOpen(false);
+                      } else {
+                        setView(View.HOME);
+                        setIsOpen(false);
+                      }
+                    }}
+                    className={`flex items-center gap-3 w-full px-3 py-2 text-sm font-semibold rounded-xl transition-all text-left group/item ${
+                      activeCategory === section.id 
+                        ? 'bg-gray-100 text-emerald-800' 
+                        : 'text-gray-900 hover:bg-gray-50 hover:text-emerald-800'
+                    }`}
                   >
-                    <cat.icon className="w-4 h-4 text-gray-400 group-hover/item:text-emerald-800 transition-all shrink-0" />
-                    {cat.label}
+                    <section.icon className={`w-4 h-4 transition-all shrink-0 ${
+                      activeCategory === section.id ? 'text-emerald-800 scale-110' : 'text-gray-400 group-hover/item:text-emerald-800'
+                    }`} />
+                    {section.label}
                   </button>
                 ))}
                 <button 
-                  onClick={() => { setView(View.HOME); setIsOpen(false); }}
-                  className="flex items-center gap-2 w-full px-3 py-2.5 text-xs font-black text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all text-left mt-2 uppercase tracking-widest"
+                  onClick={() => { setView(View.CATEGORIES); setIsOpen(false); }}
+                  className="flex items-center justify-between w-full px-3 py-3 text-xs font-black text-emerald-800 hover:bg-emerald-50 rounded-xl transition-all text-left mt-2 uppercase tracking-widest border border-transparent hover:border-emerald-100"
                 >
                   Other Categories
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -120,32 +145,51 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
               </div>
             </div>
 
-            {/* Right Column: Trending Categories */}
-            <div className="flex-1 p-5 bg-gray-50/20 flex flex-col">
-              <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-2">Trending Categories</h3>
-              <div className="space-y-0.5">
-                {trending.map((item, i) => (
+            {/* Right Column: Dynamic Sub-links */}
+            <div className="flex-1 p-6 bg-gray-50/20 flex flex-col">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                  {activeCategory === 'Trending' ? 'Popular Now' : activeCategory}
+                </h3>
+                {activeCategory !== 'Trending' && (
+                  <button 
+                    onClick={() => { setView(View.CATEGORIES); setIsOpen(false); }}
+                    className="text-[9px] font-black text-emerald-800 uppercase tracking-widest hover:underline"
+                  >
+                    View All
+                  </button>
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                {categoryContent[activeCategory]?.map((link, i) => (
                   <button 
                     key={i}
-                    onClick={() => { setView(View.HOME); setIsOpen(false); }}
-                    className="block w-full px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-emerald-800 hover:bg-white rounded-lg transition-all text-left"
+                    onClick={() => { 
+                      setView(View.HOME); 
+                      setIsOpen(false); 
+                    }}
+                    className="block w-full px-3 py-2 text-xs font-bold text-gray-600 hover:text-emerald-800 hover:bg-white rounded-lg transition-all text-left truncate"
                   >
-                    {item}
+                    {link}
                   </button>
                 ))}
               </div>
               
-              {/* Promotional Card at bottom right */}
-              <div className="mt-auto pt-6">
-                <div className="p-4 bg-emerald-900 rounded-2xl text-white relative overflow-hidden group/ad shadow-lg shadow-emerald-900/10">
+              {/* Contextual Promo */}
+              <div className="mt-auto pt-8">
+                <button 
+                  onClick={() => { setView(View.CATEGORIES); setIsOpen(false); }}
+                  className="w-full p-4 bg-emerald-900 rounded-2xl text-white relative overflow-hidden group/ad shadow-lg shadow-emerald-900/10 text-left active:scale-[0.98] transition-all"
+                >
                   <div className="relative z-10">
-                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-2">UMMAH SPOTLIGHT</p>
-                    <p className="text-[11px] font-bold leading-snug">Discover 50+ New Halal Startups this month.</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">PROMOTION</p>
+                    <p className="text-[11px] font-bold leading-tight">Explore the full {activeCategory.toLowerCase()} directory →</p>
                   </div>
-                  <div className="absolute -bottom-2 -right-2 opacity-10 group-hover/ad:scale-110 group-hover/ad:rotate-6 transition-transform">
-                    <Sparkles className="w-10 h-10" />
+                  <div className="absolute -bottom-2 -right-2 opacity-10 group-hover/ad:scale-125 group-hover/ad:rotate-12 transition-transform">
+                    <Sparkles className="w-12 h-12" />
                   </div>
-                </div>
+                </button>
               </div>
             </div>
           </div>
