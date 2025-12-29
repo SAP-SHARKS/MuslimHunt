@@ -92,13 +92,14 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const clusterLogos = useMemo(() => {
     const sourceLogos = categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
+    // Refined positions for a w-72 container
     const positions = [
-      'top-0 right-10 w-16 h-16 rotate-[-12deg] z-10',
-      'top-4 right-0 w-14 h-14 rotate-[12deg] z-20',
-      'bottom-0 left-4 w-18 h-18 rotate-[8deg] z-10',
-      'bottom-4 right-4 w-16 h-16 rotate-[-8deg] z-30',
-      'top-1/2 right-12 -translate-y-1/2 w-14 h-14 rotate-[15deg] z-40',
-      'top-10 right-28 w-14 h-14 rotate-[-5deg] z-20'
+      'top-0 right-12 w-20 h-20 rotate-[-12deg] z-10',
+      'top-8 right-0 w-16 h-16 rotate-[12deg] z-20',
+      'bottom-4 left-0 w-20 h-20 rotate-[8deg] z-10',
+      'bottom-0 right-8 w-18 h-18 rotate-[-8deg] z-30',
+      'top-1/2 right-16 -translate-y-1/2 w-16 h-16 rotate-[15deg] z-40',
+      'top-12 right-32 w-14 h-14 rotate-[-5deg] z-20'
     ];
     return sourceLogos.map((logo, i) => ({
       name: logo.name,
@@ -133,27 +134,29 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
-        <nav className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10 overflow-x-auto whitespace-nowrap scrollbar-hide">
           <button onClick={onBack} className="hover:text-emerald-800 transition-colors">Home</button>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 shrink-0" />
           <button onClick={onBack} className="hover:text-emerald-800 cursor-pointer">Product categories</button>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 shrink-0" />
           <span className="text-gray-400 cursor-default">{parentCategory}</span>
-          <ChevronRight className="w-3 h-3" />
+          <ChevronRight className="w-3 h-3 shrink-0" />
           <span className="text-emerald-800 capitalize">{category}</span>
         </nav>
 
+        {/* Hero Section - Fixed Overflow and Alignment */}
         <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 mb-16 relative">
-          <div className="flex-1">
+          <div className="flex-1 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-800 rounded-full mb-6">
               <Sparkles className="w-4 h-4 fill-emerald-800" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ranked Directory</span>
             </div>
             <h1 className="text-5xl sm:text-6xl font-serif font-bold text-emerald-900 tracking-tight leading-tight mb-6 text-center lg:text-left capitalize">
-              The best {category} <br/> to use in 2025
+              The best {category} <br className="hidden sm:block" /> to use in 2025
             </h1>
             <p className="text-lg text-gray-500 font-medium max-w-2xl mb-8 leading-relaxed text-center lg:text-left">
-              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community.
+              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community for efficiency and ethical standards.
             </p>
             
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
@@ -162,7 +165,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 <button 
                   key={tag} 
                   onClick={() => onCategorySelect(tag)}
-                  className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-xs font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-800 transition-all"
+                  className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-xs font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-800 transition-all active:scale-95"
                 >
                   {tag}
                 </button>
@@ -170,7 +173,8 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             </div>
           </div>
 
-          <div className="hidden lg:block relative w-48 h-48 shrink-0 mt-8">
+          {/* Logo Cluster - Constrained and Aligned */}
+          <div className="hidden lg:block relative w-72 h-64 shrink-0 mt-8">
             {clusterLogos.map((logo) => (
               <LogoIcon key={logo.name} logo={logo} />
             ))}
@@ -178,6 +182,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Main List Content */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-blue-50/70 border border-blue-100 rounded-[2rem] p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -188,7 +193,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 <h2 className="text-sm font-black text-blue-900 uppercase tracking-widest">Community Insights</h2>
               </div>
               <p className="text-blue-900/80 text-[15px] leading-relaxed font-medium">
-                Our community is currently highlighting high-performance {category} solutions that prioritize privacy and local-first data processing.
+                Our community is currently highlighting high-performance {category} solutions that prioritize privacy, ethical data handling, and local-first processing in 2025.
               </p>
             </div>
 
@@ -260,6 +265,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 })}
               </div>
 
+              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-12 flex items-center justify-center gap-2">
                   <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-3 text-gray-400 hover:text-emerald-800 disabled:opacity-20 transition-all rounded-xl hover:bg-emerald-50"><ChevronLeft className="w-5 h-5" /></button>
