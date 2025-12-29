@@ -1,18 +1,27 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-/* 
- * Guideline: Always use process.env.API_KEY directly in initialization.
- * Must use the named parameter format: { apiKey: process.env.API_KEY }.
- */
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Guideline: Always use process.env.API_KEY. 
+// We verify its presence to avoid the "An API Key must be set" error thrown by the SDK.
+const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+if (!apiKey) {
+  console.warn('⚠️ process.env.API_KEY not found - Gemini AI features will use fallbacks');
+} else {
+  console.log('✅ Gemini AI initialized successfully');
+}
 
 export const geminiService = {
   /**
    * Optimizes a product tagline using Gemini.
    */
   async optimizeTagline(name: string, description: string): Promise<string> {
+    if (!ai) {
+      console.log('Using fallback tagline (no API key)');
+      return `${name} - Your trusted solution`;
+    }
+    
     try {
-      /* Guideline: Use 'gemini-3-flash-preview' for basic text tasks. */
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Create a catchy 1-sentence tagline for a product called "${name}" which is described as: "${description}". The product is for the Muslim tech community.`,
@@ -21,7 +30,6 @@ export const geminiService = {
         }
       });
       
-      /* Guideline: Directly access the .text property (it is a property, not a method). */
       const tagline = response.text?.replace(/"/g, '').trim();
       return tagline || `${name} - Your trusted solution`;
     } catch (error) {
@@ -34,8 +42,12 @@ export const geminiService = {
    * Suggests a category for a product based on its description.
    */
   async getCategorySuggestion(description: string): Promise<string> {
+    if (!ai) {
+      console.log('Using fallback category (no API key)');
+      return 'Productivity';
+    }
+    
     try {
-      /* Guideline: Use 'gemini-3-flash-preview' with responseSchema for JSON output. */
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Categorize this product description into one of these: Spirituality, Travel, Finance, Social, Education, Productivity, Food, Health. Description: "${description}"`,
@@ -55,13 +67,8 @@ export const geminiService = {
         }
       });
       
-      /* Guideline: Access response.text and parse the JSON string. */
-      const jsonStr = response.text?.trim();
-      if (!jsonStr) {
-        return 'Productivity';
-      }
-      
-      const data = JSON.parse(jsonStr);
+      const jsonStr = response.text.trim();
+      const data = JSON.parse(jsonStr || '{}');
       return data.category || 'Productivity';
     } catch (error) {
       console.error("Gemini category suggestion failed:", error);

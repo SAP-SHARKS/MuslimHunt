@@ -75,7 +75,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ activeCategory = "AI 
           </div>
           
           <h4 className="text-lg font-bold leading-relaxed mb-8 text-emerald-50 font-sans tracking-tight">
-            The {activeCategory} market is projected to grow by 40% in the Muslim tech sector this year.
+            The {activeCategory} market is projected to grow significantly this year.
           </h4>
           
           <button className="flex items-center gap-2 text-xs font-black text-emerald-400 hover:text-white transition-colors group/link uppercase tracking-widest">

@@ -15,7 +15,6 @@ interface CategoryDetailProps {
 
 const POSTS_PER_PAGE = 10;
 
-// Mapping categories to parents for breadcrumbs (normalized lookups)
 const PARENT_MAP: Record<string, string> = {
   'ai notetakers': 'Productivity',
   'app switcher': 'Productivity',
@@ -56,10 +55,8 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const listTopRef = useRef<HTMLDivElement>(null);
 
-  // Safety guard for missing category
   const normalizedCategory = useMemo(() => category?.toLowerCase() || '', [category]);
 
-  // Reset pagination when category changes to prevent "out of bounds" errors
   useEffect(() => {
     setCurrentPage(1);
     if (window.scrollY > 0) {
@@ -69,7 +66,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const categoryProducts = useMemo(() => {
     if (!normalizedCategory) return [];
-    // Ensure case-insensitive matching
     return products
       .filter(p => p.category?.toLowerCase() === normalizedCategory)
       .sort((a, b) => (b.upvotes_count || 0) - (a.upvotes_count || 0));
@@ -107,7 +103,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const parentCategory = PARENT_MAP[normalizedCategory] || "Software";
 
-  // Critical Safety Guard: If category is null or undefined, show loading or empty state
   if (!category) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
@@ -115,7 +110,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
           <Loader2 className="w-8 h-8 text-emerald-800 animate-spin" />
         </div>
         <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">Loading Directory...</h2>
-        <p className="text-gray-400 font-medium mb-6">Connecting to the Muslim tech ecosystem</p>
         <button onClick={onBack} className="text-emerald-800 font-bold hover:underline flex items-center gap-2">
           <ChevronLeft className="w-4 h-4" /> Return to Home
         </button>
@@ -129,9 +123,9 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
         <nav className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">
           <button onClick={onBack} className="hover:text-emerald-800 transition-colors">Home</button>
           <ChevronRight className="w-3 h-3" />
-          <span className="hover:text-emerald-800 cursor-pointer">Product categories</span>
+          <span onClick={onBack} className="hover:text-emerald-800 cursor-pointer">Product categories</span>
           <ChevronRight className="w-3 h-3" />
-          <span className="hover:text-emerald-800 cursor-pointer">{parentCategory}</span>
+          <span className="text-gray-400 cursor-default">{parentCategory}</span>
           <ChevronRight className="w-3 h-3" />
           <span className="text-emerald-800 capitalize">{category}</span>
         </nav>
@@ -142,7 +136,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
               The best {category} <br/> to use in 2025
             </h1>
             <p className="text-lg text-gray-500 font-medium max-w-2xl mb-8 leading-relaxed text-center lg:text-left">
-              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community for efficiency and Shariah-compliance.
+              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community.
             </p>
             
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
