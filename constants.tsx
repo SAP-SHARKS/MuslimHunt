@@ -168,7 +168,7 @@ const UNSPLASH_IDS = [
 ];
 
 /**
- * Generates 50 unique high-fidelity mock products for a given category.
+ * Generates high-fidelity mock products with PH-style achievement logic.
  */
 function generateMockProducts(categoryName: string, count: number): Product[] {
   const products: Product[] = [];
@@ -176,47 +176,45 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
   const adjectives = ["Smart", "Ethical", "Muslim", "Ummah", "Elite", "Modern", "Pure", "Trusted", "Global", "Active", "Daily", "Fast", "Secure"];
 
   for (let i = 0; i < count; i++) {
-    // Deterministic random seeding based on category and index
     const seed = categoryName.length + i;
     const adj = adjectives[seed % adjectives.length];
     const suf = suffix[seed % suffix.length];
     const name = `${adj} ${categoryName.replace(/s$/, '')} ${suf} ${i + 1}`;
     
     const badges: Badge[] = [];
-    // Every product gets at least one rank badge for high-fidelity look
-    const dailyRank = (i % 10) + 1;
+    
+    // Rule 1: Always a ranking badge
+    const dailyRank = (i % 15) + 1;
     badges.push({
-      id: `b-rank-${seed}`,
+      id: `b-daily-${seed}`,
       type: 'ranking',
       label: `#${dailyRank} Product of the Day`,
-      description: 'Based on community upvotes and reviews in the last 24 hours.',
+      description: 'Top loved product based on community reviews in the last 24 hours.',
       color: 'gold',
       value: dailyRank.toString()
     });
 
-    if (i === 0) {
+    // Rule 2: Random 50% Community Award
+    if (seed % 2 === 0) {
       badges.push({
-        id: `b-award-${seed}`,
+        id: `b-orbit-${seed}`,
         type: 'award',
         label: 'Orbit Award Winner',
-        description: 'Top 0.1% loved products based on community reviews and impact.',
+        description: 'Selected as a top 0.1% loved product based on high-quality community feedback.',
         color: 'purple'
       });
+    }
+
+    // Rule 3: Random 20% Time-based Achievement
+    if (seed % 5 === 0) {
+      const weekRank = (seed % 5) + 1;
       badges.push({
-        id: `b-rank-month-${seed}`,
+        id: `b-weekly-${seed}`,
         type: 'ranking',
-        label: '#1 Product of the Month',
-        description: 'Selected for outstanding growth and community engagement.',
-        color: 'gold',
-        value: '1'
-      });
-    } else if (i < 3) {
-      badges.push({
-        id: `b-featured-${seed}`,
-        type: 'featured',
-        label: 'Community Choice',
-        description: 'Highly rated for its ethical approach and user experience.',
-        color: 'emerald'
+        label: `#${weekRank} Product of the Week`,
+        description: 'Consistent high performer in the trending leaderboards this week.',
+        color: 'blue',
+        value: weekRank.toString()
       });
     }
 
@@ -238,7 +236,6 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
   return products;
 }
 
-// Global Products Registry populated for all 60+ subcategories
 const ALL_GENERATED_PRODUCTS: Product[] = CATEGORY_SECTIONS.flatMap(section => 
   section.items.flatMap(item => generateMockProducts(item.name, 50))
 );

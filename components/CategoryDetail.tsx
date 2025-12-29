@@ -218,7 +218,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                       onClick={() => onProductClick(p)}
                       className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm relative"
                     >
-                      <div className="flex items-start gap-6">
+                      <div className="flex items-center gap-6">
                         {/* RANKING NUMBER */}
                         <div className="w-10 shrink-0 text-4xl font-serif italic text-gray-100 group-hover:text-emerald-800/30 transition-colors pt-1">
                           {rank}.
@@ -230,55 +230,57 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                         </div>
 
                         {/* CONTENT AREA */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight leading-none">{p.name}</h3>
-                            <div className="flex items-center gap-1.5 text-yellow-500">
-                              <Star className="w-3.5 h-3.5 fill-current" />
-                              <span className="text-xs font-black text-gray-900">{rating}</span>
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest hidden sm:inline">({(reviewCount / 1000).toFixed(1)}k reviews)</span>
+                        <div className="flex-1 min-w-0 flex items-center justify-between gap-6">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-3 mb-1">
+                              <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight leading-none truncate">{p.name}</h3>
+                              <div className="flex items-center gap-1.5 text-yellow-500 shrink-0">
+                                <Star className="w-3.5 h-3.5 fill-current" />
+                                <span className="text-xs font-black text-gray-900">{rating}</span>
+                              </div>
+                            </div>
+                            <p className="text-gray-500 text-sm font-medium leading-snug line-clamp-1">{p.tagline}</p>
+                            
+                            {/* SOCIAL PROOF & PLATFORMS */}
+                            <div className="flex items-center gap-4 pt-3 border-t border-gray-50 mt-1">
+                              <div className="flex items-center gap-2">
+                                <div className="flex -space-x-1.5 overflow-hidden">
+                                  {PROOF_ICONS.map((src, idx) => (
+                                    <div key={idx} className="inline-block h-4 w-4 rounded-full ring-2 ring-white overflow-hidden bg-white">
+                                      <img src={src} alt="user" className="w-full h-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                  Used by <span className="text-emerald-800">{(usedByCount/1000).toFixed(1)}k</span>
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Globe className="w-3 h-3 text-gray-300" />
+                                <Monitor className="w-3 h-3 text-gray-300" />
+                              </div>
                             </div>
                           </div>
-                          <p className="text-gray-500 text-sm font-medium mb-3 leading-snug line-clamp-1">{p.tagline}</p>
-                          
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-y-3 pt-3 border-t border-gray-50 mt-1">
-                            <div className="flex items-center gap-2">
-                              <div className="flex -space-x-2 overflow-hidden">
-                                {PROOF_ICONS.map((src, idx) => (
-                                  <div key={idx} className="inline-block h-5 w-5 rounded-full ring-2 ring-white overflow-hidden bg-white">
-                                    <img src={src} alt="user" className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span>Used by <span className="text-emerald-800">{usedByCount.toLocaleString()}</span> makers</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Monitor className="w-2.5 h-2.5" />mac</div>
-                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Smartphone className="w-2.5 h-2.5" />ios</div>
-                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Globe className="w-2.5 h-2.5" />web</div>
-                            </div>
+
+                          {/* REFACTORED BADGE SYSTEM - POSITIONED TO THE RIGHT OF TEXT */}
+                          <div className="flex gap-2 shrink-0 self-center">
+                            {p.badges && p.badges.length > 0 && p.badges.map((badge, idx) => (
+                              <ProductBadge key={idx} badge={badge} />
+                            ))}
                           </div>
                         </div>
 
-                        {/* REFACTORED BADGE SYSTEM - REPLACES UPVOTE TRIANGLE */}
-                        <div className="flex gap-1.5 ml-auto shrink-0 pt-1">
-                          {p.badges && p.badges.length > 0 ? (
-                            p.badges.map((badge, idx) => (
-                              <ProductBadge key={idx} badge={badge} />
-                            ))
-                          ) : (
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
-                              className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
-                                hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
-                              }`}
-                            >
-                              <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
-                              <span className="text-[11px] font-black">{p.upvotes_count}</span>
-                            </button>
-                          )}
+                        {/* UPVOTE BUTTON - Kept on the far right as per PH style layout */}
+                        <div className="shrink-0 ml-auto">
+                           <button 
+                            onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
+                            className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
+                              hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
+                            }`}
+                          >
+                            <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
+                            <span className="text-[11px] font-black">{p.upvotes_count}</span>
+                          </button>
                         </div>
                       </div>
                     </div>

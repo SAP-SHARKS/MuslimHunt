@@ -25,7 +25,7 @@ export interface Badge {
   type: 'award' | 'ranking' | 'featured';
   label: string;
   description: string;
-  color: 'purple' | 'gold' | 'emerald';
+  color: 'purple' | 'gold' | 'emerald' | 'blue';
   value?: string; // e.g., "1" for #1 Product of the Day
 }
 
