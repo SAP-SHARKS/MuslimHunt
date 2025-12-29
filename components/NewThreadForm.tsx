@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, 
@@ -20,15 +19,6 @@ const FORUM_OPTIONS = [
   { id: 'p/promo', label: 'Self-Promotion' }
 ];
 
-const TOPIC_FORUMS = [
-  'p/general', 'p/vibecoding', 'p/ama', 'p/introduce-yourself', 'p/self-promotion'
-];
-
-const PRODUCT_FORUMS = [
-  'p/bult-ai', 'p/notisprite', 'p/groq-chat', 'p/pretty-prompt', 'p/weather-mini-for-mac'
-];
-
-// Added default export and completed missing implementation
 const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView }) => {
   const [formData, setFormData] = useState({
     forumId: 'p/general',
@@ -41,17 +31,6 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   const [showTitleError, setShowTitleError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
-
-  // Implement /p/new permalink on mount
-  useEffect(() => {
-    window.history.pushState({}, '', '/p/new');
-    // Revert URL on unmount (if handled via setView elsewhere, this is a safety)
-    return () => {
-      if (window.location.pathname === '/p/new') {
-        window.history.pushState({}, '', '/');
-      }
-    };
-  }, []);
 
   // Sync editor content to state
   const handleEditorInput = () => {

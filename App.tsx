@@ -19,32 +19,43 @@ import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus,
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
-function ConnectionDebug() {
-  const url = (import.meta as any)?.env?.VITE_SUPA_URL;
-  const key = (import.meta as any)?.env?.VITE_SUPA_KEY;
-  const geminiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
-  
-  return (
-    <div style={{ 
-      background: url && key ? '#e6fffa' : '#ffeeee', 
-      padding: '10px', 
-      border: `1px solid ${url && key ? '#38b2ac' : 'red'}`, 
-      position: 'fixed', 
-      top: 0, 
-      right: 0, 
-      zIndex: 9999, 
-      fontSize: '10px', 
-      color: url && key ? '#234e52' : '#880000', 
-      borderRadius: '0 0 0 12px',
-      pointerEvents: 'none'
-    }}>
-      Supa: {url ? '✅' : '❌'} | Gemini: {geminiKey ? '✅' : '❌'}
-    </div>
-  );
-}
+// Helper to handle history API in restricted environments (sandboxes, blobs)
+const safeHistory = {
+  isSupported: () => {
+    try {
+      return window.history && 
+             window.history.pushState && 
+             window.location.protocol !== 'blob:' &&
+             !window.location.hostname.includes('scf.usercontent.goog');
+    } catch (e) {
+      return false;
+    }
+  },
+  push: (path: string) => {
+    if (safeHistory.isSupported()) {
+      try {
+        window.history.pushState({}, '', path);
+      } catch (e) {
+        console.warn('Routing suppressed (Security Restriction)', e);
+      }
+    }
+  },
+  replace: (path: string) => {
+    if (safeHistory.isSupported()) {
+      try {
+        window.history.replaceState({}, '', path);
+      } catch (e) {
+        console.warn('Routing suppressed (Security Restriction)', e);
+      }
+    }
+  }
+};
 
 const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-const unslugify = (slug: string) => slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+const unslugify = (slug: string) => {
+  if (!slug) return '';
+  return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
 
 export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
   <aside className="hidden xl:block w-80 shrink-0">
@@ -184,7 +195,7 @@ const App: React.FC = () => {
     lastMonth: false
   });
 
-  // Native History API Routing logic
+  // Defensive Routing Logic
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -201,18 +212,26 @@ const App: React.FC = () => {
       } else if (path === '/categories') {
         setView(View.CATEGORIES);
       } else if (path.startsWith('/categories/')) {
-        const slug = path.split('/categories/')[1];
+        const slug = path.split('/categories/')[1]?.replace(/\/$/, '');
         if (slug) {
           setActiveCategory(unslugify(slug));
           setView(View.CATEGORY_DETAIL);
+        } else {
+          setView(View.CATEGORIES);
         }
       } else if (path === '/') {
         setView(View.HOME);
+      } else {
+        // Fallback for unknown paths
+        if (path !== '/' && path !== '') {
+          setView(View.HOME);
+          safeHistory.replace('/');
+        }
       }
     };
 
     window.addEventListener('popstate', handlePopState);
-    handlePopState();
+    handlePopState(); // Handle initial route
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -227,20 +246,17 @@ const App: React.FC = () => {
       else if (newView === View.SPONSOR) path = '/sponsor';
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
-      else if (newView === View.CATEGORY_DETAIL) path = `/categories/${slugify(activeCategory)}`;
+      else if (newView === View.CATEGORY_DETAIL && activeCategory) path = `/categories/${slugify(activeCategory)}`;
       else if (newView === View.HOME) path = '/';
     }
     
-    try {
-      if (window.location.pathname !== path) {
-        window.history.pushState({}, '', path);
-      }
-    } catch (e) {
-      console.warn('Could not update history state', e);
+    if (window.location.pathname !== path) {
+      safeHistory.push(path);
     }
   };
 
   const handleCategorySelect = (cat: string) => {
+    if (!cat) return;
     setActiveCategory(cat);
     updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
   };
@@ -509,7 +525,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      <ConnectionDebug />
       <Navbar 
         user={user} 
         currentView={view} 

@@ -15,17 +15,17 @@ interface CategoryDetailProps {
 
 const POSTS_PER_PAGE = 10;
 
-// Mapping categories to parents for breadcrumbs
+// Mapping categories to parents for breadcrumbs (normalized lookups)
 const PARENT_MAP: Record<string, string> = {
-  'AI notetakers': 'Productivity',
-  'App switcher': 'Productivity',
-  'Compliance software': 'Productivity',
-  'Email clients': 'Productivity',
-  'Knowledge base': 'Productivity',
-  'AI Coding Agents': 'Engineering',
-  'Vibe Coding Tools': 'Engineering',
-  'AI headshot generators': 'Design',
-  'Zakat calculators': 'Finance',
+  'ai notetakers': 'Productivity',
+  'app switcher': 'Productivity',
+  'compliance software': 'Productivity',
+  'email clients': 'Productivity',
+  'knowledge base': 'Productivity',
+  'ai coding agents': 'Engineering',
+  'vibe coding tools': 'Engineering',
+  'ai headshot generators': 'Design',
+  'zakat calculators': 'Finance',
 };
 
 const LogoIcon: React.FC<{ logo: { name: string, src: string, className: string } }> = ({ logo }) => {
@@ -56,18 +56,20 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const listTopRef = useRef<HTMLDivElement>(null);
 
+  // Safety guard for missing category
+  const normalizedCategory = useMemo(() => category?.toLowerCase() || '', [category]);
+
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const page = parseInt(params.get('page') || '1', 10);
-    setCurrentPage(page);
+    setCurrentPage(1); // Reset page on category change
     window.scrollTo(0, 0);
-  }, [category]);
+  }, [normalizedCategory]);
 
   const categoryProducts = useMemo(() => {
+    if (!normalizedCategory) return [];
     return products
-      .filter(p => p.category.toLowerCase() === category.toLowerCase())
+      .filter(p => p.category.toLowerCase() === normalizedCategory)
       .sort((a, b) => b.upvotes_count - a.upvotes_count);
-  }, [products, category]);
+  }, [products, normalizedCategory]);
 
   const clusterLogos = useMemo(() => {
     const top6 = categoryProducts.slice(0, 6);
@@ -94,16 +96,24 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', page.toString());
-    window.history.pushState({}, '', url.toString());
-    
     if (listTopRef.current) {
       listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const parentCategory = PARENT_MAP[category] || "Software";
+  const parentCategory = PARENT_MAP[normalizedCategory] || "Software";
+
+  if (!category) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+          <ChevronLeft className="w-10 h-10 text-gray-200" />
+        </div>
+        <h2 className="text-2xl font-serif font-bold text-gray-400 mb-2">Category Not Found</h2>
+        <button onClick={onBack} className="text-emerald-800 font-bold hover:underline">Return to Directory</button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen">
@@ -115,7 +125,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
           <ChevronRight className="w-3 h-3" />
           <span className="hover:text-emerald-800 cursor-pointer">{parentCategory}</span>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-emerald-800">{category}</span>
+          <span className="text-emerald-800 capitalize">{category}</span>
         </nav>
 
         <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 mb-16 relative">
