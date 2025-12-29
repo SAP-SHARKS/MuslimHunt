@@ -207,6 +207,7 @@ interface NavbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onViewProfile: () => void;
+  onSignInClick: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -216,7 +217,8 @@ const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   searchQuery,
   onSearchChange,
-  onViewProfile
+  onViewProfile,
+  onSignInClick
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
@@ -390,7 +392,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           ) : (
             <button 
-              onClick={() => setView(View.LOGIN)}
+              onClick={onSignInClick}
               className="text-emerald-800 font-bold text-sm px-4 py-2 hover:bg-emerald-50 rounded-lg transition-colors"
             >
               Sign In

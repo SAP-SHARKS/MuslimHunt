@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -64,7 +65,7 @@ const unslugify = (slug: string) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
+export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => (
   <aside className="hidden xl:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
       <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
@@ -116,7 +117,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
           <button onClick={() => setView(View.FORUM_HOME)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 transition-colors uppercase tracking-[0.2em]">
             View all discussions <ArrowRight className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)} className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]">
+          <button onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]">
             <Plus className="w-4 h-4" /> Start new thread
           </button>
         </div>
@@ -133,8 +134,7 @@ const App: React.FC = () => {
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   
@@ -159,6 +159,11 @@ const App: React.FC = () => {
         else if (path === '/sponsor') setView(View.SPONSOR);
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
+        else if (path === '/login') {
+          setIsAuthModalOpen(true);
+          setView(View.HOME);
+          safeHistory.replace('/');
+        }
         else if (path.startsWith('/categories/')) {
           const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
@@ -232,6 +237,7 @@ const App: React.FC = () => {
           username: m.full_name || email.split('@')[0] || 'Member', 
           avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
         });
+        setIsAuthModalOpen(false); // Close modal on successful auth
       } else setUser(null);
     });
     return () => subscription.unsubscribe();
@@ -239,7 +245,7 @@ const App: React.FC = () => {
 
   const handleUpvote = (id: string) => {
     if (!user) {
-      updateView(View.LOGIN);
+      setIsAuthModalOpen(true);
       return;
     }
     const voteKey = `${user.id}_${id}`;
@@ -277,7 +283,24 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      <Navbar user={user} currentView={view} setView={updateView} onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} searchQuery={searchQuery} onSearchChange={setSearchQuery} onViewProfile={() => user && setView(View.PROFILE)} />
+      <Navbar 
+        user={user} 
+        currentView={view} 
+        setView={updateView} 
+        onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
+        searchQuery={searchQuery} 
+        onSearchChange={setSearchQuery} 
+        onViewProfile={() => user && setView(View.PROFILE)} 
+        onSignInClick={() => setIsAuthModalOpen(true)}
+      />
+      
+      {/* Auth Modal */}
+      <Auth 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
+      />
+
       <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
@@ -334,8 +357,30 @@ const App: React.FC = () => {
                 })}
               </div>
             </div>
-            <TrendingSidebar user={user} setView={updateView} />
+            <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
+        )}
+        {view === View.FORUM_HOME && (
+          <ForumHome 
+            setView={updateView} 
+            user={user} 
+            onSignIn={() => setIsAuthModalOpen(true)} 
+          />
+        )}
+        {view === View.RECENT_COMMENTS && (
+          <RecentComments 
+            setView={updateView} 
+            user={user} 
+            onViewProfile={() => updateView(View.PROFILE)} 
+            onSignIn={() => setIsAuthModalOpen(true)} 
+          />
+        )}
+        {view === View.NEW_THREAD && (
+          <NewThreadForm 
+            onCancel={() => updateView(View.FORUM_HOME)} 
+            onSubmit={(data) => { console.log('Thread submitted:', data); updateView(View.FORUM_HOME); }} 
+            setView={updateView} 
+          />
         )}
         {view === View.CATEGORY_DETAIL && (
           <CategoryDetail 
@@ -365,7 +410,6 @@ const App: React.FC = () => {
         )}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
-        {view === View.LOGIN && <div className="py-20 flex items-center justify-center"><Auth onSuccess={() => setView(View.HOME)} /></div>}
       </main>
       <Footer setView={updateView} />
     </div>

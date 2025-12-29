@@ -7,9 +7,11 @@ interface RecentCommentsProps {
   setView: (view: View) => void;
   user: any;
   onViewProfile: (userId: string) => void;
+  // Added onSignIn to handle authentication triggers
+  onSignIn: () => void;
 }
 
-const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewProfile }) => {
+const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewProfile, onSignIn }) => {
   const [forumSearch, setForumSearch] = useState('');
   const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<number | null>(null);
@@ -80,7 +82,7 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
 
   const UserHoverCard = ({ comment }: { comment: any }) => (
     <div 
-      className="absolute bottom-full left-0 mb-4 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[1.5rem] p-6 z-50 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+      className="absolute bottom-full left-0 mb-4 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[1.5rem] p-6 z-50 animate-in fade-in zoom-in-95 duration-200 cursor-default"
       onMouseEnter={() => handleMouseEnter(comment.id)}
       onMouseLeave={handleMouseLeave}
       onClick={(e) => e.stopPropagation()}
@@ -160,7 +162,8 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
             <SidebarLink icon={Home} label="Home" onClick={() => setView(View.FORUM_HOME)} />
             <SidebarLink icon={MessageSquare} label="Recent comments" active={true} onClick={() => setView(View.RECENT_COMMENTS)} />
             <SidebarLink icon={Search} label="Search all threads" onClick={() => {}} />
-            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)} />
+            {/* Fixed call to non-existent View.LOGIN by using onSignIn prop */}
+            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} />
           </nav>
         </div>
 

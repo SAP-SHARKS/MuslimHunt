@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Home, MessageSquare, Search, PlusSquare, Hash, Triangle, ChevronDown, Sparkles, Clock, ArrowUpRight, Filter } from 'lucide-react';
 import { View } from '../types';
@@ -5,9 +6,11 @@ import { View } from '../types';
 interface ForumHomeProps {
   setView: (view: View) => void;
   user: any;
+  // Added onSignIn to handle authentication triggers
+  onSignIn: () => void;
 }
 
-const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
+const ForumHome: React.FC<ForumHomeProps> = ({ setView, user, onSignIn }) => {
   const [forumSearch, setForumSearch] = useState('');
 
   // Mock data for forum threads including optional image_url
@@ -120,7 +123,8 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user }) => {
             <SidebarLink icon={Home} label="Home" active={true} onClick={() => setView(View.FORUM_HOME)} />
             <SidebarLink icon={MessageSquare} label="Recent comments" onClick={() => setView(View.RECENT_COMMENTS)} />
             <SidebarLink icon={Search} label="Search all threads" onClick={() => {}} />
-            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : setView(View.LOGIN)} />
+            {/* Fixed the call to non-existent View.LOGIN by using onSignIn prop */}
+            <SidebarLink icon={PlusSquare} label="Start new thread" onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} />
           </nav>
         </div>
 
