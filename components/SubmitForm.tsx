@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import { X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info } from 'lucide-react';
 import { CATEGORIES, HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { supabase } from '../lib/supabase';
@@ -37,12 +37,17 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
   const handleGeminiOptimize = async () => {
     if (!formData.description) return;
     setIsOptimizing(true);
-    const tagline = await geminiService.optimizeTagline(formData.name, formData.description);
-    const category = await geminiService.getCategorySuggestion(formData.description);
-    if (tagline) {
-      setFormData(prev => ({ ...prev, tagline, category }));
+    try {
+      const tagline = await geminiService.optimizeTagline(formData.name, formData.description);
+      const category = await geminiService.getCategorySuggestion(formData.description);
+      if (tagline) {
+        setFormData(prev => ({ ...prev, tagline, category }));
+      }
+    } catch (err) {
+      console.error("Optimization failed", err);
+    } finally {
+      setIsOptimizing(false);
     }
-    setIsOptimizing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,19 +61,28 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
-      const { data, error: insertError } = await supabase
+      // Ensure key names exactly match Supabase column names
+      const payload = {
+        name: formData.name,
+        url: formData.url,
+        tagline: formData.tagline,
+        description: formData.description,
+        category: formData.category,
+        halal_status: formData.halal_status,
+        sadaqah_info: formData.sadaqah_info, // Explicitly mapped
+        logo_url: formData.logo_url,
+        founder_id: user.id,
+        created_at: new Date().toISOString(),
+        upvotes_count: 1
+      };
+
+      const { error: insertError } = await supabase
         .from('products')
-        .insert([{
-          ...formData,
-          founder_id: user.id,
-          created_at: new Date().toISOString(),
-          upvotes_count: 1
-        }])
-        .select();
+        .insert([payload]);
 
       if (insertError) {
-        // Check for PostgREST schema cache issues
-        const isSchemaError = insertError.message.includes('column') || insertError.message.toLowerCase().includes('schema cache');
+        const msg = insertError.message.toLowerCase();
+        const isSchemaError = msg.includes('column') || msg.includes('schema cache') || insertError.code === '42703';
         throw { ...insertError, isSchemaError };
       }
       
@@ -88,8 +102,8 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-12">
         <div>
-          <h2 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight">Tell us more about the product</h2>
-          <p className="text-gray-500 mt-2 text-lg font-medium">Join the ecosystem of Halal-conscious builders.</p>
+          <h2 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight">Product Details</h2>
+          <p className="text-gray-500 mt-2 text-lg font-medium italic">Bismillah! Let's get your product in front of the Ummah.</p>
         </div>
         <button 
           onClick={onCancel} 
@@ -99,9 +113,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
+      <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[3rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
         {error && (
-          <div className={`p-6 rounded-2xl border flex flex-col gap-3 ${error.isSchemaError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-100 text-red-600'}`}>
+          <div className={`p-6 rounded-2xl border flex flex-col gap-3 animate-in slide-in-from-top-2 ${error.isSchemaError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-100 text-red-600'}`}>
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <span className="font-bold">Submission Error</span>
@@ -110,8 +124,10 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
               {error.message}
             </p>
             {error.isSchemaError && (
-              <div className="mt-2 p-3 bg-white/50 rounded-lg border border-amber-100 text-xs font-mono">
-                Hint: Run "NOTIFY pgrst, 'reload schema';" in Supabase SQL editor to refresh the API cache.
+              <div className="mt-2 p-4 bg-white/60 rounded-xl border border-amber-100 text-xs font-mono space-y-2">
+                <p className="font-bold">Developer Hint:</p>
+                <p>The Supabase API cache might be out of sync. Please run this SQL in your Supabase dashboard:</p>
+                <code className="block bg-gray-900 text-amber-400 p-2 rounded">NOTIFY pgrst, 'reload schema';</code>
               </div>
             )}
           </div>
@@ -164,7 +180,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
                 className="text-[10px] flex items-center gap-1.5 text-emerald-800 hover:text-emerald-900 disabled:opacity-50 font-black uppercase tracking-widest transition-all"
               >
                 {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                Gemini Optimize
+                Gemini AI Optimize
               </button>
             </div>
             <input 
@@ -194,15 +210,16 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
           </div>
         </div>
 
+        {/* Halal Trust Section */}
         <div className="p-8 sm:p-10 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100/50 space-y-8">
           <div className="flex items-center gap-3 text-emerald-900 font-black uppercase tracking-[0.15em] text-sm">
             <ShieldCheck className="w-6 h-6 text-emerald-800" />
-            Halal Trust & Community Impact
+            Halal Verification & Impact
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Halal Verification Status</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Verification Status</label>
               <select 
                 value={formData.halal_status}
                 onChange={e => setFormData({...formData, halal_status: e.target.value as any})}
@@ -216,13 +233,13 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             <div className="space-y-3">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
                 <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-                Sadaqah Component (Optional)
+                Sadaqah Component
               </label>
               <input 
                 name="sadaqah_info"
                 value={formData.sadaqah_info}
                 onChange={e => setFormData({...formData, sadaqah_info: e.target.value})}
-                placeholder="e.g. 5% profits to Gaza"
+                placeholder="e.g. 2.5% profits to Islamic Relief"
                 className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-emerald-800 transition-all font-bold text-gray-700 shadow-sm"
               />
             </div>
@@ -238,11 +255,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             {isSubmitting ? (
               <>
                 <Loader2 className="w-7 h-7 animate-spin" />
-                Submitting for Review...
+                Launching...
               </>
             ) : (
               <>
-                Submit for Review
+                Confirm Launch
                 <ArrowRight className="w-7 h-7" />
               </>
             )}
