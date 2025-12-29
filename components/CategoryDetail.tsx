@@ -17,7 +17,6 @@ const POSTS_PER_PAGE = 10;
 
 /**
  * CORE BRAND ASSETS
- * High-fidelity logo sources for the niche category view.
  */
 const NICHE_LOGOS: Record<string, { name: string, src: string }[]> = {
   'ai notetakers': [
@@ -51,6 +50,14 @@ const PARENT_MAP: Record<string, string> = {
   'zakat calculators': 'Finance',
 };
 
+// Mock "Used by" proofing icons
+const PROOF_ICONS = [
+  'https://logo.clearbit.com/cursor.com',
+  'https://logo.clearbit.com/vercel.com',
+  'https://logo.clearbit.com/linear.app',
+  'https://logo.clearbit.com/slack.com'
+];
+
 const LogoIcon: React.FC<{ logo: { name: string, src: string, className: string } }> = ({ logo }) => {
   const [imgSrc, setImgSrc] = useState(logo.src);
   const fallbackUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(logo.name)}&backgroundColor=064e3b&fontFamily=serif&fontWeight=700`;
@@ -81,12 +88,12 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const normalizedCategory = useMemo(() => category?.toLowerCase() || '', [category]);
 
+  // Handle URL sync for pagination
   useEffect(() => {
-    setCurrentPage(1);
-    if (window.scrollY > 0) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }, [normalizedCategory]);
+    const params = new URLSearchParams(window.location.search);
+    const pageParam = parseInt(params.get('page') || '1', 10);
+    setCurrentPage(pageParam);
+  }, [category]);
 
   const categoryProducts = useMemo(() => {
     if (!normalizedCategory) return [];
@@ -95,15 +102,28 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
       .sort((a, b) => (b.upvotes_count || 0) - (a.upvotes_count || 0));
   }, [products, normalizedCategory]);
 
+  const totalPages = Math.ceil(categoryProducts.length / POSTS_PER_PAGE);
+  const displayedProducts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return categoryProducts.slice(start, start + POSTS_PER_PAGE);
+  }, [categoryProducts, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', page.toString());
+    const newPath = window.location.pathname + '?' + params.toString();
+    window.history.pushState({}, '', newPath);
+
+    if (listTopRef.current) {
+      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const clusterLogos = useMemo(() => {
     const nicheLogos = NICHE_LOGOS[normalizedCategory];
-    // Use niche specific logos if they exist, else use top products
     const sourceLogos = nicheLogos || categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
     
-    /**
-     * PRECISE FLOATING STACK POSITIONS
-     * Calculated to replicate the organic "scattered" look seen on high-fidelity niche pages.
-     */
     const positions = [
       'top-0 right-10 w-16 h-16 rotate-[-12deg] z-10',
       'top-4 right-0 w-14 h-14 rotate-[12deg] z-20',
@@ -119,19 +139,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
       className: positions[i] || positions[0]
     }));
   }, [categoryProducts, normalizedCategory]);
-
-  const totalPages = Math.ceil(categoryProducts.length / POSTS_PER_PAGE);
-  const displayedProducts = useMemo(() => {
-    const start = (currentPage - 1) * POSTS_PER_PAGE;
-    return categoryProducts.slice(start, start + POSTS_PER_PAGE);
-  }, [categoryProducts, currentPage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    if (listTopRef.current) {
-      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   const parentCategory = PARENT_MAP[normalizedCategory] || "Software";
 
@@ -187,16 +194,10 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             </div>
           </div>
 
-          {/* HIGH-FIDELITY LOGO CLUSTER CONTAINER */}
           <div className="hidden lg:block relative w-48 h-48 shrink-0 mt-8">
             {clusterLogos.map((logo) => (
               <LogoIcon key={logo.name} logo={logo} />
             ))}
-            {clusterLogos.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center border-2 border-dashed border-gray-100 rounded-[2rem] text-gray-300 text-[10px] font-black uppercase tracking-widest text-center px-4">
-                Directory Spotlight
-              </div>
-            )}
           </div>
         </div>
 
@@ -230,7 +231,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                       className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm"
                     >
                       <div className="flex items-start gap-6">
-                        <div className="w-8 shrink-0 text-2xl font-serif italic text-gray-200 group-hover:text-emerald-800/30 pt-1 transition-colors">
+                        <div className="w-8 shrink-0 text-3xl font-serif italic text-gray-200 group-hover:text-emerald-800 transition-colors pt-1">
                           {rank}.
                         </div>
                         <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 shrink-0 shadow-sm group-hover:shadow-md transition-all">
@@ -245,14 +246,19 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">(2.4k reviews)</span>
                             </div>
                           </div>
-                          <p className="text-gray-500 text-[13px] font-medium mb-4 leading-snug line-clamp-1">{p.tagline}</p>
+                          <p className="text-gray-500 text-[13px] font-medium mb-3 leading-snug line-clamp-1">{p.tagline}</p>
                           
-                          <div className="flex flex-wrap items-center justify-between gap-y-3 pt-3 border-t border-gray-50 mt-1">
+                          {/* SOCIAL PROOF & PLATFORMS */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-y-3 pt-3 border-t border-gray-50 mt-1">
                             <div className="flex items-center gap-2">
-                              <Users className="w-3.5 h-3.5 text-gray-400" />
+                              <div className="flex -space-x-1.5 overflow-hidden">
+                                {PROOF_ICONS.slice(0, 3).map((src, idx) => (
+                                  <img key={idx} className="inline-block h-4 w-4 rounded-full ring-2 ring-white" src={src} alt="" />
+                                ))}
+                              </div>
                               <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span className="hidden sm:inline">Used by:</span>
-                                <span className="text-gray-900">Muslim Hunt Founders</span>
+                                <span className="hidden sm:inline">Used by {Math.floor(Math.random() * 500) + 100}:</span>
+                                <span className="text-gray-900">Cursor, Vercel, Linear</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
@@ -278,17 +284,9 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                     </div>
                   );
                 })}
-
-                {categoryProducts.length === 0 && (
-                  <div className="bg-gray-50 rounded-[2rem] p-16 text-center border-2 border-dashed border-gray-200">
-                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-4">No products found in {category}</p>
-                     <button className="px-8 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all flex items-center gap-2 mx-auto shadow-xl shadow-emerald-900/10">
-                        Be the first to launch <ArrowRight className="w-4 h-4" />
-                     </button>
-                  </div>
-                )}
               </div>
 
+              {/* PAGINATION FOOTER */}
               {totalPages > 1 && (
                 <div className="mt-12 flex items-center justify-center gap-2">
                   <button 
@@ -300,17 +298,21 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                   </button>
                   
                   {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
+                    <a
                       key={i}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${
+                      href={`?page=${i + 1}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                      className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
                         currentPage === i + 1 
                           ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/20' 
                           : 'text-gray-400 hover:text-emerald-800 hover:bg-emerald-50'
                       }`}
                     >
                       {i + 1}
-                    </button>
+                    </a>
                   ))}
 
                   <button 

@@ -155,7 +155,7 @@ const App: React.FC = () => {
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path.startsWith('/categories/')) {
-          const slug = path.split('/categories/')[1]?.replace(/\/$/, '');
+          const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
             setActiveCategory(unslugify(slug));
             setView(View.CATEGORY_DETAIL);
@@ -191,7 +191,7 @@ const App: React.FC = () => {
       }
       else if (newView === View.HOME) path = '/';
     }
-    if (window.location.pathname !== path) safeHistory.push(path);
+    if (window.location.pathname + window.location.search !== path) safeHistory.push(path);
   };
 
   const handleCategorySelect = (cat: string) => {
@@ -269,13 +269,6 @@ const App: React.FC = () => {
     return grouped;
   }, [filteredProducts]);
 
-  const feedSections = [
-    { id: 'today', title: "Top Products Launching Today", data: groupedProducts.today, buttonText: "See all of today's products" },
-    { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday, buttonText: "See all of yesterday's top products" },
-    { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek, buttonText: "See all of last week's top products" },
-    { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, buttonText: "See all of last month's top products" }
-  ];
-
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
       <Navbar user={user} currentView={view} setView={updateView} onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} searchQuery={searchQuery} onSearchChange={setSearchQuery} onViewProfile={() => user && setView(View.PROFILE)} />
@@ -291,15 +284,18 @@ const App: React.FC = () => {
                 <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
               </header>
               <div className="space-y-16">
-                {feedSections.map((section) => {
+                {[
+                  { id: 'today', title: "Top Products Launching Today", data: groupedProducts.today },
+                  { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday },
+                  { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek },
+                  { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth }
+                ].map((section) => {
                   if (section.data.length === 0) return null;
-                  const isExpanded = expandedSections[section.id];
-                  const displayData = isExpanded ? section.data : section.data.slice(0, 5);
                   return (
                     <section key={section.id}>
                       <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4"><h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2></div>
                       <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                        {displayData.map((p, i) => (
+                        {section.data.slice(0, 5).map((p, i) => (
                           <ProductCard key={p.id} product={p} rank={i + 1} onUpvote={(id) => { if(!user) setView(View.LOGIN); else setProducts(c => c.map(pr => pr.id === id ? {...pr, upvotes_count: pr.upvotes_count + 1} : pr)); }} hasUpvoted={votes.has(`${user?.id}_${p.id}`)} onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} searchQuery={searchQuery} />
                         ))}
                       </div>
