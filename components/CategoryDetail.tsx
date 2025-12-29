@@ -4,6 +4,7 @@ import { Product } from '../types.ts';
 import CategorySidebar from './CategorySidebar.tsx';
 import SafeImage from './SafeImage.tsx';
 import { CATEGORY_SECTIONS } from '../constants.tsx';
+import ProductBadge from './ProductBadge.tsx';
 
 interface CategoryDetailProps {
   category: string;
@@ -81,7 +82,12 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
     const params = new URLSearchParams(window.location.search);
     params.set('page', page.toString());
     const newPath = window.location.pathname + '?' + params.toString();
-    window.history.pushState({}, '', newPath);
+    
+    try {
+      window.history.pushState({}, '', newPath);
+    } catch (e) {
+      console.warn('[Muslim Hunt] Paging history push suppressed', e);
+    }
 
     if (listTopRef.current) {
       const offset = 100;
@@ -92,7 +98,6 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const clusterLogos = useMemo(() => {
     const sourceLogos = categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
-    // Refined positions for a w-72 container
     const positions = [
       'top-0 right-12 w-20 h-20 rotate-[-12deg] z-10',
       'top-8 right-0 w-16 h-16 rotate-[12deg] z-20',
@@ -145,7 +150,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
           <span className="text-emerald-800 capitalize">{category}</span>
         </nav>
 
-        {/* Hero Section - Fixed Overflow and Alignment */}
+        {/* Hero Section */}
         <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 mb-16 relative">
           <div className="flex-1 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-800 rounded-full mb-6">
@@ -173,7 +178,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             </div>
           </div>
 
-          {/* Logo Cluster - Constrained and Aligned */}
+          {/* Logo Cluster */}
           <div className="hidden lg:block relative w-72 h-64 shrink-0 mt-8">
             {clusterLogos.map((logo) => (
               <LogoIcon key={logo.name} logo={logo} />
@@ -214,12 +219,17 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                       className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm relative"
                     >
                       <div className="flex items-start gap-6">
+                        {/* RANKING NUMBER */}
                         <div className="w-10 shrink-0 text-4xl font-serif italic text-gray-100 group-hover:text-emerald-800/30 transition-colors pt-1">
                           {rank}.
                         </div>
+
+                        {/* APP ICON */}
                         <div className="w-16 h-16 rounded-2xl overflow-hidden border border-emerald-100/50 bg-white shrink-0 shadow-sm group-hover:shadow-md transition-all">
                           <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
                         </div>
+
+                        {/* CONTENT AREA */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
                             <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight leading-none">{p.name}</h3>
@@ -230,6 +240,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                             </div>
                           </div>
                           <p className="text-gray-500 text-sm font-medium mb-3 leading-snug line-clamp-1">{p.tagline}</p>
+                          
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-y-3 pt-3 border-t border-gray-50 mt-1">
                             <div className="flex items-center gap-2">
                               <div className="flex -space-x-2 overflow-hidden">
@@ -250,15 +261,25 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                             </div>
                           </div>
                         </div>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
-                          className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
-                            hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
-                          }`}
-                        >
-                          <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
-                          <span className="text-[11px] font-black">{p.upvotes_count}</span>
-                        </button>
+
+                        {/* REFACTORED BADGE SYSTEM - REPLACES UPVOTE TRIANGLE */}
+                        <div className="flex gap-1.5 ml-auto shrink-0 pt-1">
+                          {p.badges && p.badges.length > 0 ? (
+                            p.badges.map((badge, idx) => (
+                              <ProductBadge key={idx} badge={badge} />
+                            ))
+                          ) : (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
+                              className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
+                                hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
+                              }`}
+                            >
+                              <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
+                              <span className="text-[11px] font-black">{p.upvotes_count}</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

@@ -56,7 +56,6 @@ const safeHistory = {
 const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
 const unslugify = (slug: string) => {
-  // Try to find the actual category name from CATEGORY_SECTIONS to maintain case sensitivity and naming precision
   for (const section of CATEGORY_SECTIONS) {
     for (const item of section.items) {
       if (slugify(item.name) === slug) return item.name;
@@ -207,23 +206,53 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const session = data?.session;
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const email = session.user.email || '';
-        setUser({ id: session.user.id, email, username: m.full_name || email.split('@')[0] || 'Member', avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` });
-      }
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        const session = data?.session;
+        if (session?.user) {
+          const m = session.user.user_metadata || {};
+          const email = session.user.email || '';
+          setUser({ 
+            id: session.user.id, 
+            email, 
+            username: m.full_name || email.split('@')[0] || 'Member', 
+            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
+          });
+        }
+      })
+      .catch(err => console.error('[Muslim Hunt] Supabase session error:', err));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const email = session.user.email || '';
-        setUser({ id: session.user.id, email, username: m.full_name || email.split('@')[0] || 'Member', avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` });
+        setUser({ 
+          id: session.user.id, 
+          email, 
+          username: m.full_name || email.split('@')[0] || 'Member', 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
+        });
       } else setUser(null);
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleUpvote = (id: string) => {
+    if (!user) {
+      updateView(View.LOGIN);
+      return;
+    }
+    const voteKey = `${user.id}_${id}`;
+    if (votes.has(voteKey)) return;
+
+    setVotes(prev => new Set(prev).add(voteKey));
+    setProducts(curr => curr.map(p => 
+      p.id === id ? { ...p, upvotes_count: p.upvotes_count + 1 } : p
+    ));
+    if (selectedProduct?.id === id) {
+      setSelectedProduct(prev => prev ? { ...prev, upvotes_count: prev.upvotes_count + 1 } : null);
+    }
+  };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
 
@@ -282,10 +311,7 @@ const App: React.FC = () => {
                             key={p.id} 
                             product={p} 
                             rank={i + 1} 
-                            onUpvote={(id) => { 
-                              if(!user) setView(View.LOGIN); 
-                              else setProducts(c => c.map(pr => pr.id === id ? {...pr, upvotes_count: pr.upvotes_count + 1} : pr)); 
-                            }} 
+                            onUpvote={handleUpvote} 
                             hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
                             onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
                             onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
@@ -311,9 +337,32 @@ const App: React.FC = () => {
             <TrendingSidebar user={user} setView={updateView} />
           </div>
         )}
-        {view === View.CATEGORY_DETAIL && <CategoryDetail category={activeCategory} products={products} onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} onUpvote={(id) => setProducts(c => c.map(pr => pr.id === id ? {...pr, upvotes_count: pr.upvotes_count + 1} : pr))} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect} />}
+        {view === View.CATEGORY_DETAIL && (
+          <CategoryDetail 
+            category={activeCategory} 
+            products={products} 
+            onBack={() => updateView(View.CATEGORIES)} 
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
+            onUpvote={handleUpvote} 
+            hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} 
+            onCategorySelect={handleCategorySelect} 
+          />
+        )}
         {view === View.CATEGORIES && <Categories onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
-        {view === View.DETAIL && selectedProduct && <ProductDetail product={selectedProduct} user={user} onBack={() => updateView(View.HOME)} onUpvote={(id) => {}} onCommentUpvote={(pid, cid) => {}} hasUpvoted={false} commentVotes={new Set()} onAddComment={(t) => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} />}
+        {view === View.DETAIL && selectedProduct && (
+          <ProductDetail 
+            product={selectedProduct} 
+            user={user} 
+            onBack={() => updateView(View.HOME)} 
+            onUpvote={handleUpvote} 
+            onCommentUpvote={(pid, cid) => {}} 
+            hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
+            commentVotes={commentVotes} 
+            onAddComment={(t) => {}} 
+            onViewProfile={() => {}} 
+            scrollToComments={shouldScrollToComments} 
+          />
+        )}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
         {view === View.LOGIN && <div className="py-20 flex items-center justify-center"><Auth onSuccess={() => setView(View.HOME)} /></div>}

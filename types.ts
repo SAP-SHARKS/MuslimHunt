@@ -20,6 +20,14 @@ export interface Comment {
   upvotes_count: number;
 }
 
+export interface Badge {
+  type: 'award' | 'ranking' | 'featured';
+  label: string;
+  description: string;
+  color: 'purple' | 'gold' | 'emerald';
+  value?: string; // e.g., "1" for #1 Product of the Day
+}
+
 export interface Product {
   id: string;
   created_at: string;
@@ -34,6 +42,7 @@ export interface Product {
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
   sadaqah_info?: string;
   comments?: Comment[];
+  badges?: Badge[];
 }
 
 export interface Vote {

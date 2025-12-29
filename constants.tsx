@@ -1,4 +1,4 @@
-import { Product } from './types';
+import { Product, Badge } from './types';
 
 export const HALAL_STATUSES = ['Certified', 'Self-Certified', 'Shariah-Compliant'] as const;
 
@@ -182,9 +182,41 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
     const suf = suffix[seed % suffix.length];
     const name = `${adj} ${categoryName.replace(/s$/, '')} ${suf} ${i + 1}`;
     
+    const badges: Badge[] = [];
+    if (i === 0) {
+      badges.push({
+        type: 'award',
+        label: 'Orbit Award Winner',
+        description: 'Selected as the top product in this category by the Muslim Hunt community.',
+        color: 'purple'
+      });
+      badges.push({
+        type: 'ranking',
+        label: '#1 Product of the Day',
+        description: 'The highest voted product across all categories today.',
+        color: 'gold',
+        value: '1'
+      });
+    } else if (i < 3) {
+      badges.push({
+        type: 'ranking',
+        label: `#${i + 1} Trending`,
+        description: 'Currently one of the fastest growing products in this niche.',
+        color: 'gold',
+        value: `${i + 1}`
+      });
+    } else if (i < 5) {
+      badges.push({
+        type: 'featured',
+        label: 'Community Choice',
+        description: 'Highly rated for its ethical approach and user experience.',
+        color: 'emerald'
+      });
+    }
+
     products.push({
       id: `gen-${categoryName.replace(/\s+/g, '-')}-${i}`,
-      created_at: new Date(Date.now() - (i * 3600000 * 4)).toISOString(), // Spread over last few days
+      created_at: new Date(Date.now() - (i * 3600000 * 4)).toISOString(),
       name,
       description: `A high-performance tool designed specifically for the ${categoryName} space within the Muslim tech ecosystem. Optimized for efficiency and Shariah-compliance.`,
       tagline: `The most powerful ${categoryName} solution for modern Ummah builders.`,
@@ -193,7 +225,8 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
       founder_id: `u-gen-${seed}`,
       category: categoryName,
       upvotes_count: Math.floor(50 + (Math.random() * 4950)),
-      halal_status: HALAL_STATUSES[seed % HALAL_STATUSES.length]
+      halal_status: HALAL_STATUSES[seed % HALAL_STATUSES.length],
+      badges: badges.length > 0 ? badges : undefined
     });
   }
   return products;
