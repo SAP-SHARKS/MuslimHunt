@@ -131,7 +131,8 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  // Start with empty array to prioritize real data over INITIAL_PRODUCTS
+  const [products, setProducts] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
@@ -146,12 +147,37 @@ const App: React.FC = () => {
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
 
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Verify database products in console as requested
+      console.log("Database Products:", data);
+      
+      // Remove fallback to INITIAL_PRODUCTS. Only show real data.
+      setProducts(data || []);
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching products:', err);
+      // Even on error, we don't fallback to mock data to ensure transparency
+      setProducts([]);
+    }
+  };
+
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({
       ...prev,
       [sectionId]: true
     }));
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -281,10 +307,10 @@ const App: React.FC = () => {
 
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => 
-      p.id === id ? { ...p, upvotes_count: p.upvotes_count + 1 } : p
+      p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p
     ));
     if (selectedProduct?.id === id) {
-      setSelectedProduct(prev => prev ? { ...prev, upvotes_count: prev.upvotes_count + 1 } : null);
+      setSelectedProduct(prev => prev ? { ...prev, upvotes_count: (prev.upvotes_count || 0) + 1 } : null);
     }
   };
 
@@ -299,17 +325,31 @@ const App: React.FC = () => {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const yesterdayStart = todayStart - 86400000;
     const lastWeekStart = todayStart - 7 * 86400000;
-    const lastMonthStart = todayStart - 30 * 86400000;
-    const grouped = { today: [] as Product[], yesterday: [] as Product[], lastWeek: [] as Product[], lastMonth: [] as Product[] };
+    
+    const grouped = { 
+      today: [] as Product[], 
+      yesterday: [] as Product[], 
+      lastWeek: [] as Product[], 
+      lastMonth: [] as Product[] 
+    };
+
     filteredProducts.forEach(p => {
       const time = new Date(p.created_at).getTime();
       if (time >= todayStart) grouped.today.push(p);
       else if (time >= yesterdayStart) grouped.yesterday.push(p);
       else if (time >= lastWeekStart) grouped.lastWeek.push(p);
-      else if (time >= lastMonthStart) grouped.lastMonth.push(p);
+      else {
+        // Catch-all: If not in other buckets, it must be in "Older"
+        grouped.lastMonth.push(p);
+      }
     });
-    const sortFn = (a: Product, b: Product) => b.upvotes_count - a.upvotes_count;
-    grouped.today.sort(sortFn); grouped.yesterday.sort(sortFn); grouped.lastWeek.sort(sortFn); grouped.lastMonth.sort(sortFn);
+
+    const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);
+    grouped.today.sort(sortFn); 
+    grouped.yesterday.sort(sortFn); 
+    grouped.lastWeek.sort(sortFn); 
+    grouped.lastMonth.sort(sortFn);
+    
     return grouped;
   }, [filteredProducts]);
 
@@ -352,7 +392,7 @@ const App: React.FC = () => {
                   { id: 'today', title: "Top Products Launching Today", buttonLabel: "today's products", data: groupedProducts.today },
                   { id: 'yesterday', title: "Yesterday's Top Products", buttonLabel: "yesterday's products", data: groupedProducts.yesterday },
                   { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
-                  { id: 'lastMonth', title: "Last Month's Top Products", buttonLabel: "last month's products", data: groupedProducts.lastMonth }
+                  { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
                 ].map((section) => {
                   if (section.data.length === 0) return null;
                   const isExpanded = expandedSections[section.id];
@@ -417,6 +457,8 @@ const App: React.FC = () => {
             user={user}
             onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
             onSuccess={() => {
+              // Immediately fetch to show the new product
+              fetchProducts();
               // Smooth transition back to home feed after success
               updateView(View.HOME, '/');
             }} 

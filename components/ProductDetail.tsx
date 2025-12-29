@@ -294,12 +294,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <p className="text-2xl font-bold">{product.halal_status}</p>
             </div>
             <div className="space-y-4">
-              <a href={product.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]">
+              <a href={product.website_url || product.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]">
                 Visit Site <ExternalLink className="w-5 h-5" />
               </a>
               <button onClick={() => onUpvote(product.id)} className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-lg transition-all border-2 ${hasUpvoted ? 'bg-emerald-700/50 border-white text-white' : 'bg-transparent border-emerald-600/50 text-emerald-100 hover:border-white'}`}>
                 <ChevronUp className="w-6 h-6" />
-                {product.upvotes_count} Upvotes
+                {product.upvotes_count || 0} Upvotes
               </button>
             </div>
           </div>

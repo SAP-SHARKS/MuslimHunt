@@ -35,7 +35,8 @@ export interface Product {
   name: string;
   description: string;
   tagline: string;
-  url: string;
+  url?: string;
+  website_url?: string;
   logo_url: string;
   founder_id: string;
   category: string;
