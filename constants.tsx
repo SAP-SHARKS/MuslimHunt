@@ -183,7 +183,7 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
     
     const badges: Badge[] = [];
     
-    // Rule 1: Always a ranking badge
+    // Always a ranking badge (Laurel Wreath style)
     const dailyRank = (i % 15) + 1;
     badges.push({
       id: `b-daily-${seed}`,
@@ -194,27 +194,38 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
       value: dailyRank.toString()
     });
 
-    // Rule 2: Random 50% Community Award
+    // Square Daily Badge (50% chance)
     if (seed % 2 === 0) {
       badges.push({
-        id: `b-orbit-${seed}`,
-        type: 'award',
-        label: 'Orbit Award Winner',
-        description: 'Selected as a top 0.1% loved product based on high-quality community feedback.',
-        color: 'purple'
+        id: `b-square-${seed}`,
+        type: 'square',
+        label: `Ranked #${dailyRank} Today`,
+        description: 'A daily achievement for high community engagement.',
+        color: 'yellow',
+        value: dailyRank.toString()
       });
     }
 
-    // Rule 3: Random 20% Time-based Achievement
-    if (seed % 5 === 0) {
-      const weekRank = (seed % 5) + 1;
+    // Calendar Achievement (30% chance)
+    if (seed % 3 === 0) {
       badges.push({
-        id: `b-weekly-${seed}`,
-        type: 'ranking',
-        label: `#${weekRank} Product of the Week`,
-        description: 'Consistent high performer in the trending leaderboards this week.',
-        color: 'blue',
-        value: weekRank.toString()
+        id: `b-calendar-${seed}`,
+        type: 'calendar',
+        label: 'Historical Peak',
+        description: 'Recorded as a community favorite on this specific day.',
+        color: 'purple',
+        value: '28'
+      });
+    }
+
+    // Trophy Award (20% chance)
+    if (seed % 5 === 0) {
+      badges.push({
+        id: `b-trophy-${seed}`,
+        type: 'trophy',
+        label: 'Orbit Award Winner',
+        description: 'Top 0.1% loved product based on review depth and community sentiment.',
+        color: 'blue'
       });
     }
 

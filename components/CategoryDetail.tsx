@@ -209,14 +209,13 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 {displayedProducts.map((p, i) => {
                   const rank = ((currentPage - 1) * ITEMS_PER_PAGE) + i + 1;
                   const rating = (4.5 + Math.random() * 0.5).toFixed(1);
-                  const reviewCount = Math.floor(Math.random() * 5000) + 100;
                   const usedByCount = Math.floor(Math.random() * 2000) + 500;
 
                   return (
                     <div 
                       key={p.id}
                       onClick={() => onProductClick(p)}
-                      className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm relative"
+                      className="group bg-white border border-gray-100 rounded-[2.5rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm relative"
                     >
                       <div className="flex items-center gap-6">
                         {/* RANKING NUMBER */}
@@ -262,25 +261,12 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                             </div>
                           </div>
 
-                          {/* REFACTORED BADGE SYSTEM - POSITIONED TO THE RIGHT OF TEXT */}
-                          <div className="flex gap-2 shrink-0 self-center">
+                          {/* DYNAMIC BADGE SYSTEM - POSITIONED TO THE RIGHT OF TEXT */}
+                          <div className="flex gap-2 shrink-0 self-center ml-auto">
                             {p.badges && p.badges.length > 0 && p.badges.map((badge, idx) => (
                               <ProductBadge key={idx} badge={badge} />
                             ))}
                           </div>
-                        </div>
-
-                        {/* UPVOTE BUTTON - Kept on the far right as per PH style layout */}
-                        <div className="shrink-0 ml-auto">
-                           <button 
-                            onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
-                            className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
-                              hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
-                            }`}
-                          >
-                            <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
-                            <span className="text-[11px] font-black">{p.upvotes_count}</span>
-                          </button>
                         </div>
                       </div>
                     </div>

@@ -22,10 +22,10 @@ export interface Comment {
 
 export interface Badge {
   id: string;
-  type: 'award' | 'ranking' | 'featured';
+  type: 'award' | 'ranking' | 'calendar' | 'square' | 'trophy' | 'featured';
   label: string;
   description: string;
-  color: 'purple' | 'gold' | 'emerald' | 'blue';
+  color: 'purple' | 'gold' | 'emerald' | 'blue' | 'yellow';
   value?: string; // e.g., "1" for #1 Product of the Day
 }
 

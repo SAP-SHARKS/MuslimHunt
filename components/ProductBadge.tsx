@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Star, Award, Medal } from 'lucide-react';
+import { Trophy, Star, Award, Medal, Calendar, Wheat } from 'lucide-react';
 import { Badge } from '../types';
 
 interface ProductBadgeProps {
@@ -7,68 +7,61 @@ interface ProductBadgeProps {
 }
 
 const ProductBadge: React.FC<ProductBadgeProps> = ({ badge }) => {
-  const colors = {
-    purple: {
-      bg: 'bg-[#f0f0ff]',
-      text: 'text-[#6b63ff]',
-      border: 'border-[#e0e0ff]',
-      icon: Trophy
-    },
-    gold: {
-      bg: 'bg-[#fff9e6]',
-      text: 'text-[#d4a017]',
-      border: 'border-[#fff0c0]',
-      icon: Award
-    },
-    emerald: {
-      bg: 'bg-[#ecfdf5]',
-      text: 'text-[#10b981]',
-      border: 'border-[#d1fae5]',
-      icon: Star
-    },
-    blue: {
-      bg: 'bg-[#eff6ff]',
-      text: 'text-[#3b82f6]',
-      border: 'border-[#dbeafe]',
-      icon: Medal
-    }
+  const isRanking = badge.type === 'ranking';
+  const isCalendar = badge.type === 'calendar';
+  const isSquare = badge.type === 'square';
+  const isTrophy = badge.type === 'trophy';
+
+  // Shape Styles
+  const hexagonClip = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+  const pentagonClip = 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+
+  const getBadgeStyle = () => {
+    if (isRanking) return { bg: 'bg-amber-50', text: 'text-amber-600', clip: hexagonClip, icon: Wheat };
+    if (isCalendar) return { bg: 'bg-indigo-50', text: 'text-indigo-400', clip: hexagonClip, icon: Calendar };
+    if (isSquare) return { bg: 'bg-amber-400', text: 'text-white', clip: 'none', icon: null };
+    if (isTrophy) return { bg: 'bg-blue-600', text: 'text-white', clip: pentagonClip, icon: Trophy };
+    return { bg: 'bg-gray-50', text: 'text-gray-400', clip: hexagonClip, icon: Star };
   };
 
-  const style = colors[badge.color] || colors.purple;
+  const style = getBadgeStyle();
   const Icon = style.icon;
-
-  // Exact PH Hexagon clip-path
-  const hexagonStyle = {
-    clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
-  };
 
   return (
     <div className="relative group/badge flex items-center">
-      {/* Interactive Hexagon Badge */}
+      {/* Visual Badge Shape */}
       <div 
-        className={`w-9 h-10 flex items-center justify-center ${style.bg} ${style.text} cursor-help transition-transform hover:scale-110 shadow-sm border border-transparent`}
-        style={hexagonStyle}
+        className={`relative w-9 h-10 flex items-center justify-center transition-transform hover:scale-110 cursor-help shadow-sm border border-transparent ${style.bg} ${style.text} ${isSquare ? 'rounded-lg w-10 h-10' : ''}`}
+        style={style.clip !== 'none' ? { clipPath: style.clip } : {}}
       >
-        {badge.type === 'ranking' && badge.value ? (
-          <span className="text-[13px] font-black tracking-tighter leading-none pt-0.5">{badge.value}</span>
-        ) : (
-          <Icon className="w-4 h-4" />
+        {isRanking && Icon && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-40">
+            <Icon className="w-8 h-8 rotate-180" />
+          </div>
         )}
+        
+        {isCalendar && Icon && (
+          <div className="absolute top-1 left-1/2 -translate-x-1/2 opacity-30">
+            <Icon className="w-4 h-4" />
+          </div>
+        )}
+
+        <span className={`relative z-10 ${isSquare ? 'text-lg font-black' : 'text-[13px] font-black pt-0.5'} tracking-tighter`}>
+          {badge.value || (isTrophy ? <Trophy className="w-4 h-4" /> : '')}
+        </span>
       </div>
 
-      {/* High-Fidelity Tooltip */}
+      {/* Interactive Tooltip */}
       <div className="absolute bottom-full right-0 mb-3 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-2xl p-4 z-[100] text-left opacity-0 pointer-events-none group-hover/badge:opacity-100 group-hover/badge:pointer-events-auto transition-all translate-y-2 group-hover/badge:translate-y-0 duration-300">
         <div className="flex items-start gap-4">
-          {/* Large Icon Preview */}
+          {/* Large Version of the Badge */}
           <div 
-            className={`w-14 h-16 shrink-0 flex items-center justify-center ${style.bg} ${style.text} shadow-sm`}
-            style={hexagonStyle}
+            className={`w-14 h-16 shrink-0 flex items-center justify-center shadow-md ${style.bg} ${style.text} ${isSquare ? 'rounded-xl w-14 h-14' : ''}`}
+            style={style.clip !== 'none' ? { clipPath: style.clip } : {}}
           >
-            {badge.type === 'ranking' && badge.value ? (
-              <span className="text-xl font-black">{badge.value}</span>
-            ) : (
-              <Icon className="w-7 h-7" />
-            )}
+             <span className={`font-black ${isSquare ? 'text-2xl' : 'text-xl'}`}>
+              {badge.value || (isTrophy ? <Trophy className="w-6 h-6" /> : '')}
+            </span>
           </div>
           
           <div className="flex-1 min-w-0">
@@ -77,7 +70,7 @@ const ProductBadge: React.FC<ProductBadgeProps> = ({ badge }) => {
           </div>
         </div>
         
-        {/* Tooltip Pointer Triangle */}
+        {/* Tooltip Pointer */}
         <div className="absolute -bottom-1.5 right-4 w-3 h-3 bg-white border-r border-b border-gray-100 rotate-45 shadow-[2px_2px_2px_rgba(0,0,0,0.02)]"></div>
       </div>
     </div>
