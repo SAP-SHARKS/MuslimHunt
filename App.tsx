@@ -279,7 +279,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
       <Navbar user={user} currentView={view} setView={updateView} onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} searchQuery={searchQuery} onSearchChange={setSearchQuery} onViewProfile={() => user && setView(View.PROFILE)} />
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL) ? "" : "pb-20"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">

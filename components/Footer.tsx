@@ -46,7 +46,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
   ];
 
   return (
-    <footer className="bg-[#042119] text-gray-400 py-16 mt-20 border-t border-emerald-900/30">
+    <footer className="bg-[#042119] text-gray-400 py-8 mt-10 border-t border-emerald-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {sections.map((section) => (
