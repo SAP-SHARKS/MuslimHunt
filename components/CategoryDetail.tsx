@@ -15,6 +15,26 @@ interface CategoryDetailProps {
 
 const POSTS_PER_PAGE = 10;
 
+// High-fidelity brand logos for specific niche categories
+const NICHE_LOGOS: Record<string, { name: string, src: string }[]> = {
+  'ai notetakers': [
+    { name: 'Notion', src: 'https://www.notion.so/images/favicon.ico' },
+    { name: 'Fathom', src: 'https://fathom.video/favicon.ico' },
+    { name: 'Granola', src: 'https://granola.ai/favicon.ico' },
+    { name: 'Fireflies.ai', src: 'https://fireflies.ai/favicon.ico' },
+    { name: 'tl;dv', src: 'https://tldv.io/wp-content/uploads/2022/01/cropped-favicon-32x32.png' },
+    { name: 'Grain', src: 'https://grain.com/favicon.ico' }
+  ],
+  'ai meeting notetakers': [
+    { name: 'Notion', src: 'https://www.notion.so/images/favicon.ico' },
+    { name: 'Fathom', src: 'https://fathom.video/favicon.ico' },
+    { name: 'Granola', src: 'https://granola.ai/favicon.ico' },
+    { name: 'Fireflies.ai', src: 'https://fireflies.ai/favicon.ico' },
+    { name: 'tl;dv', src: 'https://tldv.io/wp-content/uploads/2022/01/cropped-favicon-32x32.png' },
+    { name: 'Grain', src: 'https://grain.com/favicon.ico' }
+  ]
+};
+
 const PARENT_MAP: Record<string, string> = {
   'ai notetakers': 'Productivity',
   'ai meeting notetakers': 'Productivity',
@@ -73,21 +93,24 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   }, [products, normalizedCategory]);
 
   const clusterLogos = useMemo(() => {
-    const top6 = categoryProducts.slice(0, 6);
+    const nicheLogos = NICHE_LOGOS[normalizedCategory];
+    const sourceLogos = nicheLogos || categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
+    
     const positions = [
-      'top-0 left-0 w-20 h-20 rotate-[-10deg] z-10',
+      'top-0 right-10 w-20 h-20 rotate-[-12deg] z-10',
       'top-4 right-0 w-16 h-16 rotate-[12deg] z-20',
-      'bottom-0 left-4 w-18 h-18 rotate-[5deg] z-10',
+      'bottom-0 left-4 w-18 h-18 rotate-[8deg] z-10',
       'bottom-4 right-4 w-20 h-20 rotate-[-8deg] z-30',
       'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rotate-[15deg] z-40',
-      'top-12 left-24 w-16 h-16 rotate-[-5deg] z-20 shadow-2xl'
+      'top-12 right-24 w-16 h-16 rotate-[-5deg] z-20 shadow-2xl'
     ];
-    return top6.map((p, i) => ({
-      name: p.name,
-      src: p.logo_url,
+
+    return sourceLogos.slice(0, 6).map((logo, i) => ({
+      name: logo.name,
+      src: logo.src,
       className: positions[i] || positions[0]
     }));
-  }, [categoryProducts]);
+  }, [categoryProducts, normalizedCategory]);
 
   const totalPages = Math.ceil(categoryProducts.length / POSTS_PER_PAGE);
   const displayedProducts = useMemo(() => {
@@ -156,7 +179,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             </div>
           </div>
 
-          <div className="hidden lg:block relative w-72 h-64 shrink-0 mt-8">
+          <div className="hidden lg:block relative w-48 h-48 shrink-0 mt-8">
             {clusterLogos.map((logo) => (
               <LogoIcon key={logo.name} logo={logo} />
             ))}
