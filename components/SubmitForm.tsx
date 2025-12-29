@@ -61,7 +61,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
-      // Ensure key names exactly match Supabase column names
+      // Data Integrity: Map exactly to Supabase columns
       const payload = {
         name: formData.name,
         url: formData.url,
@@ -69,11 +69,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         description: formData.description,
         category: formData.category,
         halal_status: formData.halal_status,
-        sadaqah_info: formData.sadaqah_info, // Explicitly mapped
+        sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url,
-        founder_id: user.id,
+        founder_id: user.id, // Maker relationship
         created_at: new Date().toISOString(),
-        upvotes_count: 1
+        upvotes_count: 0 // Resetting to 0 as per user instruction
       };
 
       const { error: insertError } = await supabase
@@ -81,8 +81,14 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         .insert([payload]);
 
       if (insertError) {
+        // High-fidelity schema cache error check
         const msg = insertError.message.toLowerCase();
-        const isSchemaError = msg.includes('column') || msg.includes('schema cache') || insertError.code === '42703';
+        const isSchemaError = 
+          msg.includes('column') || 
+          msg.includes('schema cache') || 
+          insertError.code === '42703' || 
+          insertError.code === 'PGRST204';
+        
         throw { ...insertError, isSchemaError };
       }
       
@@ -103,7 +109,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
       <div className="flex items-center justify-between mb-12">
         <div>
           <h2 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight">Product Details</h2>
-          <p className="text-gray-500 mt-2 text-lg font-medium italic">Bismillah! Let's get your product in front of the Ummah.</p>
+          <p className="text-gray-500 mt-2 text-lg font-medium italic">Bismillah! Finalize your product launch for the Ummah.</p>
         </div>
         <button 
           onClick={onCancel} 
@@ -125,9 +131,14 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             </p>
             {error.isSchemaError && (
               <div className="mt-2 p-4 bg-white/60 rounded-xl border border-amber-100 text-xs font-mono space-y-2">
-                <p className="font-bold">Developer Hint:</p>
-                <p>The Supabase API cache might be out of sync. Please run this SQL in your Supabase dashboard:</p>
-                <code className="block bg-gray-900 text-amber-400 p-2 rounded">NOTIFY pgrst, 'reload schema';</code>
+                <p className="font-bold flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5" />
+                  Developer Required
+                </p>
+                <p>The Supabase API cache is updating. If this persists, run this SQL in your dashboard:</p>
+                <code className="block bg-gray-900 text-amber-400 p-3 rounded-lg border border-gray-800 shadow-inner mt-2">
+                  NOTIFY pgrst, 'reload schema';
+                </code>
               </div>
             )}
           </div>

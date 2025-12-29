@@ -417,6 +417,7 @@ const App: React.FC = () => {
             user={user}
             onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
             onSuccess={() => {
+              // Smooth transition back to home feed after success
               updateView(View.HOME, '/');
             }} 
           />
