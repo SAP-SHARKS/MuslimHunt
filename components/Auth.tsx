@@ -20,6 +20,8 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setMessage(null);
 
+    // Supabase handles both Sign In and Sign Up with OTP by default 
+    // if 'Allow new users to sign up' is enabled in the dashboard.
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -30,14 +32,18 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     if (error) {
       setMessage({ type: 'error', text: error.message });
     } else {
-      setMessage({ type: 'success', text: 'Check your email for the login link! Bismillah.' });
+      setMessage({ 
+        type: 'success', 
+        text: 'Bismillah! Check your email for the verification link. If you are new, an account has been prepared for you.' 
+      });
     }
     setLoading(false);
   };
 
   const signInWithSocial = async (provider: 'google' | 'facebook' | 'twitter') => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    setMessage(null);
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
         redirectTo: window.location.origin
@@ -61,7 +67,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
       <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-emerald-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-full transition-all active:scale-95"
+          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-full transition-all active:scale-95 z-10"
         >
           <X className="w-6 h-6" />
         </button>
@@ -71,9 +77,9 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
             <div className="w-16 h-16 bg-emerald-50 rounded-[1.5rem] flex items-center justify-center mb-6 text-emerald-800 shadow-inner">
               <Sparkles className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 text-center tracking-tight">Join Muslim Hunt</h2>
+            <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 text-center tracking-tight">Join our community</h2>
             <p className="text-gray-500 text-center font-medium leading-relaxed max-w-xs">
-              Join our community of friendly folks discovering and sharing the latest products in tech.
+              Sign up to discover and share the latest products in the Muslim tech ecosystem.
             </p>
           </div>
 
@@ -89,7 +95,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Sign in with Google
+              Sign up with Google
             </button>
             <button 
               onClick={() => signInWithSocial('facebook')}
@@ -97,7 +103,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
               className="w-full flex items-center justify-center gap-4 py-4 bg-[#1877F2] text-white rounded-2xl text-sm font-black hover:bg-[#166fe5] transition-all shadow-md active:scale-[0.98] group"
             >
               <Facebook className="w-5 h-5 fill-white group-hover:scale-110 transition-transform" />
-              Sign in with Facebook
+              Sign up with Facebook
             </button>
             <button 
               onClick={() => signInWithSocial('twitter')}
@@ -105,7 +111,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
               className="w-full flex items-center justify-center gap-4 py-4 bg-black text-white rounded-2xl text-sm font-black hover:opacity-90 transition-all shadow-md active:scale-[0.98] group"
             >
               <Twitter className="w-5 h-5 fill-white group-hover:scale-110 transition-transform" />
-              Sign in with X
+              Sign up with X
             </button>
           </div>
 

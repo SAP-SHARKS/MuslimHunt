@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -211,6 +210,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Initial session fetch
     supabase.auth.getSession()
       .then(({ data }) => {
         const session = data?.session;
@@ -227,7 +227,8 @@ const App: React.FC = () => {
       })
       .catch(err => console.error('[Muslim Hunt] Supabase session error:', err));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes (including Magic Link verification redirects)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const email = session.user.email || '';
@@ -237,8 +238,18 @@ const App: React.FC = () => {
           username: m.full_name || email.split('@')[0] || 'Member', 
           avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
         });
-        setIsAuthModalOpen(false); // Close modal on successful auth
-      } else setUser(null);
+        
+        // Auto-close modal on any successful authentication event
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setIsAuthModalOpen(false);
+          // If we was on a special path for login, go home
+          if (window.location.pathname === '/login') {
+            updateView(View.HOME);
+          }
+        }
+      } else {
+        setUser(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
