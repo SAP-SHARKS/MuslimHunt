@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Upload, X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 import { CATEGORIES, HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { supabase } from '../lib/supabase';
@@ -26,7 +26,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
   
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; isSchemaError?: boolean } | null>(null);
 
   useEffect(() => {
     if (initialUrl) {
@@ -48,7 +48,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      setError('You must be signed in to submit a product.');
+      setError({ message: 'You must be signed in to submit a product.' });
       return;
     }
 
@@ -56,40 +56,36 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
-      // NOTE: Ensure the 'products' table has a 'sadaqah_info' column (TEXT).
-      // If you get a 'schema cache' error, run: NOTIFY pgrst, 'reload schema'; in Supabase SQL editor.
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('products')
         .insert([{
           ...formData,
           founder_id: user.id,
           created_at: new Date().toISOString(),
-          upvotes_count: 1 // Start with 1 upvote from the founder
-        }]);
+          upvotes_count: 1
+        }])
+        .select();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Check for PostgREST schema cache issues
+        const isSchemaError = insertError.message.includes('column') || insertError.message.toLowerCase().includes('schema cache');
+        throw { ...insertError, isSchemaError };
+      }
       
       onSuccess();
     } catch (err: any) {
       console.error('[Muslim Hunt] Submission failed:', err);
-      
-      let errorMsg = err.message || 'Something went wrong during submission. Please try again.';
-      
-      // Specifically handle missing column errors or schema cache issues
-      if (errorMsg.includes('column "sadaqah_info" does not exist')) {
-        errorMsg = 'Database Error: The "sadaqah_info" column is missing from your Supabase table. Please run the SQL migration.';
-      } else if (errorMsg.toLowerCase().includes('schema cache')) {
-        errorMsg = 'Database Cache Error: The API does not yet see the new database structure. Please run "NOTIFY pgrst, \'reload schema\';" in your Supabase SQL editor.';
-      }
-      
-      setError(errorMsg);
+      setError({ 
+        message: err.message || 'Something went wrong during submission. Please try again.',
+        isSchemaError: err.isSchemaError
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between mb-12">
         <div>
           <h2 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight">Tell us more about the product</h2>
@@ -103,14 +99,21 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[3rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
+      <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
         {error && (
-          <div className="p-5 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex flex-col gap-2">
+          <div className={`p-6 rounded-2xl border flex flex-col gap-3 ${error.isSchemaError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-100 text-red-600'}`}>
             <div className="flex items-center gap-3">
-              <X className="w-5 h-5 shrink-0" />
-              <span>Submission Error</span>
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span className="font-bold">Submission Error</span>
             </div>
-            <p className="font-medium text-red-500/80 pl-8">{error}</p>
+            <p className="text-sm font-medium leading-relaxed">
+              {error.message}
+            </p>
+            {error.isSchemaError && (
+              <div className="mt-2 p-3 bg-white/50 rounded-lg border border-amber-100 text-xs font-mono">
+                Hint: Run "NOTIFY pgrst, 'reload schema';" in Supabase SQL editor to refresh the API cache.
+              </div>
+            )}
           </div>
         )}
 
@@ -145,7 +148,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             rows={5}
             value={formData.description}
             onChange={e => setFormData({...formData, description: e.target.value})}
-            placeholder="What does your product do? Who is it for? Be specific about the Halal focus and Ummah impact."
+            placeholder="What does your product do? Be specific about the Halal focus and Ummah impact."
             className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-lg font-medium leading-relaxed"
           />
         </div>
@@ -191,7 +194,6 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
           </div>
         </div>
 
-        {/* Halal Trust Section */}
         <div className="p-8 sm:p-10 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100/50 space-y-8">
           <div className="flex items-center gap-3 text-emerald-900 font-black uppercase tracking-[0.15em] text-sm">
             <ShieldCheck className="w-6 h-6 text-emerald-800" />
@@ -227,16 +229,16 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row gap-4">
+        <div className="pt-6">
           <button 
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-[#064e3b] hover:bg-[#043d2f] text-white font-black py-6 rounded-[2rem] shadow-2xl shadow-emerald-900/20 transition-all active:scale-[0.98] text-2xl flex items-center justify-center gap-3 disabled:opacity-70"
+            className="w-full bg-[#064e3b] hover:bg-[#043d2f] text-white font-black py-6 rounded-[2rem] shadow-2xl shadow-emerald-900/20 transition-all active:scale-[0.98] text-2xl flex items-center justify-center gap-3 disabled:opacity-70"
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-7 h-7 animate-spin" />
-                Submitting...
+                Submitting for Review...
               </>
             ) : (
               <>
