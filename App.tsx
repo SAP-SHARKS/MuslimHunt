@@ -15,7 +15,7 @@ import CategoryDetail from './components/CategoryDetail.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile } from './types.ts';
 import { INITIAL_PRODUCTS } from './constants.tsx';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
@@ -143,6 +143,13 @@ const App: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: true
+    }));
+  };
 
   useEffect(() => {
     const handlePopState = () => {
@@ -285,24 +292,22 @@ const App: React.FC = () => {
               </header>
               <div className="space-y-16">
                 {[
-                  { id: 'today', title: "Top Products Launching Today", data: groupedProducts.today },
-                  { id: 'yesterday', title: "Yesterday's Top Products", data: groupedProducts.yesterday },
-                  { id: 'lastWeek', title: "Last Week's Top Products", data: groupedProducts.lastWeek },
-                  { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth }
+                  { id: 'today', title: "Top Products Launching Today", buttonLabel: "today's products", data: groupedProducts.today },
+                  { id: 'yesterday', title: "Yesterday's Top Products", buttonLabel: "yesterday's products", data: groupedProducts.yesterday },
+                  { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
+                  { id: 'lastMonth', title: "Last Month's Top Products", buttonLabel: "last month's products", data: groupedProducts.lastMonth }
                 ].map((section) => {
                   if (section.data.length === 0) return null;
+                  const isExpanded = expandedSections[section.id];
+                  const displayItems = isExpanded ? section.data : section.data.slice(0, 5);
+
                   return (
                     <section key={section.id}>
                       <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
                         <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
-                        {section.data.length > 10 && (
-                          <button className="text-xs font-black text-emerald-800 uppercase tracking-widest hover:underline">
-                            See all
-                          </button>
-                        )}
                       </div>
-                      <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                        {section.data.slice(0, 10).map((p, i) => (
+                      <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
+                        {displayItems.map((p, i) => (
                           <ProductCard 
                             key={p.id} 
                             product={p} 
@@ -318,6 +323,16 @@ const App: React.FC = () => {
                           />
                         ))}
                       </div>
+
+                      {!isExpanded && section.data.length > 5 && (
+                        <button 
+                          onClick={() => toggleSection(section.id)}
+                          className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 hover:border-emerald-100 hover:bg-emerald-50/30 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
+                        >
+                          See all of {section.buttonLabel}
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
                     </section>
                   );
                 })}
