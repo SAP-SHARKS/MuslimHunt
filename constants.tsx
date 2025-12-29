@@ -183,30 +183,36 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
     const name = `${adj} ${categoryName.replace(/s$/, '')} ${suf} ${i + 1}`;
     
     const badges: Badge[] = [];
+    // Every product gets at least one rank badge for high-fidelity look
+    const dailyRank = (i % 10) + 1;
+    badges.push({
+      id: `b-rank-${seed}`,
+      type: 'ranking',
+      label: `#${dailyRank} Product of the Day`,
+      description: 'Based on community upvotes and reviews in the last 24 hours.',
+      color: 'gold',
+      value: dailyRank.toString()
+    });
+
     if (i === 0) {
       badges.push({
+        id: `b-award-${seed}`,
         type: 'award',
         label: 'Orbit Award Winner',
-        description: 'Selected as the top product in this category by the Muslim Hunt community.',
+        description: 'Top 0.1% loved products based on community reviews and impact.',
         color: 'purple'
       });
       badges.push({
+        id: `b-rank-month-${seed}`,
         type: 'ranking',
-        label: '#1 Product of the Day',
-        description: 'The highest voted product across all categories today.',
+        label: '#1 Product of the Month',
+        description: 'Selected for outstanding growth and community engagement.',
         color: 'gold',
         value: '1'
       });
     } else if (i < 3) {
       badges.push({
-        type: 'ranking',
-        label: `#${i + 1} Trending`,
-        description: 'Currently one of the fastest growing products in this niche.',
-        color: 'gold',
-        value: `${i + 1}`
-      });
-    } else if (i < 5) {
-      badges.push({
+        id: `b-featured-${seed}`,
         type: 'featured',
         label: 'Community Choice',
         description: 'Highly rated for its ethical approach and user experience.',
@@ -226,7 +232,7 @@ function generateMockProducts(categoryName: string, count: number): Product[] {
       category: categoryName,
       upvotes_count: Math.floor(50 + (Math.random() * 4950)),
       halal_status: HALAL_STATUSES[seed % HALAL_STATUSES.length],
-      badges: badges.length > 0 ? badges : undefined
+      badges: badges
     });
   }
   return products;

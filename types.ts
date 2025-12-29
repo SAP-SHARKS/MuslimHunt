@@ -21,6 +21,7 @@ export interface Comment {
 }
 
 export interface Badge {
+  id: string;
   type: 'award' | 'ranking' | 'featured';
   label: string;
   description: string;
