@@ -56,11 +56,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Info Area */}
         <div className="min-w-0 flex-1">
           <h3 
-            className="text-lg font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug"
+            className="text-[17px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight"
             dangerouslySetInnerHTML={{ __html: highlightedName }}
           />
           <p 
-            className="text-gray-500 text-sm line-clamp-1 mb-2 font-medium"
+            className="text-gray-500 text-[13px] line-clamp-1 mb-2 font-medium tracking-tight"
             dangerouslySetInnerHTML={{ __html: highlightedTagline }}
           />
           
@@ -68,7 +68,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center gap-2 overflow-hidden">
             {tags.map((tag, i) => (
               <React.Fragment key={tag}>
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap">
                   {tag}
                 </span>
                 {i < tags.length - 1 && (
@@ -88,10 +88,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex flex-col items-center justify-center min-w-[3.5rem] h-16 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95"
+          className="flex flex-col items-center justify-center min-w-[3rem] h-14 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95"
         >
-          <MessageSquare className="w-5 h-5 mb-0.5" />
-          <span className="text-[11px] font-black tracking-tighter">{commentCount}</span>
+          <MessageSquare className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px] font-black tracking-tighter">{commentCount}</span>
         </button>
 
         {/* Upvote Button */}
@@ -100,14 +100,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             onUpvote(product.id);
           }}
-          className={`flex flex-col items-center justify-center min-w-[4rem] h-16 rounded-xl border-2 transition-all shrink-0 active:scale-95 ${
+          className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all shrink-0 active:scale-95 ${
             hasUpvoted 
               ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg shadow-emerald-900/20' 
               : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800 hover:shadow-sm'
           }`}
         >
-          <Triangle className={`w-4 h-4 mb-0.5 ${hasUpvoted ? 'fill-white' : ''}`} />
-          <span className="text-xs font-black tracking-tighter">{product.upvotes_count}</span>
+          <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted ? 'fill-white' : ''}`} />
+          <span className="text-[11px] font-black tracking-tighter">{product.upvotes_count}</span>
         </button>
       </div>
     </div>

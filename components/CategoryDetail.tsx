@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Sparkles, ChevronRight, Star, Triangle, Users, ChevronLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Sparkles, ChevronRight, Star, Triangle, Users, ChevronLeft, ArrowRight, Loader2, Monitor, Smartphone, Globe } from 'lucide-react';
 import { Product } from '../types.ts';
 import CategorySidebar from './CategorySidebar.tsx';
 import SafeImage from './SafeImage.tsx';
+import { CATEGORY_SECTIONS } from '../constants.tsx';
 
 interface CategoryDetailProps {
   category: string;
@@ -14,49 +15,14 @@ interface CategoryDetailProps {
   onCategorySelect: (category: string) => void;
 }
 
-const POSTS_PER_PAGE = 10;
-
-/**
- * CORE BRAND ASSETS
- */
-const NICHE_LOGOS: Record<string, { name: string, src: string }[]> = {
-  'ai notetakers': [
-    { name: 'Notion', src: 'https://logo.clearbit.com/notion.so' },
-    { name: 'Fathom', src: 'https://logo.clearbit.com/fathom.video' },
-    { name: 'Granola', src: 'https://logo.clearbit.com/granola.ai' },
-    { name: 'Fireflies.ai', src: 'https://logo.clearbit.com/fireflies.ai' },
-    { name: 'tl;dv', src: 'https://logo.clearbit.com/tldv.io' },
-    { name: 'Grain', src: 'https://logo.clearbit.com/grain.com' }
-  ],
-  'ai meeting notetakers': [
-    { name: 'Notion', src: 'https://logo.clearbit.com/notion.so' },
-    { name: 'Fathom', src: 'https://logo.clearbit.com/fathom.video' },
-    { name: 'Granola', src: 'https://logo.clearbit.com/granola.ai' },
-    { name: 'Fireflies.ai', src: 'https://logo.clearbit.com/fireflies.ai' },
-    { name: 'tl;dv', src: 'https://logo.clearbit.com/tldv.io' },
-    { name: 'Grain', src: 'https://logo.clearbit.com/grain.com' }
-  ]
-};
-
-const PARENT_MAP: Record<string, string> = {
-  'ai notetakers': 'Productivity',
-  'ai meeting notetakers': 'Productivity',
-  'app switcher': 'Productivity',
-  'compliance software': 'Productivity',
-  'email clients': 'Productivity',
-  'knowledge base': 'Productivity',
-  'ai coding agents': 'Engineering',
-  'vibe coding tools': 'Engineering',
-  'ai headshot generators': 'Design',
-  'zakat calculators': 'Finance',
-};
+const ITEMS_PER_PAGE = 10;
 
 // Mock "Used by" proofing icons
 const PROOF_ICONS = [
-  'https://logo.clearbit.com/cursor.com',
-  'https://logo.clearbit.com/vercel.com',
-  'https://logo.clearbit.com/linear.app',
-  'https://logo.clearbit.com/slack.com'
+  'https://i.pravatar.cc/150?u=1',
+  'https://i.pravatar.cc/150?u=2',
+  'https://i.pravatar.cc/150?u=3',
+  'https://i.pravatar.cc/150?u=4'
 ];
 
 const LogoIcon: React.FC<{ logo: { name: string, src: string, className: string } }> = ({ logo }) => {
@@ -85,11 +51,14 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const normalizedCategory = useMemo(() => category?.toLowerCase() || '', [category]);
 
-  // Handle URL sync for pagination
+  // Handle URL sync and Page Reset on category switch
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const pageParam = parseInt(params.get('page') || '1', 10);
     setCurrentPage(pageParam);
+    
+    // Smooth scroll to top when category changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [category]);
 
   const categoryProducts = useMemo(() => {
@@ -99,13 +68,15 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
       .sort((a, b) => (b.upvotes_count || 0) - (a.upvotes_count || 0));
   }, [products, normalizedCategory]);
 
-  const totalPages = Math.ceil(categoryProducts.length / POSTS_PER_PAGE);
+  const totalPages = Math.ceil(categoryProducts.length / ITEMS_PER_PAGE);
+  
   const displayedProducts = useMemo(() => {
-    const start = (currentPage - 1) * POSTS_PER_PAGE;
-    return categoryProducts.slice(start, start + POSTS_PER_PAGE);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return categoryProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [categoryProducts, currentPage]);
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
     const params = new URLSearchParams(window.location.search);
     params.set('page', page.toString());
@@ -113,14 +84,14 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
     window.history.pushState({}, '', newPath);
 
     if (listTopRef.current) {
-      listTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const offset = 100;
+      const top = listTopRef.current.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
     }
   };
 
   const clusterLogos = useMemo(() => {
-    const nicheLogos = NICHE_LOGOS[normalizedCategory];
-    const sourceLogos = nicheLogos || categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
-    
+    const sourceLogos = categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
     const positions = [
       'top-0 right-10 w-16 h-16 rotate-[-12deg] z-10',
       'top-4 right-0 w-14 h-14 rotate-[12deg] z-20',
@@ -129,31 +100,35 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
       'top-1/2 right-12 -translate-y-1/2 w-14 h-14 rotate-[15deg] z-40',
       'top-10 right-28 w-14 h-14 rotate-[-5deg] z-20'
     ];
-
-    return sourceLogos.slice(0, 6).map((logo, i) => ({
+    return sourceLogos.map((logo, i) => ({
       name: logo.name,
       src: logo.src,
       className: positions[i] || positions[0]
     }));
-  }, [categoryProducts, normalizedCategory]);
+  }, [categoryProducts]);
 
-  const parentCategory = PARENT_MAP[normalizedCategory] || "Software";
+  const parentCategory = useMemo(() => {
+    for (const section of CATEGORY_SECTIONS) {
+      if (section.items.some(item => item.name.toLowerCase() === normalizedCategory)) {
+        return section.title;
+      }
+    }
+    return "Product categories";
+  }, [normalizedCategory]);
 
-  if (!category) {
+  if (!category || categoryProducts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
         <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-6">
           <Loader2 className="w-8 h-8 text-emerald-800 animate-spin" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">Loading Directory...</h2>
+        <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">Vetting {category || 'Category'}...</h2>
         <button onClick={onBack} className="text-emerald-800 font-bold hover:underline flex items-center gap-2">
-          <ChevronLeft className="w-4 h-4" /> Return to Home
+          <ChevronLeft className="w-4 h-4" /> Return to Directory
         </button>
       </div>
     );
   }
-
-  const isNotetakers = normalizedCategory.includes('notetaker');
 
   return (
     <div className="bg-white min-h-screen">
@@ -161,7 +136,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
         <nav className="flex items-center gap-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-10">
           <button onClick={onBack} className="hover:text-emerald-800 transition-colors">Home</button>
           <ChevronRight className="w-3 h-3" />
-          <span onClick={onBack} className="hover:text-emerald-800 cursor-pointer">Product categories</span>
+          <button onClick={onBack} className="hover:text-emerald-800 cursor-pointer">Product categories</button>
           <ChevronRight className="w-3 h-3" />
           <span className="text-gray-400 cursor-default">{parentCategory}</span>
           <ChevronRight className="w-3 h-3" />
@@ -170,16 +145,20 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
         <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12 mb-16 relative">
           <div className="flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-800 rounded-full mb-6">
+              <Sparkles className="w-4 h-4 fill-emerald-800" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Ranked Directory</span>
+            </div>
             <h1 className="text-5xl sm:text-6xl font-serif font-bold text-emerald-900 tracking-tight leading-tight mb-6 text-center lg:text-left capitalize">
               The best {category} <br/> to use in 2025
             </h1>
             <p className="text-lg text-gray-500 font-medium max-w-2xl mb-8 leading-relaxed text-center lg:text-left">
-              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community for efficiency and ethical standards.
+              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community.
             </p>
             
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">Explore related:</span>
-              {['Presentation Software', 'Spreadsheets', 'Virtual office'].map(tag => (
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">Quick jump:</span>
+              {['Spirituality', 'Productivity', 'Finance'].map(tag => (
                 <button 
                   key={tag} 
                   onClick={() => onCategorySelect(tag)}
@@ -206,79 +185,70 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
               </div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="px-2 py-0.5 bg-blue-800 text-white rounded text-[9px] font-black uppercase tracking-tighter shadow-sm">AI Analysis</div>
-                <h2 className="text-sm font-black text-blue-900 uppercase tracking-widest">Summarized with AI</h2>
+                <h2 className="text-sm font-black text-blue-900 uppercase tracking-widest">Community Insights</h2>
               </div>
               <p className="text-blue-900/80 text-[15px] leading-relaxed font-medium">
-                {isNotetakers 
-                  ? "Fathom, tl;dv, and Grain dominate for automated recording, crisp transcripts, and shareable summaries. Our community highlights Otter for its real-time dictation speed, while Fireflies excels in multi-language support and CRM integration."
-                  : `Our community is currently vetting ${category} solutions. Key trends we're seeing include better privacy protections and automated cross-platform syncing.`}
+                Our community is currently highlighting high-performance {category} solutions that prioritize privacy and local-first data processing.
               </p>
             </div>
 
             <div ref={listTopRef} className="scroll-mt-24">
-              <h2 className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Top reviewed {category}</h2>
+              <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Top reviewed {category}</h2>
               
               <div className="space-y-4">
                 {displayedProducts.map((p, i) => {
-                  const rank = ((currentPage - 1) * POSTS_PER_PAGE) + i + 1;
+                  const rank = ((currentPage - 1) * ITEMS_PER_PAGE) + i + 1;
+                  const rating = (4.5 + Math.random() * 0.5).toFixed(1);
+                  const reviewCount = Math.floor(Math.random() * 5000) + 100;
+                  const usedByCount = Math.floor(Math.random() * 2000) + 500;
+
                   return (
                     <div 
                       key={p.id}
                       onClick={() => onProductClick(p)}
-                      className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm"
+                      className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:bg-gray-50/40 transition-all cursor-pointer shadow-sm relative"
                     >
                       <div className="flex items-start gap-6">
-                        <div className="w-8 shrink-0 text-3xl font-serif italic text-gray-200 group-hover:text-emerald-800 transition-colors pt-1">
+                        <div className="w-10 shrink-0 text-4xl font-serif italic text-gray-100 group-hover:text-emerald-800/30 transition-colors pt-1">
                           {rank}.
                         </div>
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 shrink-0 shadow-sm group-hover:shadow-md transition-all">
-                          <SafeImage 
-                            src={p.logo_url} 
-                            alt={p.name} 
-                            seed={p.id}
-                            className="w-full h-full object-cover" 
-                          />
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden border border-emerald-100/50 bg-white shrink-0 shadow-sm group-hover:shadow-md transition-all">
+                          <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight">{p.name}</h3>
+                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight leading-none">{p.name}</h3>
                             <div className="flex items-center gap-1.5 text-yellow-500">
                               <Star className="w-3.5 h-3.5 fill-current" />
-                              <span className="text-xs font-black text-gray-900">4.8</span>
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">(2.4k reviews)</span>
+                              <span className="text-xs font-black text-gray-900">{rating}</span>
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest hidden sm:inline">({(reviewCount / 1000).toFixed(1)}k reviews)</span>
                             </div>
                           </div>
-                          <p className="text-gray-500 text-[13px] font-medium mb-3 leading-snug line-clamp-1">{p.tagline}</p>
-                          
-                          {/* SOCIAL PROOF & PLATFORMS */}
+                          <p className="text-gray-500 text-sm font-medium mb-3 leading-snug line-clamp-1">{p.tagline}</p>
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-y-3 pt-3 border-t border-gray-50 mt-1">
                             <div className="flex items-center gap-2">
-                              <div className="flex -space-x-1.5 overflow-hidden">
-                                {PROOF_ICONS.slice(0, 3).map((src, idx) => (
-                                  <div key={idx} className="inline-block h-4 w-4 rounded-full ring-2 ring-white overflow-hidden bg-white">
-                                    <SafeImage src={src} alt="user" className="w-full h-full object-cover" />
+                              <div className="flex -space-x-2 overflow-hidden">
+                                {PROOF_ICONS.map((src, idx) => (
+                                  <div key={idx} className="inline-block h-5 w-5 rounded-full ring-2 ring-white overflow-hidden bg-white">
+                                    <img src={src} alt="user" className="w-full h-full object-cover" />
                                   </div>
                                 ))}
                               </div>
                               <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span className="hidden sm:inline">Used by {Math.floor(Math.random() * 500) + 100}:</span>
-                                <span className="text-gray-900">Cursor, Vercel, Linear</span>
+                                <span>Used by <span className="text-emerald-800">{usedByCount.toLocaleString()}</span> makers</span>
                               </div>
                             </div>
                             <div className="flex items-center gap-1.5">
-                              {['mac', 'ios', 'android'].map(platform => (
-                                <div key={platform} className="px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter">
-                                  {platform}
-                                </div>
-                              ))}
+                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Monitor className="w-2.5 h-2.5" />mac</div>
+                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Smartphone className="w-2.5 h-2.5" />ios</div>
+                              <div className="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-[9px] font-black uppercase tracking-tighter flex items-center gap-1"><Globe className="w-2.5 h-2.5" />web</div>
                             </div>
                           </div>
                         </div>
-                        
                         <button 
                           onClick={(e) => { e.stopPropagation(); onUpvote(p.id); }}
                           className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all active:scale-95 shadow-sm ${
-                            hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
+                            hasUpvoted(p.id) ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800'
                           }`}
                         >
                           <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted(p.id) ? 'fill-white' : ''}`} />
@@ -290,51 +260,18 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 })}
               </div>
 
-              {/* PAGINATION FOOTER */}
               {totalPages > 1 && (
                 <div className="mt-12 flex items-center justify-center gap-2">
-                  <button 
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 text-gray-400 hover:text-emerald-800 disabled:opacity-20 transition-all"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  
+                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="p-3 text-gray-400 hover:text-emerald-800 disabled:opacity-20 transition-all rounded-xl hover:bg-emerald-50"><ChevronLeft className="w-5 h-5" /></button>
                   {Array.from({ length: totalPages }).map((_, i) => (
-                    <a
-                      key={i}
-                      href={`?page=${i + 1}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handlePageChange(i + 1);
-                      }}
-                      className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
-                        currentPage === i + 1 
-                          ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/20' 
-                          : 'text-gray-400 hover:text-emerald-800 hover:bg-emerald-50'
-                      }`}
-                    >
-                      {i + 1}
-                    </a>
+                    <button key={i} onClick={() => handlePageChange(i + 1)} className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-black transition-all ${currentPage === i + 1 ? 'bg-emerald-800 text-white shadow-lg shadow-emerald-900/20 scale-110 z-10' : 'text-gray-400 hover:text-emerald-800 hover:bg-emerald-50'}`}>{i + 1}</button>
                   ))}
-
-                  <button 
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 text-gray-400 hover:text-emerald-800 disabled:opacity-20 transition-all"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="p-3 text-gray-400 hover:text-emerald-800 disabled:opacity-20 transition-all rounded-xl hover:bg-emerald-50"><ChevronRight className="w-5 h-5" /></button>
                 </div>
               )}
             </div>
           </div>
-
-          <CategorySidebar 
-            activeCategory={category}
-            onCategorySelect={onCategorySelect}
-          />
+          <CategorySidebar activeCategory={category} onCategorySelect={onCategorySelect} />
         </div>
       </div>
     </div>

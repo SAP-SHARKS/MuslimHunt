@@ -2,553 +2,208 @@ import { Product } from './types';
 
 export const HALAL_STATUSES = ['Certified', 'Self-Certified', 'Shariah-Compliant'] as const;
 
-const now = Date.now();
-const today = new Date().toISOString();
-const yesterday = new Date(now - 86400000).toISOString();
-const lastWeek = new Date(now - 4 * 86400000).toISOString();
-const lastMonth = new Date(now - 20 * 86400000).toISOString();
+export interface CategoryItem {
+  name: string;
+  description: string;
+}
 
-export const INITIAL_PRODUCTS: Product[] = [
-  // --- TODAY (10 Products) ---
-  {
-    id: 't1',
-    created_at: today,
-    name: 'QuranFlow Pro',
-    description: 'A beautiful, distraction-free Quran reading experience with habit tracking and professional recitations.',
-    tagline: 'Build a meaningful relationship with the Quran.',
-    url: 'https://quranflow.com',
-    logo_url: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=128&h=128&fit=crop',
-    founder_id: 'u_1',
-    category: 'Spirituality',
-    upvotes_count: 542,
-    halal_status: 'Certified'
-  },
-  {
-    id: 't2',
-    created_at: today,
-    name: 'ArabicHero Academy',
-    description: 'Gamified Arabic learning for kids and adults. Master the language of the Quran through interactive stories.',
-    tagline: 'Master Arabic through play.',
-    url: 'https://arabichero.io',
-    logo_url: 'https://images.unsplash.com/photo-1584697964400-2af6a2f6204c?w=128&h=128&fit=crop',
-    founder_id: 'u_2',
-    category: 'Education',
-    upvotes_count: 489,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 't3',
-    created_at: today,
-    name: 'Muslim Enterprise CRM',
-    description: 'Specialized CRM for NGOs and Mosques to manage donors and community engagement.',
-    tagline: 'Empowering community growth through data.',
-    url: 'https://muslimcrm.app',
-    logo_url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=128&h=128&fit=crop',
-    founder_id: 'u_3',
-    category: 'Productivity',
-    upvotes_count: 412,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 't4',
-    created_at: today,
-    name: 'Halal Ads Engine',
-    description: 'The first ethical advertising platform filtering for Halal-only brands.',
-    tagline: 'Ethical reach for your brand.',
-    url: 'https://halalads.com',
-    logo_url: 'https://images.unsplash.com/photo-1557838923-2985c318be48?w=128&h=128&fit=crop',
-    founder_id: 'u_4',
-    category: 'Marketing',
-    upvotes_count: 395,
-    halal_status: 'Certified'
-  },
-  {
-    id: 't5',
-    created_at: today,
-    name: 'SalahTime API',
-    description: 'High-precision, globally distributed API for prayer timings and Qibla direction.',
-    tagline: 'Reliable data for your next Deen app.',
-    url: 'https://prayertimes.api',
-    logo_url: 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=128&h=128&fit=crop',
-    founder_id: 'u_5',
-    category: 'Engineering',
-    upvotes_count: 358,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 't6',
-    created_at: today,
-    name: 'SunnahHabit Tracker',
-    description: 'A micro-habit tracker based on the prophetic traditions (Sunnah).',
-    tagline: 'Better yourself, one sunnah at a time.',
-    url: 'https://sunnahhabit.com',
-    logo_url: 'https://images.unsplash.com/photo-1564120029-291750e70391?w=128&h=128&fit=crop',
-    founder_id: 'u_6',
-    category: 'Spirituality',
-    upvotes_count: 320,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 't7',
-    created_at: today,
-    name: 'Masjid Finder Pro',
-    description: 'Find Mosques near you with detailed info on facilities like Wudu areas and parking.',
-    tagline: 'Never miss a Jamaat again.',
-    url: 'https://masjidfinder.com',
-    logo_url: 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=128&h=128&fit=crop',
-    founder_id: 'u_7',
-    category: 'Travel',
-    upvotes_count: 284,
-    halal_status: 'Certified'
-  },
-  {
-    id: 't8',
-    created_at: today,
-    name: 'ZakatStream Finance',
-    description: 'Real-time Zakat calculation integrated with your banking APIs.',
-    tagline: 'Simplified wealth purification.',
-    url: 'https://zakatstream.io',
-    logo_url: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=128&h=128&fit=crop',
-    founder_id: 'u_8',
-    category: 'Finance',
-    upvotes_count: 265,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 't9',
-    created_at: today,
-    name: 'HalalFoodie Reviews',
-    description: 'Community-vetted restaurant directory with verified Halal certification images.',
-    tagline: 'Eat with confidence.',
-    url: 'https://halalfoodie.me',
-    logo_url: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=128&h=128&fit=crop',
-    founder_id: 'u_9',
-    category: 'Food',
-    upvotes_count: 241,
-    halal_status: 'Certified'
-  },
-  {
-    id: 't10',
-    created_at: today,
-    name: 'UmmahConnect Network',
-    description: 'A professional network for Muslim developers and entrepreneurs.',
-    tagline: 'The LinkedIn for the Ummah.',
-    url: 'https://ummahconnect.net',
-    logo_url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=128&h=128&fit=crop',
-    founder_id: 'u_10',
-    category: 'Social',
-    upvotes_count: 212,
-    halal_status: 'Self-Certified'
-  },
+export interface CategorySection {
+  id: string;
+  title: string;
+  icon: any; // Using any for simplicity in constants, typed in components
+  items: CategoryItem[];
+}
 
-  // --- YESTERDAY (10 Products) ---
+export const CATEGORY_SECTIONS: CategorySection[] = [
   {
-    id: 'y1',
-    created_at: yesterday,
-    name: 'NikahMatch Matrimony',
-    description: 'The most privacy-focused matrimonial app for practicing Muslims.',
-    tagline: 'Finding your half, the Halal way.',
-    url: 'https://nikahmatch.com',
-    logo_url: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=128&h=128&fit=crop',
-    founder_id: 'u_11',
-    category: 'Social',
-    upvotes_count: 489,
-    halal_status: 'Certified'
+    id: "productivity",
+    title: "Productivity",
+    icon: 'CheckSquare',
+    items: [
+      { name: "AI notetakers", description: "Automated meeting transcripts and summaries for high-output teams." },
+      { name: "App switcher", description: "Seamlessly navigate between your desktop applications." },
+      { name: "Compliance software", description: "Keep your startup aligned with global regulatory standards." },
+      { name: "Email clients", description: "The next generation of inbox management and AI-powered replies." },
+      { name: "Knowledge base", description: "Centralize your team's documentation and internal wisdom." },
+      { name: "Note and writing apps", description: "Distraction-free environments for your best ideas." },
+      { name: "Presentation Software", description: "Design stunning slide decks with the help of AI agents." },
+      { name: "Resume tools", description: "Build professional, ATS-optimized resumes in minutes." },
+      { name: "Search", description: "Find anything across your entire local and cloud workspace." },
+      { name: "Team collaboration", description: "Communication platforms for modern, distributed teams." },
+      { name: "Virtual office", description: "Remote-first environments that replicate the feel of being together." }
+    ]
   },
   {
-    id: 'y2',
-    created_at: yesterday,
-    name: 'HajjGuide AI Assistant',
-    description: 'Interactive AI companion for pilgrims during Hajj and Umrah.',
-    tagline: 'Your digital guide to the holy cities.',
-    url: 'https://hajjguide.ai',
-    logo_url: 'https://images.unsplash.com/photo-1590076214667-c0f33b98c422?w=128&h=128&fit=crop',
-    founder_id: 'u_12',
-    category: 'Travel',
-    upvotes_count: 452,
-    halal_status: 'Certified'
+    id: "engineering",
+    title: "Engineering & Dev",
+    icon: 'Code',
+    items: [
+      { name: "A/B testing tools", description: "Optimize your product conversions with data-driven experiments." },
+      { name: "AI Coding Agents", description: "Autonomous agents that write and fix code based on high-level prompts." },
+      { name: "Automation tools", description: "Connect your entire stack and automate repetitive workflows." },
+      { name: "AI Code Editors", description: "The next evolution of IDEs with deep semantic understanding." },
+      { name: "AI Databases", description: "Vector stores and high-performance databases for the AI era." },
+      { name: "Browser Automation", description: "Scrape, test, and interact with the web programmatically." },
+      { name: "AI Code Testing", description: "Automated unit test generation and bug detection." },
+      { name: "Authentication", description: "Secure identity management for apps and services." },
+      { name: "Cloud Computing", description: "Serverless, edge, and infrastructure-as-a-service providers." },
+      { name: "Code Review Tools", description: "AI-powered feedback on pull requests and code quality." },
+      { name: "Databases & Backend", description: "Scalable storage solutions and backend-as-a-service." },
+      { name: "Issue tracking", description: "Manage bugs, features, and roadmaps with ease." },
+      { name: "Predictive AI", description: "Models that forecast trends and user behavior." },
+      { name: "Static site generators", description: "Blazing fast tools for content-heavy web projects." },
+      { name: "Unified API", description: "One interface to rule dozens of third-party integrations." },
+      { name: "Vibe Coding Tools", description: "Tools for developers who prioritize flow and rapid prototyping." }
+    ]
   },
   {
-    id: 'y3',
-    created_at: yesterday,
-    name: 'HalalWallet Pro',
-    description: 'Track your expenses and investments while filtering for Shariah compliance.',
-    tagline: 'Purify your portfolio.',
-    url: 'https://halalwallet.com',
-    logo_url: 'https://images.unsplash.com/photo-1633156189757-45430d6c949d?w=128&h=128&fit=crop',
-    founder_id: 'u_13',
-    category: 'Finance',
-    upvotes_count: 398,
-    halal_status: 'Shariah-Compliant'
+    id: "design",
+    title: "Design & Creative",
+    icon: 'Palette',
+    items: [
+      { name: "3D & Animation", description: "Create immersive assets and motion graphics without the learning curve." },
+      { name: "AI Headshot Generators", description: "Professional portraits generated from simple selfies." },
+      { name: "Camera apps", description: "Advanced photography tools for your mobile device." },
+      { name: "Design resources", description: "Libraries of high-quality UI kits, icons, and fonts." },
+      { name: "Icon sets", description: "Hand-crafted and AI-generated iconography for every brand." },
+      { name: "Music Generation", description: "Custom soundtracks and beats generated from text prompts." },
+      { name: "Social audio apps", description: "Voice-first social networks and podcasting tools." },
+      { name: "UI frameworks", description: "Build beautiful interfaces faster with pre-built components." },
+      { name: "AI Characters", description: "Interactive avatars and digital personas for games and support." },
+      { name: "Avatar generators", description: "Custom profile pictures and digital identities." },
+      { name: "Interface design tools", description: "Collaborative platforms for web and mobile prototyping." },
+      { name: "Photo editing", description: "Powerful image manipulation tools powered by neural networks." },
+      { name: "User research", description: "Collect and analyze qualitative feedback from your users." },
+      { name: "Wireframing", description: "Quickly map out your application's user experience." },
+      { name: "AI Generative Media", description: "Synthesize images and video from natural language." },
+      { name: "Graphic design tools", description: "Everything you need for branding and marketing visuals." },
+      { name: "Video editing", description: "Automated and pro-level tools for cinematic content." }
+    ]
   },
   {
-    id: 'y4',
-    created_at: yesterday,
-    name: 'MuslimMind Wellness',
-    description: 'Mental health and mindfulness rooted in Islamic principles.',
-    tagline: 'Find peace through prayer and practice.',
-    url: 'https://muslimmind.app',
-    logo_url: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=128&h=128&fit=crop',
-    founder_id: 'u_14',
-    category: 'Health',
-    upvotes_count: 367,
-    halal_status: 'Certified'
+    id: "finance",
+    title: "Finance & Wealth",
+    icon: 'DollarSign',
+    items: [
+      { name: "Accounting", description: "Automated bookkeeping and tax preparation for small businesses." },
+      { name: "Financial planning", description: "Tools to manage your long-term wealth and investments." },
+      { name: "Invoicing", description: "Get paid faster with professional, automated billing." },
+      { name: "Online banking", description: "Next-gen banking services for founders and digital nomads." },
+      { name: "Retirement planning", description: "Secure your future with smart savings strategies." },
+      { name: "Startup incorporation", description: "Launch your legal entity in minutes, anywhere in the world." },
+      { name: "Treasury management", description: "Optimize your company's cash flow and interest rates." },
+      { name: "Budgeting", description: "Take control of your personal and business spending." },
+      { name: "Fundraising", description: "Manage your cap table and investor relationships." },
+      { name: "Money transfer", description: "Global payments with minimal fees and maximum speed." },
+      { name: "Payroll", description: "Easily pay employees and contractors across borders." },
+      { name: "Savings", description: "High-yield accounts and automated saving habits." },
+      { name: "Stock trading", description: "Access the global markets with powerful trading platforms." }
+    ]
   },
   {
-    id: 'y5',
-    created_at: yesterday,
-    name: 'DeenJournal Digital',
-    description: 'A digital gratitude and reflection journal for daily Dhikr.',
-    tagline: 'Reflect on your blessings daily.',
-    url: 'https://deenjournal.io',
-    logo_url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=128&h=128&fit=crop',
-    founder_id: 'u_15',
-    category: 'Spirituality',
-    upvotes_count: 342,
-    halal_status: 'Self-Certified'
+    id: "marketing",
+    title: "Marketing & Sales",
+    icon: 'Megaphone',
+    items: [
+      { name: "AI sales tools", description: "Supercharge your outbound efforts with AI prospect research." },
+      { name: "CRM", description: "The source of truth for all your customer relationships." },
+      { name: "GEO Tools", description: "Analyze markets and target users based on location data." },
+      { name: "Landing page builders", description: "Convert visitors into customers with high-performance pages." },
+      { name: "SEO", description: "Rank higher on search engines with automated content tools." },
+      { name: "Social management", description: "Schedule and analyze your brand's social presence." },
+      { name: "Advertising tools", description: "Manage and optimize your paid spend across networks." },
+      { name: "Lead generation", description: "Find and qualify new business opportunities automatically." },
+      { name: "Sales enablement", description: "Equip your sales team with the best decks and collateral." },
+      { name: "Affiliate marketing", description: "Build and manage your partner referral programs." },
+      { name: "Email marketing", description: "Send personalized campaigns that actually get opened." },
+      { name: "Marketing automation", description: "Nurture your leads through complex, triggered journeys." }
+    ]
   },
   {
-    id: 'y6',
-    created_at: yesterday,
-    name: 'SunnahSleep Monitor',
-    description: 'Prophetic sleeping habits tracker with smart alarm integration.',
-    tagline: 'Wake up for Fajr, every day.',
-    url: 'https://sunnahsleep.com',
-    logo_url: 'https://images.unsplash.com/photo-1511295742364-917e703b5758?w=128&h=128&fit=crop',
-    founder_id: 'u_16',
-    category: 'Health',
-    upvotes_count: 310,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'y7',
-    created_at: yesterday,
-    name: 'ArabicFlash Cards',
-    description: 'Spaced-repetition flashcards for Quranic vocabulary.',
-    tagline: 'Learn 80% of the Quran faster.',
-    url: 'https://arabicflash.com',
-    logo_url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=128&h=128&fit=crop',
-    founder_id: 'u_17',
-    category: 'Education',
-    upvotes_count: 288,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'y8',
-    created_at: yesterday,
-    name: 'UmmahEvents Global',
-    description: 'Discovery platform for local Islamic conferences and seminars.',
-    tagline: 'Never miss an event in your community.',
-    url: 'https://ummahevents.io',
-    logo_url: 'https://images.unsplash.com/photo-1542744094-24638eff58bb?w=128&h=128&fit=crop',
-    founder_id: 'u_18',
-    category: 'Social',
-    upvotes_count: 256,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 'y9',
-    created_at: yesterday,
-    name: 'HalalInvest App',
-    description: 'Stock filtering tool to ensure your investments are interest-free.',
-    tagline: 'Investing made simple and Halal.',
-    url: 'https://halalinvest.app',
-    logo_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=128&h=128&fit=crop',
-    founder_id: 'u_19',
-    category: 'Finance',
-    upvotes_count: 220,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 'y10',
-    created_at: yesterday,
-    name: 'QuranicTutor Marketplace',
-    description: 'Marketplace to find verified Tajweed and Hifz teachers globally.',
-    tagline: 'The perfect teacher for your journey.',
-    url: 'https://quranictutor.com',
-    logo_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=128&h=128&fit=crop',
-    founder_id: 'u_20',
-    category: 'Education',
-    upvotes_count: 195,
-    halal_status: 'Certified'
-  },
-
-  // --- LAST WEEK (10 Products) ---
-  {
-    id: 'w1',
-    created_at: lastWeek,
-    name: 'EthicalCode Library',
-    description: 'A platform to help developers vet the ethics of their code dependencies.',
-    tagline: 'Build responsible software.',
-    url: 'https://ethicalcode.org',
-    logo_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=128&h=128&fit=crop',
-    founder_id: 'u_21',
-    category: 'Engineering',
-    upvotes_count: 312,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'w2',
-    created_at: lastWeek,
-    name: 'FajrFocus Productivity',
-    description: 'Productivity tool that schedules your deep work around prayer times.',
-    tagline: 'Align your work with your worship.',
-    url: 'https://fajrfocus.com',
-    logo_url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=128&h=128&fit=crop',
-    founder_id: 'u_22',
-    category: 'Productivity',
-    upvotes_count: 289,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 'w3',
-    created_at: lastWeek,
-    name: 'ZakatFund Charity',
-    description: 'Direct Zakat distribution platform with 100% transparency.',
-    tagline: 'Track every cent of your charity.',
-    url: 'https://zakatfund.me',
-    logo_url: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=128&h=128&fit=crop',
-    founder_id: 'u_23',
-    category: 'Finance',
-    upvotes_count: 265,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 'w4',
-    created_at: lastWeek,
-    name: 'ArabicCalligraphy AI Studio',
-    description: 'Generative AI tool for creating stunning Arabic calligraphy art.',
-    tagline: 'Beautiful art, created by you.',
-    url: 'https://arabic-calligraphy.ai',
-    logo_url: 'https://images.unsplash.com/photo-1584697964400-2af6a2f6204c?w=128&h=128&fit=crop',
-    founder_id: 'u_24',
-    category: 'Design',
-    upvotes_count: 245,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'w5',
-    created_at: lastWeek,
-    name: 'IslamicHistory VR Tour',
-    description: 'Immersive VR experiences of historical Islamic sites.',
-    tagline: 'Travel back in time to the Golden Age.',
-    url: 'https://historyvr.islam',
-    logo_url: 'https://images.unsplash.com/photo-1548013146-72479768bbaa?w=128&h=128&fit=crop',
-    founder_id: 'u_25',
-    category: 'Education',
-    upvotes_count: 220,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'w6',
-    created_at: lastWeek,
-    name: 'DeenFit Mobile',
-    description: 'Workout app with prayer-time integration and modest activewear deals.',
-    tagline: 'Healthy body, healthy soul.',
-    url: 'https://deenfit.app',
-    logo_url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=128&h=128&fit=crop',
-    founder_id: 'u_26',
-    category: 'Health',
-    upvotes_count: 198,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 'w7',
-    created_at: lastWeek,
-    name: 'UmmahReads Club',
-    description: 'A book club for the latest in Islamic literature and tech books.',
-    tagline: 'Read together, grow together.',
-    url: 'https://ummahreads.com',
-    logo_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=128&h=128&fit=crop',
-    founder_id: 'u_27',
-    category: 'Education',
-    upvotes_count: 175,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'w8',
-    created_at: lastWeek,
-    name: 'ShariahPay Gateway',
-    description: 'Merchant processing for interest-free transactions.',
-    tagline: 'Pure payments for your business.',
-    url: 'https://shariahpay.net',
-    logo_url: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=128&h=128&fit=crop',
-    founder_id: 'u_28',
-    category: 'Finance',
-    upvotes_count: 156,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 'w9',
-    created_at: lastWeek,
-    name: 'ArabicPodcast Directory',
-    description: 'Curated directory of the best podcasts in Arabic and about Islam.',
-    tagline: 'Listen and learn on the go.',
-    url: 'https://arabicpodcast.hub',
-    logo_url: 'https://images.unsplash.com/photo-1518467166778-b8c6b252b19d?w=128&h=128&fit=crop',
-    founder_id: 'u_29',
-    category: 'Social',
-    upvotes_count: 132,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'w10',
-    created_at: lastWeek,
-    name: 'MuslimHome IoT',
-    description: 'IoT integration for smart homes to sync Adhan and home lighting.',
-    tagline: 'Your home, in sync with the Deen.',
-    url: 'https://muslimhome.pro',
-    logo_url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=128&h=128&fit=crop',
-    founder_id: 'u_30',
-    category: 'Productivity',
-    upvotes_count: 112,
-    halal_status: 'Self-Certified'
-  },
-
-  // --- LAST MONTH (10 Products) ---
-  {
-    id: 'notetaker-1',
-    created_at: lastMonth,
-    name: 'Notion AI Workspace',
-    description: 'The all-in-one workspace for your notes, tasks, wikis, and databases.',
-    tagline: 'Your connected workspace. Now with AI.',
-    url: 'https://notion.so',
-    logo_url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=128&h=128&fit=crop',
-    founder_id: 'u_notion',
-    category: 'AI notetakers',
-    upvotes_count: 185,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 'm2',
-    created_at: lastMonth,
-    name: 'Muslim Travel Experts',
-    description: 'The premier travel agency for Halal-friendly luxury vacations.',
-    tagline: 'Discover the world, Halal-style.',
-    url: 'https://muslimtravel.co',
-    logo_url: 'https://images.unsplash.com/photo-1523413363574-c3c444a14c78?w=128&h=128&fit=crop',
-    founder_id: 'u_31',
-    category: 'Travel',
-    upvotes_count: 164,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'm3',
-    created_at: lastMonth,
-    name: 'DeenGames for Kids',
-    description: 'High-quality mobile games with positive Islamic values for children.',
-    tagline: 'Play and learn values.',
-    url: 'https://deengames.com',
-    logo_url: 'https://images.unsplash.com/photo-1567620905732-2d1ec7bb7445?w=128&h=128&fit=crop',
-    founder_id: 'u_32',
-    category: 'Education',
-    upvotes_count: 142,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 'm4',
-    created_at: lastMonth,
-    name: 'HalalStocks Portfolio',
-    description: 'Advanced stock analysis tool for Shariah-compliant investors.',
-    tagline: 'Smart data for ethical investing.',
-    url: 'https://halalstocks.pro',
-    logo_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=128&h=128&fit=crop',
-    founder_id: 'u_33',
-    category: 'Finance',
-    upvotes_count: 125,
-    halal_status: 'Shariah-Compliant'
-  },
-  {
-    id: 'm5',
-    created_at: lastMonth,
-    name: 'QuranAudio Pro Player',
-    description: 'High-fidelity Quran recitations from top Qaris globally.',
-    tagline: 'The most beautiful recitations in your pocket.',
-    url: 'https://quranaudio.pro',
-    logo_url: 'https://images.unsplash.com/photo-1609599006353-e629aaabfeae?w=128&h=128&fit=crop',
-    founder_id: 'u_34',
-    category: 'Spirituality',
-    upvotes_count: 108,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'm6',
-    created_at: lastMonth,
-    name: 'MuslimBaker Marketplace',
-    description: 'A platform for home bakers to sell verified Halal pastries locally.',
-    tagline: 'Sweet treats, verified Halal.',
-    url: 'https://muslimbaker.me',
-    logo_url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=128&h=128&fit=crop',
-    founder_id: 'u_35',
-    category: 'Food',
-    upvotes_count: 95,
-    halal_status: 'Self-Certified'
-  },
-  {
-    id: 'm7',
-    created_at: lastMonth,
-    name: 'SadaqahNow Instant',
-    description: 'Instant micro-charity donations for urgent global causes.',
-    tagline: 'Give a little, help a lot.',
-    url: 'https://sadaqahnow.org',
-    logo_url: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=128&h=128&fit=crop',
-    founder_id: 'u_36',
-    category: 'Finance',
-    upvotes_count: 82,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'm8',
-    created_at: lastMonth,
-    name: 'IslamicLibrary Archive',
-    description: 'Access to thousands of digitized rare Islamic manuscripts.',
-    tagline: 'Unlocking the wisdom of the past.',
-    url: 'https://islamiclibrary.net',
-    logo_url: 'https://images.unsplash.com/photo-1584697964400-2af6a2f6204c?w=128&h=128&fit=crop',
-    founder_id: 'u_37',
-    category: 'Education',
-    upvotes_count: 76,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'm9',
-    created_at: lastMonth,
-    name: 'HajjPrep VR Simulator',
-    description: 'Simulate your Hajj journey in virtual reality before you fly.',
-    tagline: 'Be prepared for the journey of a lifetime.',
-    url: 'https://hajjprep.vr',
-    logo_url: 'https://images.unsplash.com/photo-1590076214667-c0f33b98c422?w=128&h=128&fit=crop',
-    founder_id: 'u_38',
-    category: 'Travel',
-    upvotes_count: 64,
-    halal_status: 'Certified'
-  },
-  {
-    id: 'm10',
-    created_at: lastMonth,
-    name: 'SunnahSkincare Organic',
-    description: 'All-natural, organic skincare based on ingredients from the Sunnah.',
-    tagline: 'Pure beauty, pure ingredients.',
-    url: 'https://sunnahskincare.com',
-    logo_url: 'https://images.unsplash.com/photo-1511688868353-3a2d5be94cd7?w=128&h=128&fit=crop',
-    founder_id: 'u_39',
-    category: 'Health',
-    upvotes_count: 52,
-    halal_status: 'Self-Certified'
+    id: "spirituality",
+    title: "Spirituality & Deen",
+    icon: 'BookOpen',
+    items: [
+      { name: "Quran Apps", description: "Reading, translation, and recitation platforms." },
+      { name: "Prayer Timings", description: "Global prayer time and Qibla direction tools." },
+      { name: "Islamic Education", description: "Courses, lectures, and children's learning apps." },
+      { name: "Charity & Zakat", description: "Simplified platforms for giving and tracking donations." }
+    ]
   }
 ];
 
-export const CATEGORIES = [
-  'Spirituality',
-  'Travel',
-  'Finance',
-  'Social',
-  'Education',
-  'Productivity',
-  'Food',
-  'Health',
-  'AI notetakers',
-  'Engineering',
-  'Design',
-  'Marketing'
+// Curated Unsplash IDs for high-fidelity images
+const UNSPLASH_IDS = [
+  'photo-1609599006353-e629aaabfeae', // Quran
+  'photo-1584697964400-2af6a2f6204c', // Calligraphy
+  'photo-1517694712202-14dd9538aa97', // Tech/Work
+  'photo-1557838923-2985c318be48', // Marketing
+  'photo-1542816417-0983c9c9ad53', // Minaret
+  'photo-1564120029-291750e70391', // Prayer
+  'photo-1591604129939-f1efa4d9f7fa', // Architecture
+  'photo-1579621970563-ebec7560ff3e', // Finance
+  'photo-1512621776951-a57141f2eefd', // Food
+  'photo-1521737711867-e3b97375f902', // Social
+  'photo-1556761175-4b46a572b786', // Meeting
+  'photo-1590076214667-c0f33b98c422', // Kaaba
+  'photo-1633156189757-45430d6c949d', // Wallet
+  'photo-1506126613408-eca07ce68773', // Calm
+  'photo-1516979187457-637abb4f9353', // Books
+  'photo-1511295742364-917e703b5758', // Bed/Sleep
+  'photo-1503676260728-1c00da094a0b', // Cards
+  'photo-1542744094-24638eff58bb', // Audience
+  'photo-1559526324-4b87b5e36e44', // Charts
+  'photo-1456513080510-7bf3a84b82f8', // Writing
+  'photo-1555066931-4365d14bab8c', // Code
+  'photo-1498050108023-c5249f4df085', // Laptop
+  'photo-1526304640581-d334cdbbf45e', // Money
+  'photo-1548013146-72479768bbaa', // Taj Mahal
+  'photo-1571019613454-1cb2f99b2d8b', // Gym
+  'photo-1518467166778-b8c6b252b19d', // Audio
+  'photo-1461749280684-dccba630e2f6', // Keyboard
+  'photo-1523413363574-c3c444a14c78', // Globe
+  'photo-1567620905732-2d1ec7bb7445', // Blocks
+  'photo-1504674900247-0877df9cc836', // Baking
+  'photo-1511688868353-3a2d5be94cd7', // Plants
 ];
+
+/**
+ * Generates 50 unique high-fidelity mock products for a given category.
+ */
+function generateMockProducts(categoryName: string, count: number): Product[] {
+  const products: Product[] = [];
+  const suffix = ["Pro", "Flow", "Hero", "AI", "Connect", "Plus", "Direct", "Sync", "Hub", "Central", "Master", "Edge", "Core", "Nexus", "Pulse"];
+  const adjectives = ["Smart", "Ethical", "Muslim", "Ummah", "Elite", "Modern", "Pure", "Trusted", "Global", "Active", "Daily", "Fast", "Secure"];
+
+  for (let i = 0; i < count; i++) {
+    // Deterministic random seeding based on category and index
+    const seed = categoryName.length + i;
+    const adj = adjectives[seed % adjectives.length];
+    const suf = suffix[seed % suffix.length];
+    const name = `${adj} ${categoryName.replace(/s$/, '')} ${suf} ${i + 1}`;
+    
+    products.push({
+      id: `gen-${categoryName.replace(/\s+/g, '-')}-${i}`,
+      created_at: new Date(Date.now() - (i * 3600000 * 4)).toISOString(), // Spread over last few days
+      name,
+      description: `A high-performance tool designed specifically for the ${categoryName} space within the Muslim tech ecosystem. Optimized for efficiency and Shariah-compliance.`,
+      tagline: `The most powerful ${categoryName} solution for modern Ummah builders.`,
+      url: `https://example.com/${name.toLowerCase().replace(/\s+/g, '-')}`,
+      logo_url: `https://images.unsplash.com/${UNSPLASH_IDS[seed % UNSPLASH_IDS.length]}?w=128&h=128&fit=crop`,
+      founder_id: `u-gen-${seed}`,
+      category: categoryName,
+      upvotes_count: Math.floor(50 + (Math.random() * 4950)),
+      halal_status: HALAL_STATUSES[seed % HALAL_STATUSES.length]
+    });
+  }
+  return products;
+}
+
+// Global Products Registry populated for all 60+ subcategories
+const ALL_GENERATED_PRODUCTS: Product[] = CATEGORY_SECTIONS.flatMap(section => 
+  section.items.flatMap(item => generateMockProducts(item.name, 50))
+);
+
+export const INITIAL_PRODUCTS: Product[] = ALL_GENERATED_PRODUCTS;
+
+export const CATEGORIES = CATEGORY_SECTIONS.flatMap(s => s.items.map(i => i.name));

@@ -14,7 +14,7 @@ import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile } from './types.ts';
-import { INITIAL_PRODUCTS } from './constants.tsx';
+import { INITIAL_PRODUCTS, CATEGORY_SECTIONS } from './constants.tsx';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
@@ -53,16 +53,15 @@ const safeHistory = {
   }
 };
 
-// Specialized mapping for niche URLs
-const NICHES_MAP: Record<string, string> = {
-  'ai-meeting-notetakers': 'AI notetakers',
-  'ai-notetakers': 'AI notetakers'
-};
-
 const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+
 const unslugify = (slug: string) => {
-  if (NICHES_MAP[slug]) return NICHES_MAP[slug];
-  if (!slug) return '';
+  // Try to find the actual category name from CATEGORY_SECTIONS to maintain case sensitivity and naming precision
+  for (const section of CATEGORY_SECTIONS) {
+    for (const item of section.items) {
+      if (slugify(item.name) === slug) return item.name;
+    }
+  }
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
@@ -130,13 +129,13 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   
@@ -164,7 +163,8 @@ const App: React.FC = () => {
         else if (path.startsWith('/categories/')) {
           const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
-            setActiveCategory(unslugify(slug));
+            const catName = unslugify(slug);
+            setActiveCategory(catName);
             setView(View.CATEGORY_DETAIL);
           } else setView(View.CATEGORIES);
         } else if (path === '/' || path === '') setView(View.HOME);
@@ -193,8 +193,7 @@ const App: React.FC = () => {
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
-        const slug = activeCategory === 'AI notetakers' ? 'ai-meeting-notetakers' : slugify(activeCategory);
-        path = `/categories/${slug}`;
+        path = `/categories/${slugify(activeCategory)}`;
       }
       else if (newView === View.HOME) path = '/';
     }
@@ -204,8 +203,7 @@ const App: React.FC = () => {
   const handleCategorySelect = (cat: string) => {
     if (!cat) return;
     setActiveCategory(cat);
-    const slug = cat === 'AI notetakers' ? 'ai-meeting-notetakers' : slugify(cat);
-    updateView(View.CATEGORY_DETAIL, `/categories/${slug}`);
+    updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
   };
 
   useEffect(() => {
@@ -225,34 +223,6 @@ const App: React.FC = () => {
       } else setUser(null);
     });
     return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const dbProducts: any[] = []; 
-        const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
-        const { data: dbComments } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
-        const commentsMap = (dbComments || []).reduce((acc: any, comment: any) => {
-          if (!acc[comment.product_id]) acc[comment.product_id] = [];
-          acc[comment.product_id].push(comment);
-          return acc;
-        }, {});
-        const productsWithComments = baseProducts.map(p => ({
-          ...p,
-          comments: [...(commentsMap[p.id] || []), ...(INITIAL_PRODUCTS.find(ip => ip.id === p.id)?.comments || [])].filter((c, index, self) => index === self.findIndex((t) => t.id === c.id)).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        }));
-        setProducts(productsWithComments);
-        const savedVotes = localStorage.getItem('mh_votes_v5');
-        const savedCVotes = localStorage.getItem('mh_cvotes_v5');
-        if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
-        if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
-      } catch (err) {
-        setProducts(INITIAL_PRODUCTS);
-      } finally { setIsLoading(false); }
-    };
-    fetchData();
   }, []);
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
