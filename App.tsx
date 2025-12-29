@@ -19,14 +19,19 @@ import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus,
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
-// Helper to handle history API in restricted environments (sandboxes, blobs)
+/**
+ * Safe History Utility
+ * Prevents "SecurityError" in sandboxed environments (like blob URLs or cross-origin previews)
+ */
 const safeHistory = {
   isSupported: () => {
     try {
-      return window.history && 
-             window.history.pushState && 
-             window.location.protocol !== 'blob:' &&
-             !window.location.hostname.includes('scf.usercontent.goog');
+      // Basic checks for existence and common restricted environments
+      if (!window.history || !window.history.pushState) return false;
+      const isBlob = window.location.protocol === 'blob:';
+      const isSandbox = window.location.hostname.includes('scf.usercontent.goog') || 
+                        window.location.hostname.includes('ai.studio');
+      return !isBlob && !isSandbox;
     } catch (e) {
       return false;
     }
@@ -34,18 +39,21 @@ const safeHistory = {
   push: (path: string) => {
     if (safeHistory.isSupported()) {
       try {
-        window.history.pushState({}, '', path);
+        // Only attempt if it's a relative path to avoid absolute URL security errors
+        const relativePath = path.startsWith('/') ? path : `/${path}`;
+        window.history.pushState({}, '', relativePath);
       } catch (e) {
-        console.warn('Routing suppressed (Security Restriction)', e);
+        console.warn('[Muslim Hunt] Navigation suppressed (Security Restriction)', e);
       }
     }
   },
   replace: (path: string) => {
     if (safeHistory.isSupported()) {
       try {
-        window.history.replaceState({}, '', path);
+        const relativePath = path.startsWith('/') ? path : `/${path}`;
+        window.history.replaceState({}, '', relativePath);
       } catch (e) {
-        console.warn('Routing suppressed (Security Restriction)', e);
+        console.warn('[Muslim Hunt] ReplaceState suppressed (Security Restriction)', e);
       }
     }
   }
@@ -195,63 +203,73 @@ const App: React.FC = () => {
     lastMonth: false
   });
 
-  // Defensive Routing Logic
+  // Defensive Routing Logic with Global Catch-all
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname;
-      if (path === '/p/new') {
-        setView(View.NEW_THREAD);
-      } else if (path === '/forums') {
-        setView(View.FORUM_HOME);
-      } else if (path === '/forums/comments') {
-        setView(View.RECENT_COMMENTS);
-      } else if (path === '/sponsor') {
-        setView(View.SPONSOR);
-      } else if (path === '/newsletters') {
-        setView(View.NEWSLETTER);
-      } else if (path === '/categories') {
-        setView(View.CATEGORIES);
-      } else if (path.startsWith('/categories/')) {
-        const slug = path.split('/categories/')[1]?.replace(/\/$/, '');
-        if (slug) {
-          setActiveCategory(unslugify(slug));
-          setView(View.CATEGORY_DETAIL);
-        } else {
+      try {
+        const path = window.location.pathname;
+        if (path === '/p/new') {
+          setView(View.NEW_THREAD);
+        } else if (path === '/forums') {
+          setView(View.FORUM_HOME);
+        } else if (path === '/forums/comments') {
+          setView(View.RECENT_COMMENTS);
+        } else if (path === '/sponsor') {
+          setView(View.SPONSOR);
+        } else if (path === '/newsletters') {
+          setView(View.NEWSLETTER);
+        } else if (path === '/categories') {
           setView(View.CATEGORIES);
-        }
-      } else if (path === '/') {
-        setView(View.HOME);
-      } else {
-        // Fallback for unknown paths
-        if (path !== '/' && path !== '') {
+        } else if (path.startsWith('/categories/')) {
+          const slug = path.split('/categories/')[1]?.replace(/\/$/, '');
+          if (slug) {
+            setActiveCategory(unslugify(slug));
+            setView(View.CATEGORY_DETAIL);
+          } else {
+            setView(View.CATEGORIES);
+          }
+        } else if (path === '/' || path === '') {
+          setView(View.HOME);
+        } else {
+          // Fallback for unknown paths to avoid blank screen
           setView(View.HOME);
           safeHistory.replace('/');
         }
+      } catch (err) {
+        console.error('[Muslim Hunt] Routing failure in handlePopState:', err);
+        setView(View.HOME);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
-    handlePopState(); // Handle initial route
+    handlePopState(); // Trigger initial routing check on mount
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const updateView = (newView: View, customPath?: string) => {
-    setView(newView);
-    let path = customPath || '/';
-    if (!customPath) {
-      if (newView === View.NEW_THREAD) path = '/p/new';
-      else if (newView === View.FORUM_HOME) path = '/forums';
-      else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
-      else if (newView === View.SPONSOR) path = '/sponsor';
-      else if (newView === View.NEWSLETTER) path = '/newsletters';
-      else if (newView === View.CATEGORIES) path = '/categories';
-      else if (newView === View.CATEGORY_DETAIL && activeCategory) path = `/categories/${slugify(activeCategory)}`;
-      else if (newView === View.HOME) path = '/';
-    }
-    
-    if (window.location.pathname !== path) {
-      safeHistory.push(path);
+    try {
+      setView(newView);
+      let path = customPath || '/';
+      if (!customPath) {
+        if (newView === View.NEW_THREAD) path = '/p/new';
+        else if (newView === View.FORUM_HOME) path = '/forums';
+        else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
+        else if (newView === View.SPONSOR) path = '/sponsor';
+        else if (newView === View.NEWSLETTER) path = '/newsletters';
+        else if (newView === View.CATEGORIES) path = '/categories';
+        else if (newView === View.CATEGORY_DETAIL && activeCategory) path = `/categories/${slugify(activeCategory)}`;
+        else if (newView === View.HOME) path = '/';
+      }
+      
+      // Prevent redundant history entries and avoid crashes in sandboxed environments
+      if (window.location.pathname !== path) {
+        safeHistory.push(path);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] View update failed:', err);
+      // Ensure we stay at home if routing fails
+      setView(View.HOME);
     }
   };
 
@@ -277,7 +295,7 @@ const App: React.FC = () => {
           });
         }
       })
-      .catch(err => console.error("Session check failed", err));
+      .catch(err => console.error("[Muslim Hunt] Session check failed", err));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
@@ -297,7 +315,7 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch Products
+  // Fetch Products with Catch-all fallback
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -333,11 +351,11 @@ const App: React.FC = () => {
           if (savedVotes) setVotes(new Set(JSON.parse(savedVotes)));
           if (savedCVotes) setCommentVotes(new Set(JSON.parse(savedCVotes)));
         } catch (e) {
-          console.warn('Storage access failed', e);
+          console.warn('[Muslim Hunt] Storage access failed', e);
         }
 
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("[Muslim Hunt] Error fetching data:", err);
         setProducts(INITIAL_PRODUCTS);
       } finally {
         setIsLoading(false);
@@ -353,7 +371,7 @@ const App: React.FC = () => {
         localStorage.setItem('mh_votes_v5', JSON.stringify(Array.from(votes)));
         localStorage.setItem('mh_cvotes_v5', JSON.stringify(Array.from(commentVotes)));
       } catch (e) {
-        console.warn('Storage saving failed', e);
+        console.warn('[Muslim Hunt] Storage saving failed', e);
       }
     }
   }, [votes, commentVotes, isLoading]);
@@ -395,7 +413,7 @@ const App: React.FC = () => {
       }
       setView(View.PROFILE);
     } catch (err) {
-      console.error("Error loading user profile:", err);
+      console.error("[Muslim Hunt] Error loading user profile:", err);
     } finally {
       setIsLoading(false);
     }

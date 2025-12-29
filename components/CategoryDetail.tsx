@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Sparkles, ChevronRight, Star, Triangle, Users, ChevronLeft, ArrowRight } from 'lucide-react';
+import { Sparkles, ChevronRight, Star, Triangle, Users, ChevronLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Product } from '../types.ts';
 import CategorySidebar from './CategorySidebar.tsx';
 
@@ -59,16 +59,20 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   // Safety guard for missing category
   const normalizedCategory = useMemo(() => category?.toLowerCase() || '', [category]);
 
+  // Reset pagination when category changes to prevent "out of bounds" errors
   useEffect(() => {
-    setCurrentPage(1); // Reset page on category change
-    window.scrollTo(0, 0);
+    setCurrentPage(1);
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
   }, [normalizedCategory]);
 
   const categoryProducts = useMemo(() => {
     if (!normalizedCategory) return [];
+    // Ensure case-insensitive matching
     return products
-      .filter(p => p.category.toLowerCase() === normalizedCategory)
-      .sort((a, b) => b.upvotes_count - a.upvotes_count);
+      .filter(p => p.category?.toLowerCase() === normalizedCategory)
+      .sort((a, b) => (b.upvotes_count || 0) - (a.upvotes_count || 0));
   }, [products, normalizedCategory]);
 
   const clusterLogos = useMemo(() => {
@@ -89,10 +93,10 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
   }, [categoryProducts]);
 
   const totalPages = Math.ceil(categoryProducts.length / POSTS_PER_PAGE);
-  const displayedProducts = categoryProducts.slice(
-    (currentPage - 1) * POSTS_PER_PAGE,
-    currentPage * POSTS_PER_PAGE
-  );
+  const displayedProducts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return categoryProducts.slice(start, start + POSTS_PER_PAGE);
+  }, [categoryProducts, currentPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -103,14 +107,18 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const parentCategory = PARENT_MAP[normalizedCategory] || "Software";
 
+  // Critical Safety Guard: If category is null or undefined, show loading or empty state
   if (!category) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-          <ChevronLeft className="w-10 h-10 text-gray-200" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-6">
+          <Loader2 className="w-8 h-8 text-emerald-800 animate-spin" />
         </div>
-        <h2 className="text-2xl font-serif font-bold text-gray-400 mb-2">Category Not Found</h2>
-        <button onClick={onBack} className="text-emerald-800 font-bold hover:underline">Return to Directory</button>
+        <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">Loading Directory...</h2>
+        <p className="text-gray-400 font-medium mb-6">Connecting to the Muslim tech ecosystem</p>
+        <button onClick={onBack} className="text-emerald-800 font-bold hover:underline flex items-center gap-2">
+          <ChevronLeft className="w-4 h-4" /> Return to Home
+        </button>
       </div>
     );
   }
