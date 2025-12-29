@@ -75,5 +75,6 @@ export enum View {
   NEWSLETTER = 'newsletter',
   CATEGORIES = 'categories',
   CATEGORY_DETAIL = 'category_detail',
-  WELCOME = 'welcome'
+  WELCOME = 'welcome',
+  POST_SUBMIT = 'post_submit'
 }

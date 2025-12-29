@@ -3,6 +3,7 @@ import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
 import ProductDetail from './components/ProductDetail.tsx';
 import SubmitForm from './components/SubmitForm.tsx';
+import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
@@ -137,6 +138,7 @@ const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState('');
   
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false, yesterday: false, lastWeek: false, lastMonth: false
@@ -154,6 +156,7 @@ const App: React.FC = () => {
       try {
         const path = window.location.pathname;
         if (path === '/p/new') setView(View.NEW_THREAD);
+        else if (path === '/posts/new') setView(View.POST_SUBMIT);
         else if (path === '/forums') setView(View.FORUM_HOME);
         else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
         else if (path === '/sponsor') setView(View.SPONSOR);
@@ -192,6 +195,7 @@ const App: React.FC = () => {
     let path = customPath || '/';
     if (!customPath) {
       if (newView === View.NEW_THREAD) path = '/p/new';
+      else if (newView === View.POST_SUBMIT) path = '/posts/new';
       else if (newView === View.FORUM_HOME) path = '/forums';
       else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
       else if (newView === View.SPONSOR) path = '/sponsor';
@@ -297,7 +301,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      {view !== View.WELCOME && (
+      {view !== View.WELCOME && view !== View.POST_SUBMIT && (
         <Navbar 
           user={user} 
           currentView={view} 
@@ -317,7 +321,7 @@ const App: React.FC = () => {
         onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME) ? "" : "pb-10"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -375,6 +379,33 @@ const App: React.FC = () => {
             </div>
             <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
+        )}
+        {view === View.POST_SUBMIT && (
+          <PostSubmit 
+            onCancel={() => updateView(View.HOME)} 
+            onNext={(url) => { 
+              setPendingUrl(url);
+              updateView(View.SUBMIT);
+            }} 
+          />
+        )}
+        {view === View.SUBMIT && (
+          <SubmitForm 
+            initialUrl={pendingUrl}
+            onCancel={() => updateView(View.HOME)} 
+            onSubmit={(data) => {
+              const newProduct: Product = {
+                ...data,
+                id: `p-${Date.now()}`,
+                created_at: new Date().toISOString(),
+                upvotes_count: 1,
+                founder_id: user?.id || 'guest',
+                comments: []
+              };
+              setProducts([newProduct, ...products]);
+              updateView(View.HOME);
+            }} 
+          />
         )}
         {view === View.WELCOME && user && (
           <Welcome 
@@ -438,7 +469,7 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
-      {view !== View.WELCOME && <Footer setView={updateView} />}
+      {view !== View.WELCOME && view !== View.POST_SUBMIT && <Footer setView={updateView} />}
     </div>
   );
 };

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Compass, Mail, FileText, Flame, Calendar
+  Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon
 } from 'lucide-react';
 import { User, View } from '../types';
 
@@ -221,6 +221,24 @@ const Navbar: React.FC<NavbarProps> = ({
   onSignInClick
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showSubmitDropdown, setShowSubmitDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  
+  const submitDropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (submitDropdownRef.current && !submitDropdownRef.current.contains(event.target as Node)) {
+        setShowSubmitDropdown(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 sm:px-8">
@@ -357,7 +375,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Mobile Search Button */}
           <button
             onClick={() => setShowMobileSearch(true)}
@@ -366,37 +384,114 @@ const Navbar: React.FC<NavbarProps> = ({
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Subscribe Button */}
-          <button 
-            onClick={() => setView(View.NEWSLETTER)}
-            className="hidden lg:block border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:border-gray-400 transition-all active:scale-95"
-          >
-            Subscribe
-          </button>
-
           {user ? (
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-800 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all group relative"
-                onClick={onViewProfile}
-              >
-                <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl py-2 px-4 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
-                  <p className="text-xs font-bold text-emerald-900 mb-1">{user.username}</p>
-                  <p className="text-[10px] text-gray-400">{user.email}</p>
+            <div className="flex items-center gap-3">
+              {/* Notification Bell */}
+              <div className="relative group">
+                <button className="p-2 text-gray-400 hover:text-emerald-800 transition-colors">
+                  <Bell className="w-5 h-5" />
+                </button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-[10px] font-bold rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                  Recent notifications
                 </div>
               </div>
-              <button onClick={onLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                <LogOut className="w-4 h-4" />
-              </button>
+
+              {/* Submit Dropdown */}
+              <div className="relative" ref={submitDropdownRef}>
+                <button 
+                  onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 border-2 ${
+                    showSubmitDropdown 
+                    ? 'bg-[#ff6154] border-[#ff6154] text-white' 
+                    : 'border-emerald-800 text-emerald-800 hover:bg-emerald-50'
+                  }`}
+                >
+                  <Plus className="w-4 h-4" />
+                  Submit
+                </button>
+                
+                {showSubmitDropdown && (
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[60] animate-in fade-in slide-in-from-top-2">
+                    <button 
+                      onClick={() => { setView(View.POST_SUBMIT); setShowSubmitDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                        <Rocket className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Launch a product</p>
+                        <p className="text-[10px] text-gray-400">Introduce your creation</p>
+                      </div>
+                    </button>
+                    <button 
+                      onClick={() => { setView(View.NEW_THREAD); setShowSubmitDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left group border-t border-gray-50"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Start a thread</p>
+                        <p className="text-[10px] text-gray-400">Ask the community</p>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* User Dropdown */}
+              <div className="relative" ref={userDropdownRef}>
+                <button 
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95"
+                >
+                  <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
+                </button>
+
+                {showUserDropdown && (
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[60] animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 border-b border-gray-50">
+                      <p className="text-xs font-black text-emerald-900 truncate">{user.username}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <button 
+                      onClick={() => { onViewProfile(); setShowUserDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"
+                    >
+                      <UserIcon className="w-4 h-4 text-gray-400" />
+                      Profile
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700">
+                      <Settings className="w-4 h-4 text-gray-400" />
+                      Settings
+                    </button>
+                    <button 
+                      onClick={() => { onLogout(); setShowUserDropdown(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 border-t border-gray-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            <button 
-              onClick={onSignInClick}
-              className="text-emerald-800 font-bold text-sm px-4 py-2 hover:bg-emerald-50 rounded-lg transition-colors"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setView(View.NEWSLETTER)}
+                className="hidden lg:block border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-bold hover:border-gray-400 transition-all active:scale-95"
+              >
+                Subscribe
+              </button>
+              <button 
+                onClick={onSignInClick}
+                className="text-emerald-800 font-bold text-sm px-4 py-2 hover:bg-emerald-50 rounded-lg transition-colors"
+              >
+                Sign In
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -1,18 +1,18 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, X, Wand2, Loader2, Heart, ShieldCheck } from 'lucide-react';
 import { CATEGORIES, HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
 
 interface SubmitFormProps {
+  initialUrl?: string;
   onCancel: () => void;
   onSubmit: (data: any) => void;
 }
 
-const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSubmit }) => {
+const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', onCancel, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: '',
-    url: '',
+    url: initialUrl,
     tagline: '',
     description: '',
     category: CATEGORIES[0],
@@ -21,6 +21,12 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSubmit }) => {
     logo_url: `https://picsum.photos/seed/${Math.random()}/200/200`
   });
   const [isOptimizing, setIsOptimizing] = useState(false);
+
+  useEffect(() => {
+    if (initialUrl) {
+      setFormData(prev => ({ ...prev, url: initialUrl }));
+    }
+  }, [initialUrl]);
 
   const handleGeminiOptimize = async () => {
     if (!formData.description) return;
@@ -42,7 +48,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSubmit }) => {
     <div className="max-w-3xl mx-auto py-10 px-4">
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h2 className="text-4xl font-serif font-bold text-emerald-900">Share your creation</h2>
+          <h2 className="text-4xl font-serif font-bold text-emerald-900">Tell us more about the product</h2>
           <p className="text-gray-500 mt-2 text-lg">Join the ecosystem of Halal-conscious builders.</p>
         </div>
         <button onClick={onCancel} className="p-3 hover:bg-gray-100 rounded-full transition-colors">
@@ -162,7 +168,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSubmit }) => {
             type="submit"
             className="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-5 rounded-2xl shadow-xl transition-all active:scale-[0.98] text-xl"
           >
-            Launch Product
+            Submit for Review
           </button>
         </div>
       </form>
