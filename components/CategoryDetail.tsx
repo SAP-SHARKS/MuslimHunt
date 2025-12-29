@@ -17,6 +17,7 @@ const POSTS_PER_PAGE = 10;
 
 const PARENT_MAP: Record<string, string> = {
   'ai notetakers': 'Productivity',
+  'ai meeting notetakers': 'Productivity',
   'app switcher': 'Productivity',
   'compliance software': 'Productivity',
   'email clients': 'Productivity',
@@ -117,6 +118,8 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
     );
   }
 
+  const isNotetakers = normalizedCategory.includes('notetaker');
+
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
@@ -136,12 +139,12 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
               The best {category} <br/> to use in 2025
             </h1>
             <p className="text-lg text-gray-500 font-medium max-w-2xl mb-8 leading-relaxed text-center lg:text-left">
-              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community.
+              Discover the top-rated tools in the {category} landscape, vetted and ranked by the Muslim Hunt community for efficiency and ethical standards.
             </p>
             
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">Explore related:</span>
-              {['AI Tools', 'Growth', 'Task management'].map(tag => (
+              {['Presentation Software', 'Spreadsheets', 'Virtual office'].map(tag => (
                 <button 
                   key={tag} 
                   onClick={() => onCategorySelect(tag)}
@@ -176,7 +179,9 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                 <h2 className="text-sm font-black text-blue-900 uppercase tracking-widest">Summarized with AI</h2>
               </div>
               <p className="text-blue-900/80 text-[15px] leading-relaxed font-medium">
-                Our community is currently vetting {category} solutions. {categoryProducts.length > 0 ? `Leading the rankings is ${categoryProducts[0].name} with significant community support.` : `This category is currently in a high-growth 'pre-launch' phase.`} Key trends we're seeing include better privacy protections and automated cross-platform syncing.
+                {isNotetakers 
+                  ? "Fathom, tl;dv, and Grain dominate for automated recording, crisp transcripts, and shareable summaries. Our community highlights Otter for its real-time dictation speed, while Fireflies excels in multi-language support and CRM integration."
+                  : `Our community is currently vetting ${category} solutions. Key trends we're seeing include better privacy protections and automated cross-platform syncing.`}
               </p>
             </div>
 

@@ -8,9 +8,31 @@ interface CategorySidebarProps {
 
 const CATEGORY_GROUPS: Record<string, string[]> = {
   'Productivity': [
-    "AI notetakers", "App switcher", "Compliance software", "Email clients", 
-    "Knowledge base", "Note and writing apps", "Presentation Software", 
-    "Resume tools", "Search", "Team collaboration", "Virtual office"
+    "AI notetakers",
+    "AI Presentation Software",
+    "Ad blockers",
+    "App switcher",
+    "Content Management Systems",
+    "Calendar apps",
+    "Compliance software",
+    "Customer support tools",
+    "E-signature apps",
+    "Email clients",
+    "File storage and sharing apps",
+    "Hiring software",
+    "Knowledge base software",
+    "Legal services",
+    "Meeting software",
+    "Note and writing apps",
+    "PDF Editor",
+    "Password managers",
+    "Presentation Software",
+    "Product demo",
+    "Project management software",
+    "Resume tools",
+    "Scheduling software",
+    "Screenshots and screen recording apps",
+    "Search"
   ],
   'Engineering': [
     "AI Coding Agents", "Vibe Coding Tools", "AI Code Editors", "AI Databases", 
@@ -23,26 +45,37 @@ const CATEGORY_GROUPS: Record<string, string[]> = {
 
 const CategorySidebar: React.FC<CategorySidebarProps> = ({ activeCategory = "AI notetakers", onCategorySelect }) => {
   const currentParent = useMemo(() => {
-    return Object.keys(CATEGORY_GROUPS).find(key => CATEGORY_GROUPS[key].includes(activeCategory)) || "Productivity";
+    const norm = activeCategory.toLowerCase();
+    return Object.keys(CATEGORY_GROUPS).find(key => 
+      CATEGORY_GROUPS[key].some(link => link.toLowerCase() === norm)
+    ) || "Productivity";
   }, [activeCategory]);
 
   const siblingLinks = CATEGORY_GROUPS[currentParent] || CATEGORY_GROUPS['Productivity'];
 
+  const isNotetakers = activeCategory.toLowerCase().includes('notetaker');
+
+  const threads = isNotetakers ? [
+    { id: 't1', title: "With so many new AI Note Takers - what's your favorite and why?", views: '1.6K', time: '8MO AGO' },
+    { id: 't2', title: "Seeking ethical datasets for notetaker transcription models", views: '840', time: '1W AGO' },
+  ] : [
+    { id: 't1', title: `What are your favorite ${activeCategory} for 2025?`, views: '1.2K', time: '2D AGO' },
+    { id: 't2', title: `Best setup for ${activeCategory} workflows?`, views: '520', time: '5D AGO' },
+  ];
+
   return (
     <aside className="hidden lg:block space-y-10 sticky top-24 h-fit pb-12 overflow-y-auto max-h-[calc(100vh-6rem)] custom-scrollbar">
+      {/* Forum Discussions Section */}
       <section>
         <div className="flex items-center justify-between mb-6 border-b border-gray-50 pb-4">
           <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
-            Forum Discussions
+            FORUM DISCUSSIONS
             <MessageSquare className="w-3.5 h-3.5 opacity-50" />
           </h3>
         </div>
         
         <div className="space-y-6">
-          {[
-            { id: 't1', title: `What are your favorite ${activeCategory} for 2025?`, views: '1.6K', time: '2D AGO' },
-            { id: 't2', title: `Seeking ethical datasets for ${activeCategory} models`, views: '840', time: '1W AGO' },
-          ].map((thread) => (
+          {threads.map((thread) => (
             <div key={thread.id} className="group cursor-pointer">
               <h4 className="text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-relaxed mb-2 tracking-tight">
                 {thread.title}
@@ -59,39 +92,43 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ activeCategory = "AI 
         </div>
 
         <button className="w-full mt-10 py-3.5 bg-gray-50 text-[10px] font-black text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 border border-transparent hover:border-emerald-100 rounded-xl uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm">
-          View All {activeCategory} Threads
+          VIEW MORE DISCUSSIONS
           <ChevronRight className="w-3 h-3" />
         </button>
       </section>
 
-      <section className="bg-[#052e16] rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-emerald-900/20">
+      {/* Pro Insight Card */}
+      <section className="bg-[#052e16] rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-emerald-900/20">
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
           <Sparkles className="w-24 h-24 text-emerald-400 rotate-12" />
         </div>
         
         <div className="relative z-10">
           <div className="inline-block px-2.5 py-1 bg-emerald-400 text-[#052e16] rounded-md text-[9px] font-black uppercase tracking-widest mb-6 shadow-sm">
-            Pro Insight
+            PRO INSIGHT
           </div>
           
           <h4 className="text-lg font-bold leading-relaxed mb-8 text-emerald-50 font-sans tracking-tight">
-            The {activeCategory} market is projected to grow significantly this year.
+            {isNotetakers 
+              ? "Looking for a custom solution? Our directory lists 40+ makers building specialized transcription engines."
+              : `The ${activeCategory} market is projected to grow significantly this year. Explore the early adopters.`}
           </h4>
           
           <button className="flex items-center gap-2 text-xs font-black text-emerald-400 hover:text-white transition-colors group/link uppercase tracking-widest">
-            Read Trends Report
+            Explore the Directory
             <ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
           </button>
         </div>
       </section>
       
+      {/* More in Category Section */}
       <section className="pt-4">
         <h3 className="text-sm font-bold text-gray-900 mb-6 tracking-tight">
           More in {currentParent}
         </h3>
         <div className="flex flex-col space-y-3.5">
           {siblingLinks.map((link) => {
-            const isActive = activeCategory === link;
+            const isActive = activeCategory.toLowerCase() === link.toLowerCase();
             return (
               <button
                 key={link}
