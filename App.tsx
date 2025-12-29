@@ -4,6 +4,7 @@ import ProductCard from './components/ProductCard.tsx';
 import ProductDetail from './components/ProductDetail.tsx';
 import SubmitForm from './components/SubmitForm.tsx';
 import Auth from './components/Auth.tsx';
+import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
@@ -158,6 +159,7 @@ const App: React.FC = () => {
         else if (path === '/sponsor') setView(View.SPONSOR);
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
+        else if (path === '/my/welcome') setView(View.WELCOME);
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -195,6 +197,7 @@ const App: React.FC = () => {
       else if (newView === View.SPONSOR) path = '/sponsor';
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
+      else if (newView === View.WELCOME) path = '/my/welcome';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }
@@ -294,16 +297,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      <Navbar 
-        user={user} 
-        currentView={view} 
-        setView={updateView} 
-        onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
-        searchQuery={searchQuery} 
-        onSearchChange={setSearchQuery} 
-        onViewProfile={() => user && setView(View.PROFILE)} 
-        onSignInClick={() => setIsAuthModalOpen(true)}
-      />
+      {view !== View.WELCOME && (
+        <Navbar 
+          user={user} 
+          currentView={view} 
+          setView={updateView} 
+          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
+          searchQuery={searchQuery} 
+          onSearchChange={setSearchQuery} 
+          onViewProfile={() => user && setView(View.PROFILE)} 
+          onSignInClick={() => setIsAuthModalOpen(true)}
+        />
+      )}
       
       {/* Auth Modal */}
       <Auth 
@@ -312,7 +317,7 @@ const App: React.FC = () => {
         onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL) ? "" : "pb-10"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -371,6 +376,17 @@ const App: React.FC = () => {
             <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
         )}
+        {view === View.WELCOME && user && (
+          <Welcome 
+            userEmail={user.email} 
+            onComplete={(data) => {
+              console.log('Onboarding complete:', data);
+              // Update local user state or perform Supabase update if needed
+              setUser(prev => prev ? { ...prev, username: data.username, headline: data.headline } : null);
+              updateView(View.HOME);
+            }} 
+          />
+        )}
         {view === View.FORUM_HOME && (
           <ForumHome 
             setView={updateView} 
@@ -422,7 +438,7 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
-      <Footer setView={updateView} />
+      {view !== View.WELCOME && <Footer setView={updateView} />}
     </div>
   );
 };

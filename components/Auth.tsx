@@ -20,12 +20,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setMessage(null);
 
-    // Supabase handles both Sign In and Sign Up with OTP by default 
-    // if 'Allow new users to sign up' is enabled in the dashboard.
+    // Redirect to onboarding path after successful magic link verification
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/my/welcome`,
       },
     });
 
@@ -46,7 +45,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: window.location.origin
+        redirectTo: `${window.location.origin}/my/welcome`
       }
     });
     if (error) {

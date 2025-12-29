@@ -74,5 +74,6 @@ export enum View {
   SPONSOR = 'sponsor',
   NEWSLETTER = 'newsletter',
   CATEGORIES = 'categories',
-  CATEGORY_DETAIL = 'category_detail'
+  CATEGORY_DETAIL = 'category_detail',
+  WELCOME = 'welcome'
 }
