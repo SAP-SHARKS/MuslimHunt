@@ -56,6 +56,8 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
+      // NOTE: Ensure the 'products' table has a 'sadaqah_info' column (TEXT).
+      // If you get a 'schema cache' error, run: NOTIFY pgrst, 'reload schema'; in Supabase SQL editor.
       const { error: insertError } = await supabase
         .from('products')
         .insert([{
@@ -70,7 +72,17 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
       onSuccess();
     } catch (err: any) {
       console.error('[Muslim Hunt] Submission failed:', err);
-      setError(err.message || 'Something went wrong during submission. Please try again.');
+      
+      let errorMsg = err.message || 'Something went wrong during submission. Please try again.';
+      
+      // Specifically handle missing column errors or schema cache issues
+      if (errorMsg.includes('column "sadaqah_info" does not exist')) {
+        errorMsg = 'Database Error: The "sadaqah_info" column is missing from your Supabase table. Please run the SQL migration.';
+      } else if (errorMsg.toLowerCase().includes('schema cache')) {
+        errorMsg = 'Database Cache Error: The API does not yet see the new database structure. Please run "NOTIFY pgrst, \'reload schema\';" in your Supabase SQL editor.';
+      }
+      
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,9 +105,12 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
 
       <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[3rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3">
-            <X className="w-5 h-5" />
-            {error}
+          <div className="p-5 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <X className="w-5 h-5 shrink-0" />
+              <span>Submission Error</span>
+            </div>
+            <p className="font-medium text-red-500/80 pl-8">{error}</p>
           </div>
         )}
 
@@ -202,6 +217,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
                 Sadaqah Component (Optional)
               </label>
               <input 
+                name="sadaqah_info"
                 value={formData.sadaqah_info}
                 onChange={e => setFormData({...formData, sadaqah_info: e.target.value})}
                 placeholder="e.g. 5% profits to Gaza"
