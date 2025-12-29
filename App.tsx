@@ -159,6 +159,7 @@ const App: React.FC = () => {
         const path = window.location.pathname;
         if (path === '/p/new') setView(View.NEW_THREAD);
         else if (path === '/posts/new') setView(View.POST_SUBMIT);
+        else if (path === '/posts/new/submission') setView(View.SUBMISSION);
         else if (path === '/notifications') setView(View.NOTIFICATIONS);
         else if (path === '/forums') setView(View.FORUM_HOME);
         else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
@@ -199,6 +200,7 @@ const App: React.FC = () => {
     if (!customPath) {
       if (newView === View.NEW_THREAD) path = '/p/new';
       else if (newView === View.POST_SUBMIT) path = '/posts/new';
+      else if (newView === View.SUBMISSION) path = '/posts/new/submission';
       else if (newView === View.NOTIFICATIONS) path = '/notifications';
       else if (newView === View.FORUM_HOME) path = '/forums';
       else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
@@ -313,7 +315,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      {view !== View.WELCOME && view !== View.POST_SUBMIT && (
+      {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
         <Navbar 
           user={user} 
           currentView={view} 
@@ -334,7 +336,7 @@ const App: React.FC = () => {
         onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT || view === View.NOTIFICATIONS) ? "" : "pb-10"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT || view === View.NOTIFICATIONS || view === View.SUBMISSION) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -405,25 +407,17 @@ const App: React.FC = () => {
             onCancel={() => updateView(View.HOME)} 
             onNext={(url) => { 
               setPendingUrl(url);
-              updateView(View.SUBMIT);
+              updateView(View.SUBMISSION, '/posts/new/submission');
             }} 
           />
         )}
-        {view === View.SUBMIT && (
+        {view === View.SUBMISSION && (
           <SubmitForm 
             initialUrl={pendingUrl}
-            onCancel={() => updateView(View.HOME)} 
-            onSubmit={(data) => {
-              const newProduct: Product = {
-                ...data,
-                id: `p-${Date.now()}`,
-                created_at: new Date().toISOString(),
-                upvotes_count: 1,
-                founder_id: user?.id || 'guest',
-                comments: []
-              };
-              setProducts([newProduct, ...products]);
-              updateView(View.HOME);
+            user={user}
+            onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
+            onSuccess={() => {
+              updateView(View.HOME, '/');
             }} 
           />
         )}
@@ -488,7 +482,7 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
-      {view !== View.WELCOME && view !== View.POST_SUBMIT && <Footer setView={updateView} />}
+      {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && <Footer setView={updateView} />}
     </div>
   );
 };

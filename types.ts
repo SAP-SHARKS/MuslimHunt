@@ -74,7 +74,7 @@ export interface User {
 
 export enum View {
   HOME = 'home',
-  SUBMIT = 'submit',
+  SUBMIT = 'submit', // legacy / simple
   DETAIL = 'detail',
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
@@ -86,5 +86,6 @@ export enum View {
   CATEGORY_DETAIL = 'category_detail',
   WELCOME = 'welcome',
   POST_SUBMIT = 'post_submit',
-  NOTIFICATIONS = 'notifications'
+  NOTIFICATIONS = 'notifications',
+  SUBMISSION = 'submission' // /posts/new/submission
 }
