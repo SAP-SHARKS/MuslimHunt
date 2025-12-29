@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Sparkles, ChevronRight, Star, Triangle, Users, ChevronLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Product } from '../types.ts';
 import CategorySidebar from './CategorySidebar.tsx';
+import SafeImage from './SafeImage.tsx';
 
 interface CategoryDetailProps {
   category: string;
@@ -59,16 +60,12 @@ const PROOF_ICONS = [
 ];
 
 const LogoIcon: React.FC<{ logo: { name: string, src: string, className: string } }> = ({ logo }) => {
-  const [imgSrc, setImgSrc] = useState(logo.src);
-  const fallbackUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(logo.name)}&backgroundColor=064e3b&fontFamily=serif&fontWeight=700`;
-
   return (
     <div className={`absolute bg-white rounded-2xl shadow-xl p-2 border border-gray-100 transition-all duration-300 hover:scale-110 hover:z-[50] cursor-pointer group/logo ${logo.className}`}>
-      <img 
-        src={imgSrc} 
+      <SafeImage 
+        src={logo.src} 
         alt={logo.name} 
         className="w-full h-full object-contain rounded-lg transition-transform duration-300 group-hover/logo:scale-105"
-        onError={() => setImgSrc(fallbackUrl)}
       />
     </div>
   );
@@ -235,7 +232,12 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                           {rank}.
                         </div>
                         <div className="w-16 h-16 rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 shrink-0 shadow-sm group-hover:shadow-md transition-all">
-                          <img src={p.logo_url} alt={p.name} className="w-full h-full object-cover" />
+                          <SafeImage 
+                            src={p.logo_url} 
+                            alt={p.name} 
+                            seed={p.id}
+                            className="w-full h-full object-cover" 
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
@@ -253,7 +255,9 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                             <div className="flex items-center gap-2">
                               <div className="flex -space-x-1.5 overflow-hidden">
                                 {PROOF_ICONS.slice(0, 3).map((src, idx) => (
-                                  <img key={idx} className="inline-block h-4 w-4 rounded-full ring-2 ring-white" src={src} alt="" />
+                                  <div key={idx} className="inline-block h-4 w-4 rounded-full ring-2 ring-white overflow-hidden bg-white">
+                                    <SafeImage src={src} alt="user" className="w-full h-full object-cover" />
+                                  </div>
                                 ))}
                               </div>
                               <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">

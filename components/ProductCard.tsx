@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { ChevronUp, MessageSquare, Triangle } from 'lucide-react';
 import { Product } from '../types';
 import { highlightSearchTerm } from '../utils/searchUtils';
+import SafeImage from './SafeImage.tsx';
 
 interface ProductCardProps {
   product: Product;
@@ -43,9 +43,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        {/* Logo */}
-        <div className="w-16 h-16 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden border border-gray-100 shadow-sm group-hover:shadow-md transition-all">
-          <img src={product.logo_url} alt={product.name} className="w-full h-full object-cover" />
+        {/* Logo Container with High-Fidelity Border */}
+        <div className="w-16 h-16 rounded-xl overflow-hidden border border-emerald-100/50 shadow-sm group-hover:shadow-md transition-all">
+          <SafeImage 
+            src={product.logo_url} 
+            alt={product.name} 
+            seed={product.name}
+            className="w-full h-full" 
+          />
         </div>
         
         {/* Info Area */}
