@@ -224,7 +224,7 @@ const App: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { data: dbProducts } = await supabase.from('products').select('*');
+        const dbProducts: any[] = []; 
         const baseProducts = (dbProducts && dbProducts.length > 0) ? dbProducts : INITIAL_PRODUCTS;
         const { data: dbComments } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
         const commentsMap = (dbComments || []).reduce((acc: any, comment: any) => {
@@ -293,10 +293,29 @@ const App: React.FC = () => {
                   if (section.data.length === 0) return null;
                   return (
                     <section key={section.id}>
-                      <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4"><h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2></div>
+                      <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
+                        <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
+                        {section.data.length > 10 && (
+                          <button className="text-xs font-black text-emerald-800 uppercase tracking-widest hover:underline">
+                            See all
+                          </button>
+                        )}
+                      </div>
                       <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-                        {section.data.slice(0, 5).map((p, i) => (
-                          <ProductCard key={p.id} product={p} rank={i + 1} onUpvote={(id) => { if(!user) setView(View.LOGIN); else setProducts(c => c.map(pr => pr.id === id ? {...pr, upvotes_count: pr.upvotes_count + 1} : pr)); }} hasUpvoted={votes.has(`${user?.id}_${p.id}`)} onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} searchQuery={searchQuery} />
+                        {section.data.slice(0, 10).map((p, i) => (
+                          <ProductCard 
+                            key={p.id} 
+                            product={p} 
+                            rank={i + 1} 
+                            onUpvote={(id) => { 
+                              if(!user) setView(View.LOGIN); 
+                              else setProducts(c => c.map(pr => pr.id === id ? {...pr, upvotes_count: pr.upvotes_count + 1} : pr)); 
+                            }} 
+                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
+                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
+                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
+                            searchQuery={searchQuery} 
+                          />
                         ))}
                       </div>
                     </section>
