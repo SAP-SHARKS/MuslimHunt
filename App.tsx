@@ -16,7 +16,7 @@ import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import Footer from './components/Footer.tsx';
-import { Product, User, View, Comment, Profile, Notification } from './types.ts';
+import { Product, User, View, Comment, Profile, Notification, NavMenuItem } from './types.ts';
 import { INITIAL_PRODUCTS, CATEGORY_SECTIONS } from './constants.tsx';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
@@ -131,8 +131,8 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
-  // Start with empty array to prioritize real data over INITIAL_PRODUCTS
   const [products, setProducts] = useState<Product[]>([]);
+  const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
@@ -155,16 +155,27 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Verify database products in console as requested
       console.log("Database Products:", data);
-      
-      // Remove fallback to INITIAL_PRODUCTS. Only show real data.
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
-      // Even on error, we don't fallback to mock data to ensure transparency
       setProducts([]);
+    }
+  };
+
+  const fetchNavigation = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('navigation_menu')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order');
+      
+      if (!error && data) {
+        setMenuItems(data as NavMenuItem[]);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Navigation fetch failed:', err);
     }
   };
 
@@ -177,6 +188,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchNavigation();
   }, []);
 
   useEffect(() => {
@@ -249,13 +261,11 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // Mock initial notifications
     setNotifications([
       { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
       { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
     ]);
 
-    // Initial session fetch
     supabase.auth.getSession()
       .then(({ data }) => {
         const session = data?.session;
@@ -272,7 +282,6 @@ const App: React.FC = () => {
       })
       .catch(err => console.error('[Muslim Hunt] Supabase session error:', err));
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
@@ -338,10 +347,7 @@ const App: React.FC = () => {
       if (time >= todayStart) grouped.today.push(p);
       else if (time >= yesterdayStart) grouped.yesterday.push(p);
       else if (time >= lastWeekStart) grouped.lastWeek.push(p);
-      else {
-        // Catch-all: If not in other buckets, it must be in "Older"
-        grouped.lastMonth.push(p);
-      }
+      else grouped.lastMonth.push(p);
     });
 
     const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);
@@ -366,10 +372,10 @@ const App: React.FC = () => {
           onViewProfile={() => user && setView(View.PROFILE)} 
           onSignInClick={() => setIsAuthModalOpen(true)}
           notifications={notifications}
+          menuItems={menuItems}
         />
       )}
       
-      {/* Auth Modal */}
       <Auth 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
@@ -457,9 +463,7 @@ const App: React.FC = () => {
             user={user}
             onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
             onSuccess={() => {
-              // Immediately fetch to show the new product
               fetchProducts();
-              // Smooth transition back to home feed after success
               updateView(View.HOME, '/');
             }} 
           />
@@ -468,7 +472,6 @@ const App: React.FC = () => {
           <Welcome 
             userEmail={user.email} 
             onComplete={(data) => {
-              console.log('Onboarding complete:', data);
               setUser(prev => prev ? { ...prev, username: data.username, headline: data.headline } : null);
               updateView(View.HOME);
             }} 
@@ -492,7 +495,7 @@ const App: React.FC = () => {
         {view === View.NEW_THREAD && (
           <NewThreadForm 
             onCancel={() => updateView(View.FORUM_HOME)} 
-            onSubmit={(data) => { console.log('Thread submitted:', data); updateView(View.FORUM_HOME); }} 
+            onSubmit={(data) => { updateView(View.FORUM_HOME); }} 
             setView={updateView} 
           />
         )}

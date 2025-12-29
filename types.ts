@@ -56,6 +56,25 @@ export interface Notification {
   avatar_url?: string;
 }
 
+export interface NavSubItem {
+  label: string;
+  subtext: string;
+  icon: string;
+  bgClass: string;
+  colorClass: string;
+  view: View;
+}
+
+export interface NavMenuItem {
+  id: string;
+  label: string;
+  view?: View;
+  icon?: string;
+  sub_items?: NavSubItem[];
+  display_order: number;
+  is_active: boolean;
+}
+
 export interface Vote {
   id: string;
   user_id: string;

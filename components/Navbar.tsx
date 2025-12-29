@@ -1,12 +1,18 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
   Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
-  Triangle, Clock
+  Triangle, Clock, Menu, Zap, Layout
 } from 'lucide-react';
-import { User, View, Notification } from '../types';
+import { User, View, Notification, NavMenuItem } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
+
+// Fix: Added missing 'Zap' and 'Layout' imports to match usage in ICON_MAP and mobile menu
+const ICON_MAP: Record<string, any> = {
+  Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone
+};
 
 interface DropdownItem {
   label: string;
@@ -91,7 +97,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
       
       {isOpen && (
         <div className="absolute top-full left-0 w-[620px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-b-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Featured Top Bar */}
           <div className="bg-gray-50/50 border-b border-gray-100 p-2">
             <button className="flex items-center gap-4 w-full hover:bg-white p-3 rounded-xl transition-all group/award text-left">
               <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center text-red-600 shadow-sm group-hover/award:scale-105 transition-transform shrink-0">
@@ -108,7 +113,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
           </div>
 
           <div className="flex divide-x divide-gray-100">
-            {/* Left Column: Navigation Sections */}
             <div className="flex-[1.1] p-5">
               <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 px-2">Browse</h3>
               <div className="grid grid-cols-1 gap-0.5">
@@ -147,7 +151,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
               </div>
             </div>
 
-            {/* Right Column: Dynamic Sub-links */}
             <div className="flex-1 p-6 bg-gray-50/20 flex flex-col">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">
@@ -167,10 +170,7 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
                 {categoryContent[activeCategory]?.map((link, i) => (
                   <button 
                     key={i}
-                    onClick={() => { 
-                      setView(View.HOME); 
-                      setIsOpen(false); 
-                    }}
+                    onClick={() => { setView(View.HOME); setIsOpen(false); }}
                     className="block w-full px-3 py-2 text-xs font-bold text-gray-600 hover:text-emerald-800 hover:bg-white rounded-lg transition-all text-left truncate"
                   >
                     {link}
@@ -178,7 +178,6 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
                 ))}
               </div>
               
-              {/* Contextual Promo */}
               <div className="mt-auto pt-8">
                 <button 
                   onClick={() => { setView(View.CATEGORIES); setIsOpen(false); }}
@@ -211,6 +210,7 @@ interface NavbarProps {
   onViewProfile: () => void;
   onSignInClick: () => void;
   notifications: Notification[];
+  menuItems: NavMenuItem[];
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -222,12 +222,14 @@ const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   onViewProfile,
   onSignInClick,
-  notifications
+  notifications,
+  menuItems
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showSubmitDropdown, setShowSubmitDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const submitDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
@@ -252,106 +254,61 @@ const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 px-4 sm:px-8">
+    <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 h-16">
-        {/* Logo */}
-        <div 
-          className="flex items-center gap-2 cursor-pointer shrink-0" 
-          onClick={() => setView(View.HOME)}
-        >
-          <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
-            <span className="font-serif text-xl font-bold">M</span>
+        <div className="flex items-center gap-4">
+          {/* Mobile Hamburger Icon */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          {/* Logo */}
+          <div 
+            className="flex items-center gap-2 cursor-pointer shrink-0" 
+            onClick={() => { setView(View.HOME); setIsMobileMenuOpen(false); }}
+          >
+            <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
+              <span className="font-serif text-xl font-bold">M</span>
+            </div>
+            <h1 className="hidden lg:block font-serif text-xl font-bold text-emerald-900 tracking-tight text-nowrap">
+              Muslim Hunt
+            </h1>
           </div>
-          <h1 className="hidden lg:block font-serif text-xl font-bold text-emerald-900 tracking-tight text-nowrap">
-            Muslim Hunt
-          </h1>
         </div>
 
-        {/* Navigation Links */}
+        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-6 h-full">
           <BestProductsDropdown setView={setView} />
           
-          <RichDropdown 
-            label="Launches" 
-            items={[
-              { 
-                label: 'Launch archive', 
-                subtext: 'Most-loved launches by the community', 
-                icon: Rocket, 
-                bgClass: 'bg-red-50', 
-                colorClass: 'text-red-600',
-                onClick: () => setView(View.HOME)
-              },
-              { 
-                label: 'Launch Guide', 
-                subtext: 'Checklists and pro tips for launching', 
-                icon: Compass, 
-                bgClass: 'bg-blue-50', 
-                colorClass: 'text-blue-600',
-                onClick: () => setView(View.HOME)
-              },
-            ]} 
-          />
-          
-          <RichDropdown 
-            label="Community" 
-            items={[
-              { 
-                label: 'Forums', 
-                subtext: 'Ask questions, find support, and connect', 
-                icon: MessageSquare, 
-                bgClass: 'bg-purple-50', 
-                colorClass: 'text-purple-600',
-                onClick: () => setView(View.FORUM_HOME)
-              },
-              { 
-                label: 'Streaks', 
-                subtext: 'The most active community members', 
-                icon: Flame, 
-                bgClass: 'bg-red-50', 
-                colorClass: 'text-red-500',
-                onClick: () => setView(View.HOME)
-              },
-              { 
-                label: 'Events', 
-                subtext: 'Meet others online and in-person', 
-                icon: Calendar, 
-                bgClass: 'bg-emerald-50', 
-                colorClass: 'text-emerald-600',
-                onClick: () => setView(View.HOME)
-              },
-            ]} 
-          />
-
-          <RichDropdown 
-            label="News" 
-            items={[
-              { 
-                label: 'Newsletter', 
-                subtext: 'The best of Muslim Hunt, every day', 
-                icon: Mail, 
-                bgClass: 'bg-purple-50', 
-                colorClass: 'text-purple-600',
-                onClick: () => setView(View.NEWSLETTER)
-              },
-              { 
-                label: 'Stories', 
-                subtext: 'Tech news, interviews, and tips from makers', 
-                icon: BookOpen, 
-                bgClass: 'bg-pink-50', 
-                colorClass: 'text-pink-600',
-                onClick: () => setView(View.HOME)
-              },
-              { 
-                label: 'Changelog', 
-                subtext: 'New Muslim Hunt features and releases', 
-                icon: FileText, 
-                bgClass: 'bg-emerald-50', 
-                colorClass: 'text-emerald-600',
-                onClick: () => {}
-              },
-            ]} 
-          />
+          {menuItems.map((menu) => (
+            <React.Fragment key={menu.id}>
+              {menu.sub_items && menu.sub_items.length > 0 ? (
+                <RichDropdown 
+                  label={menu.label} 
+                  items={menu.sub_items.map(sub => ({
+                    label: sub.label,
+                    subtext: sub.subtext,
+                    icon: ICON_MAP[sub.icon] || Star,
+                    bgClass: sub.bgClass,
+                    colorClass: sub.colorClass,
+                    onClick: () => setView(sub.view)
+                  }))} 
+                />
+              ) : (
+                <button 
+                  onClick={() => menu.view && setView(menu.view)}
+                  className={`text-sm font-medium transition-colors py-4 px-1 flex items-center h-full ${
+                    menu.view === currentView ? 'text-emerald-800' : 'text-gray-600 hover:text-emerald-800'
+                  }`}
+                >
+                  {menu.label}
+                </button>
+              )}
+            </React.Fragment>
+          ))}
 
           <button 
             onClick={() => setView(View.SPONSOR)}
@@ -387,7 +344,6 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          {/* Mobile Search Button */}
           <button
             onClick={() => setShowMobileSearch(true)}
             className="lg:hidden p-2 text-gray-600 hover:text-emerald-800 transition-colors"
@@ -397,7 +353,6 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {user ? (
             <div className="flex items-center gap-3">
-              {/* Notification Bell */}
               <div className="relative" ref={notificationDropdownRef}>
                 <button 
                   onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
@@ -410,12 +365,11 @@ const Navbar: React.FC<NavbarProps> = ({
                 </button>
                 
                 {showNotificationDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 z-[100] animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 z-[110] animate-in fade-in slide-in-from-top-2">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
                       <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Recent Notifications</h4>
                       {unreadCount > 0 && <span className="w-2 h-2 bg-[#ff6154] rounded-full" />}
                     </div>
-                    
                     <div className="space-y-4 mb-6">
                       {notifications.length === 0 ? (
                         <p className="text-[13px] text-gray-400 italic text-center py-4">No unread notifications! Enjoy your day</p>
@@ -433,7 +387,6 @@ const Navbar: React.FC<NavbarProps> = ({
                         ))
                       )}
                     </div>
-                    
                     <button 
                       onClick={() => { setView(View.NOTIFICATIONS); setShowNotificationDropdown(false); }}
                       className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-400 hover:text-emerald-800 hover:border-emerald-800 transition-all uppercase tracking-widest shadow-sm active:scale-[0.98]"
@@ -444,7 +397,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Submit Dropdown */}
               <div className="relative" ref={submitDropdownRef}>
                 <button 
                   onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
@@ -457,9 +409,8 @@ const Navbar: React.FC<NavbarProps> = ({
                   <Plus className="w-4 h-4" />
                   Submit
                 </button>
-                
                 {showSubmitDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[60] animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
                     <button 
                       onClick={() => { setView(View.POST_SUBMIT); setShowSubmitDropdown(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left group"
@@ -488,7 +439,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* User Dropdown */}
               <div className="relative" ref={userDropdownRef}>
                 <button 
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
@@ -496,9 +446,8 @@ const Navbar: React.FC<NavbarProps> = ({
                 >
                   <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
                 </button>
-
                 {showUserDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[60] animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
                     <div className="px-4 py-2 border-b border-gray-50">
                       <p className="text-xs font-black text-emerald-900 truncate">{user.username}</p>
                       <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
@@ -544,9 +493,72 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl z-[120] animate-in slide-in-from-top-4 duration-300 overflow-y-auto max-h-[80vh]">
+          <div className="p-6 space-y-8">
+            {/* Mobile Categories Link */}
+            <button 
+              onClick={() => { setView(View.CATEGORIES); setIsMobileMenuOpen(false); }}
+              className="w-full flex items-center justify-between group p-2"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-800">
+                  <Layout className="w-6 h-6" />
+                </div>
+                <span className="text-xl font-black text-gray-900">Explore Categories</span>
+              </div>
+              <ArrowRight className="w-6 h-6 text-gray-300 group-hover:text-emerald-800 transition-colors" />
+            </button>
+
+            {/* Dynamic Mobile Menu Items */}
+            {menuItems.map((menu) => (
+              <div key={menu.id} className="space-y-4">
+                <div className="flex items-center gap-3 px-2">
+                  {menu.icon && ICON_MAP[menu.icon] && React.createElement(ICON_MAP[menu.icon], { className: "w-4 h-4 text-emerald-800" })}
+                  <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">{menu.label}</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {menu.sub_items ? menu.sub_items.map((sub, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setView(sub.view); setIsMobileMenuOpen(false); }}
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-all text-left"
+                    >
+                      <div className={`w-10 h-10 ${sub.bgClass} ${sub.colorClass} rounded-xl flex items-center justify-center shrink-0`}>
+                        {sub.icon && ICON_MAP[sub.icon] && React.createElement(ICON_MAP[sub.icon], { className: "w-5 h-5" })}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{sub.label}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{sub.subtext}</p>
+                      </div>
+                    </button>
+                  )) : (
+                    <button
+                      onClick={() => { menu.view && setView(menu.view); setIsMobileMenuOpen(false); }}
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-all text-left"
+                    >
+                      <span className="text-lg font-bold text-gray-900">{menu.label}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <button 
+              onClick={() => { setView(View.SPONSOR); setIsMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-4 p-4 bg-emerald-900 text-white rounded-2xl shadow-xl shadow-emerald-900/10 active:scale-95 transition-all"
+            >
+              <Megaphone className="w-6 h-6 text-emerald-400" />
+              <span className="text-lg font-black uppercase tracking-widest">Advertise with us</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Search Modal */}
       {showMobileSearch && (
-        <div className="fixed inset-0 z-50 bg-black/50 lg:hidden" onClick={() => setShowMobileSearch(false)}>
+        <div className="fixed inset-0 z-[150] bg-black/50 lg:hidden" onClick={() => setShowMobileSearch(false)}>
           <div className="bg-white p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3">
               <Search className="w-5 h-5 text-gray-400" />
