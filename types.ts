@@ -46,6 +46,15 @@ export interface Product {
   badges?: Badge[];
 }
 
+export interface Notification {
+  id: string;
+  type: 'upvote' | 'comment';
+  message: string;
+  created_at: string;
+  is_read: boolean;
+  avatar_url?: string;
+}
+
 export interface Vote {
   id: string;
   user_id: string;
@@ -76,5 +85,6 @@ export enum View {
   CATEGORIES = 'categories',
   CATEGORY_DETAIL = 'category_detail',
   WELCOME = 'welcome',
-  POST_SUBMIT = 'post_submit'
+  POST_SUBMIT = 'post_submit',
+  NOTIFICATIONS = 'notifications'
 }

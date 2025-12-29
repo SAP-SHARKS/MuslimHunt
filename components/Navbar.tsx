@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon
+  Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
+  Triangle, Clock
 } from 'lucide-react';
-import { User, View } from '../types';
+import { User, View, Notification } from '../types';
+import { formatTimeAgo } from '../utils/dateUtils';
 
 interface DropdownItem {
   label: string;
@@ -208,6 +210,7 @@ interface NavbarProps {
   onSearchChange: (query: string) => void;
   onViewProfile: () => void;
   onSignInClick: () => void;
+  notifications: Notification[];
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -218,14 +221,19 @@ const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
   onSearchChange,
   onViewProfile,
-  onSignInClick
+  onSignInClick,
+  notifications
 }) => {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [showSubmitDropdown, setShowSubmitDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   
   const submitDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -234,6 +242,9 @@ const Navbar: React.FC<NavbarProps> = ({
       }
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
         setShowUserDropdown(false);
+      }
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) {
+        setShowNotificationDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -387,13 +398,50 @@ const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <div className="flex items-center gap-3">
               {/* Notification Bell */}
-              <div className="relative group">
-                <button className="p-2 text-gray-400 hover:text-emerald-800 transition-colors">
+              <div className="relative" ref={notificationDropdownRef}>
+                <button 
+                  onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+                  className={`p-2 transition-colors relative ${showNotificationDropdown ? 'text-emerald-800' : 'text-gray-400 hover:text-emerald-800'}`}
+                >
                   <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ff6154] rounded-full border-2 border-white" />
+                  )}
                 </button>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-[10px] font-bold rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                  Recent notifications
-                </div>
+                
+                {showNotificationDropdown && (
+                  <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 z-[100] animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
+                      <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Recent Notifications</h4>
+                      {unreadCount > 0 && <span className="w-2 h-2 bg-[#ff6154] rounded-full" />}
+                    </div>
+                    
+                    <div className="space-y-4 mb-6">
+                      {notifications.length === 0 ? (
+                        <p className="text-[13px] text-gray-400 italic text-center py-4">No unread notifications! Enjoy your day</p>
+                      ) : (
+                        notifications.slice(0, 2).map((n) => (
+                          <div key={n.id} className="flex gap-3 group/notif cursor-pointer">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-800 border border-emerald-100 shadow-sm group-hover/notif:scale-105 transition-transform">
+                              {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-emerald-800" /> : <MessageSquare className="w-4 h-4" />}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-medium text-gray-900 leading-snug line-clamp-2">{n.message}</p>
+                              <p className="text-[10px] font-black text-gray-300 uppercase tracking-tighter mt-1">{formatTimeAgo(n.created_at)}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    <button 
+                      onClick={() => { setView(View.NOTIFICATIONS); setShowNotificationDropdown(false); }}
+                      className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-gray-400 hover:text-emerald-800 hover:border-emerald-800 transition-all uppercase tracking-widest shadow-sm active:scale-[0.98]"
+                    >
+                      View all
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Submit Dropdown */}

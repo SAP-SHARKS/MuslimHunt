@@ -10,12 +10,13 @@ import UserProfile from './components/UserProfile.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import RecentComments from './components/RecentComments.tsx';
+import NotificationsPage from './components/NotificationsPage.tsx';
 import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import Footer from './components/Footer.tsx';
-import { Product, User, View, Comment, Profile } from './types.ts';
+import { Product, User, View, Comment, Profile, Notification } from './types.ts';
 import { INITIAL_PRODUCTS, CATEGORY_SECTIONS } from './constants.tsx';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
@@ -134,6 +135,7 @@ const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -157,6 +159,7 @@ const App: React.FC = () => {
         const path = window.location.pathname;
         if (path === '/p/new') setView(View.NEW_THREAD);
         else if (path === '/posts/new') setView(View.POST_SUBMIT);
+        else if (path === '/notifications') setView(View.NOTIFICATIONS);
         else if (path === '/forums') setView(View.FORUM_HOME);
         else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
         else if (path === '/sponsor') setView(View.SPONSOR);
@@ -196,6 +199,7 @@ const App: React.FC = () => {
     if (!customPath) {
       if (newView === View.NEW_THREAD) path = '/p/new';
       else if (newView === View.POST_SUBMIT) path = '/posts/new';
+      else if (newView === View.NOTIFICATIONS) path = '/notifications';
       else if (newView === View.FORUM_HOME) path = '/forums';
       else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
       else if (newView === View.SPONSOR) path = '/sponsor';
@@ -217,6 +221,12 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Mock initial notifications
+    setNotifications([
+      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
+      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
+    ]);
+
     // Initial session fetch
     supabase.auth.getSession()
       .then(({ data }) => {
@@ -234,7 +244,7 @@ const App: React.FC = () => {
       })
       .catch(err => console.error('[Muslim Hunt] Supabase session error:', err));
 
-    // Listen for auth changes (including Magic Link verification redirects)
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
@@ -246,10 +256,8 @@ const App: React.FC = () => {
           avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
         });
         
-        // Auto-close modal on any successful authentication event
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthModalOpen(false);
-          // If we was on a special path for login, go home
           if (window.location.pathname === '/login') {
             updateView(View.HOME);
           }
@@ -276,6 +284,10 @@ const App: React.FC = () => {
     if (selectedProduct?.id === id) {
       setSelectedProduct(prev => prev ? { ...prev, upvotes_count: prev.upvotes_count + 1 } : null);
     }
+  };
+
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -311,6 +323,7 @@ const App: React.FC = () => {
           onSearchChange={setSearchQuery} 
           onViewProfile={() => user && setView(View.PROFILE)} 
           onSignInClick={() => setIsAuthModalOpen(true)}
+          notifications={notifications}
         />
       )}
       
@@ -321,7 +334,7 @@ const App: React.FC = () => {
         onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT) ? "" : "pb-10"}>
+      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT || view === View.NOTIFICATIONS) ? "" : "pb-10"}>
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
@@ -380,6 +393,13 @@ const App: React.FC = () => {
             <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
         )}
+        {view === View.NOTIFICATIONS && (
+          <NotificationsPage 
+            notifications={notifications} 
+            onBack={() => updateView(View.HOME)} 
+            onMarkAsRead={handleMarkAsRead} 
+          />
+        )}
         {view === View.POST_SUBMIT && (
           <PostSubmit 
             onCancel={() => updateView(View.HOME)} 
@@ -412,7 +432,6 @@ const App: React.FC = () => {
             userEmail={user.email} 
             onComplete={(data) => {
               console.log('Onboarding complete:', data);
-              // Update local user state or perform Supabase update if needed
               setUser(prev => prev ? { ...prev, username: data.username, headline: data.headline } : null);
               updateView(View.HOME);
             }} 
