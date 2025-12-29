@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -43,6 +42,9 @@ function ConnectionDebug() {
     </div>
   );
 }
+
+const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+const unslugify = (slug: string) => slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
 export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void }> = ({ user, setView }) => (
   <aside className="hidden xl:block w-80 shrink-0">
@@ -166,6 +168,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -197,15 +200,19 @@ const App: React.FC = () => {
         setView(View.NEWSLETTER);
       } else if (path === '/categories') {
         setView(View.CATEGORIES);
-      } else if (path === '/categories/ai-meeting-notetakers') {
-        setView(View.CATEGORY_DETAIL);
+      } else if (path.startsWith('/categories/')) {
+        const slug = path.split('/categories/')[1];
+        if (slug) {
+          setActiveCategory(unslugify(slug));
+          setView(View.CATEGORY_DETAIL);
+        }
       } else if (path === '/') {
         setView(View.HOME);
       }
     };
 
     window.addEventListener('popstate', handlePopState);
-    handlePopState(); // Initial sync on load
+    handlePopState();
 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -220,7 +227,8 @@ const App: React.FC = () => {
       else if (newView === View.SPONSOR) path = '/sponsor';
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
-      else if (newView === View.CATEGORY_DETAIL) path = '/categories/ai-meeting-notetakers';
+      else if (newView === View.CATEGORY_DETAIL) path = `/categories/${slugify(activeCategory)}`;
+      else if (newView === View.HOME) path = '/';
     }
     
     try {
@@ -233,13 +241,8 @@ const App: React.FC = () => {
   };
 
   const handleCategorySelect = (cat: string) => {
-    const slug = cat.toLowerCase().replace(/\s+/g, '-');
-    if (slug === 'ai-notetakers' || slug === 'ai-meeting-notetakers') {
-      updateView(View.CATEGORY_DETAIL);
-    } else {
-      setSearchQuery(cat);
-      updateView(View.HOME, `/categories/${slug}`);
-    }
+    setActiveCategory(cat);
+    updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
   };
 
   // Initial Auth Check
@@ -248,11 +251,13 @@ const App: React.FC = () => {
       .then(({ data }) => {
         const session = data?.session;
         if (session?.user) {
+          const userMetadata = session.user.user_metadata || {};
+          const email = session.user.email || '';
           setUser({
             id: session.user.id,
-            email: session.user.email || '',
-            username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
-            avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+            email: email,
+            username: userMetadata.full_name || email.split('@')[0] || 'Member',
+            avatar_url: userMetadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
           });
         }
       })
@@ -260,11 +265,13 @@ const App: React.FC = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        const userMetadata = session.user.user_metadata || {};
+        const email = session.user.email || '';
         setUser({
           id: session.user.id,
-          email: session.user.email || '',
-          username: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Member',
-          avatar_url: session.user.user_metadata?.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
+          email: email,
+          username: userMetadata.full_name || email.split('@')[0] || 'Member',
+          avatar_url: userMetadata.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`
         });
       } else {
         setUser(null);
@@ -274,7 +281,7 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch Products and Comments from Supabase
+  // Fetch Products
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -462,7 +469,6 @@ const App: React.FC = () => {
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
 
-  // High-Fidelity Historical Grouping Logic
   const groupedProducts = useMemo(() => {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -501,8 +507,6 @@ const App: React.FC = () => {
     { id: 'lastMonth', title: "Last Month's Top Products", data: groupedProducts.lastMonth, buttonText: "See all of last month's top products" }
   ];
 
-  const showSidebar = view === View.HOME;
-
   return (
     <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
       <ConnectionDebug />
@@ -512,8 +516,7 @@ const App: React.FC = () => {
         setView={updateView} 
         onLogout={handleLogout}
         searchQuery={searchQuery}
-        /* Fix: Use setSearchQuery from state for onSearchChange prop */
-        onSearchChange={setSearchQuery}
+        onSearchChange={(q) => setSearchQuery(q)}
         onViewProfile={() => user && handleViewProfile(user.id)}
       />
 
@@ -541,9 +544,6 @@ const App: React.FC = () => {
                     <section key={section.id} className="relative">
                       <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
                         <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
-                        {!isExpanded && section.data.length > 5 && (
-                          <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{section.data.length} Total</span>
-                        )}
                       </div>
                       
                       <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
@@ -565,7 +565,7 @@ const App: React.FC = () => {
                         <div className="mt-8 flex justify-center">
                           <button 
                             onClick={() => setExpandedSections(prev => ({ ...prev, [section.id]: true }))}
-                            className="group flex items-center gap-4 px-10 py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-widest text-emerald-800 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm active:scale-[0.98]"
+                            className="group flex items-center gap-4 px-10 py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-widest text-emerald-800 hover:bg-emerald-50 hover:border-emerald-200 transition-all shadow-sm"
                           >
                             {section.buttonText}
                             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -577,7 +577,7 @@ const App: React.FC = () => {
                 })}
               </div>
             </div>
-            {showSidebar && <TrendingSidebar user={user} setView={updateView} />}
+            {view === View.HOME && <TrendingSidebar user={user} setView={updateView} />}
           </div>
         )}
 
@@ -646,6 +646,8 @@ const App: React.FC = () => {
         )}
         {view === View.CATEGORY_DETAIL && (
           <CategoryDetail 
+            category={activeCategory}
+            products={products}
             onBack={() => updateView(View.CATEGORIES)}
             onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }}
             onUpvote={handleUpvote}
