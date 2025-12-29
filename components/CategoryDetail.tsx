@@ -15,23 +15,26 @@ interface CategoryDetailProps {
 
 const POSTS_PER_PAGE = 10;
 
-// High-fidelity brand logos for specific niche categories
+/**
+ * CORE BRAND ASSETS
+ * High-fidelity logo sources for the niche category view.
+ */
 const NICHE_LOGOS: Record<string, { name: string, src: string }[]> = {
   'ai notetakers': [
-    { name: 'Notion', src: 'https://www.notion.so/images/favicon.ico' },
-    { name: 'Fathom', src: 'https://fathom.video/favicon.ico' },
-    { name: 'Granola', src: 'https://granola.ai/favicon.ico' },
-    { name: 'Fireflies.ai', src: 'https://fireflies.ai/favicon.ico' },
-    { name: 'tl;dv', src: 'https://tldv.io/wp-content/uploads/2022/01/cropped-favicon-32x32.png' },
-    { name: 'Grain', src: 'https://grain.com/favicon.ico' }
+    { name: 'Notion', src: 'https://logo.clearbit.com/notion.so' },
+    { name: 'Fathom', src: 'https://logo.clearbit.com/fathom.video' },
+    { name: 'Granola', src: 'https://logo.clearbit.com/granola.ai' },
+    { name: 'Fireflies.ai', src: 'https://logo.clearbit.com/fireflies.ai' },
+    { name: 'tl;dv', src: 'https://logo.clearbit.com/tldv.io' },
+    { name: 'Grain', src: 'https://logo.clearbit.com/grain.com' }
   ],
   'ai meeting notetakers': [
-    { name: 'Notion', src: 'https://www.notion.so/images/favicon.ico' },
-    { name: 'Fathom', src: 'https://fathom.video/favicon.ico' },
-    { name: 'Granola', src: 'https://granola.ai/favicon.ico' },
-    { name: 'Fireflies.ai', src: 'https://fireflies.ai/favicon.ico' },
-    { name: 'tl;dv', src: 'https://tldv.io/wp-content/uploads/2022/01/cropped-favicon-32x32.png' },
-    { name: 'Grain', src: 'https://grain.com/favicon.ico' }
+    { name: 'Notion', src: 'https://logo.clearbit.com/notion.so' },
+    { name: 'Fathom', src: 'https://logo.clearbit.com/fathom.video' },
+    { name: 'Granola', src: 'https://logo.clearbit.com/granola.ai' },
+    { name: 'Fireflies.ai', src: 'https://logo.clearbit.com/fireflies.ai' },
+    { name: 'tl;dv', src: 'https://logo.clearbit.com/tldv.io' },
+    { name: 'Grain', src: 'https://logo.clearbit.com/grain.com' }
   ]
 };
 
@@ -94,15 +97,20 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
   const clusterLogos = useMemo(() => {
     const nicheLogos = NICHE_LOGOS[normalizedCategory];
+    // Use niche specific logos if they exist, else use top products
     const sourceLogos = nicheLogos || categoryProducts.slice(0, 6).map(p => ({ name: p.name, src: p.logo_url }));
     
+    /**
+     * PRECISE FLOATING STACK POSITIONS
+     * Calculated to replicate the organic "scattered" look seen on high-fidelity niche pages.
+     */
     const positions = [
-      'top-0 right-10 w-20 h-20 rotate-[-12deg] z-10',
-      'top-4 right-0 w-16 h-16 rotate-[12deg] z-20',
+      'top-0 right-10 w-16 h-16 rotate-[-12deg] z-10',
+      'top-4 right-0 w-14 h-14 rotate-[12deg] z-20',
       'bottom-0 left-4 w-18 h-18 rotate-[8deg] z-10',
-      'bottom-4 right-4 w-20 h-20 rotate-[-8deg] z-30',
-      'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rotate-[15deg] z-40',
-      'top-12 right-24 w-16 h-16 rotate-[-5deg] z-20 shadow-2xl'
+      'bottom-4 right-4 w-16 h-16 rotate-[-8deg] z-30',
+      'top-1/2 right-12 -translate-y-1/2 w-14 h-14 rotate-[15deg] z-40',
+      'top-10 right-28 w-14 h-14 rotate-[-5deg] z-20'
     ];
 
     return sourceLogos.slice(0, 6).map((logo, i) => ({
@@ -179,13 +187,14 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             </div>
           </div>
 
+          {/* HIGH-FIDELITY LOGO CLUSTER CONTAINER */}
           <div className="hidden lg:block relative w-48 h-48 shrink-0 mt-8">
             {clusterLogos.map((logo) => (
               <LogoIcon key={logo.name} logo={logo} />
             ))}
             {clusterLogos.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center border-2 border-dashed border-gray-100 rounded-[2rem] text-gray-300 text-[10px] font-black uppercase tracking-widest text-center px-4">
-                Launch your {category} here
+                Directory Spotlight
               </div>
             )}
           </div>
