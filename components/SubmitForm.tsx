@@ -4,7 +4,8 @@ import {
   X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
   Calendar, Link as LinkIcon, User as UserIcon, Plus, 
   CheckCircle2, DollarSign, Tag, Clock, Rocket, Sparkles, Image as ImageIcon,
-  Check, ChevronRight, Search
+  // Added ChevronDown to fix "Cannot find name 'ChevronDown'" error
+  Check, ChevronRight, Search, ChevronDown
 } from 'lucide-react';
 import { HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
@@ -109,7 +110,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
             <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Name of launch</label>
-                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g., QuranFlow" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold" />
+                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g., QuranFlow" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner" />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
@@ -118,11 +119,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                     {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} AI Help
                   </button>
                 </div>
-                <input required value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})} placeholder="Catchy one-liner" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold" />
+                <input required value={formData.tagline} onChange={e => setFormData({...formData, tagline: e.target.value})} placeholder="Catchy one-liner" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner" />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2"><LinkIcon className="w-3.5 h-3.5" /> Links (URL)</label>
-                <input required type="url" value={formData.url} onChange={e => setFormData({...formData, url: e.target.value})} placeholder="https://yourproduct.com" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold" />
+                <input required type="url" value={formData.url} onChange={e => setFormData({...formData, url: e.target.value})} placeholder="https://yourproduct.com" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner" />
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Description</label>
@@ -131,23 +132,28 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-emerald-800" /> Launch Date</label>
-                  <input required type="date" value={formData.launchDate} onChange={e => setFormData({...formData, launchDate: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold" />
+                  <div className="relative">
+                    <input required type="date" value={formData.launchDate} onChange={e => setFormData({...formData, launchDate: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner appearance-none" />
+                    <Calendar className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-800 pointer-events-none opacity-30" />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold appearance-none cursor-pointer">
-                    {/* Fix: Explicitly cast to [string, Category[]][] to ensure 'items' is inferred correctly */}
-                    {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
-                      <optgroup key={group} label={group}>
-                        {items.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                      </optgroup>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold appearance-none cursor-pointer shadow-inner">
+                      {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
+                        <optgroup key={group} label={group} className="font-black uppercase tracking-widest text-xs bg-white text-emerald-800">
+                          {items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-800 pointer-events-none opacity-30" />
+                  </div>
                 </div>
               </div>
             </div>
             <div className="pt-8">
-              <button type="button" onClick={() => setActiveStep(Step.MEDIA)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">
+              <button type="button" onClick={() => setActiveStep(Step.MEDIA)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98] shadow-emerald-900/10">
                 Next step: Images and media <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -166,7 +172,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               <button type="button" className="px-6 py-2 bg-white border border-gray-200 rounded-xl text-xs font-black text-gray-500 hover:text-emerald-800 transition-all">Choose File</button>
             </div>
             <div className="pt-8 flex gap-4">
-              <button type="button" onClick={() => setActiveStep(Step.MAIN_INFO)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all">Back</button>
+              <button type="button" onClick={() => setActiveStep(Step.MAIN_INFO)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all active:scale-[0.98]">Back</button>
               <button type="button" onClick={() => setActiveStep(Step.MAKERS)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">Next step: Makers <ArrowRight className="w-5 h-5" /></button>
             </div>
           </div>
@@ -178,12 +184,12 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
             <div className="bg-gray-50 p-10 rounded-[2.5rem] space-y-8 border border-gray-100">
               <p className="text-lg font-bold text-gray-900 text-center">Did you work on this product?</p>
               <div className="flex gap-4">
-                <button type="button" onClick={() => setFormData({...formData, isMaker: true})} className={`flex-1 py-5 px-8 rounded-2xl border-2 transition-all font-black text-center text-sm uppercase ${formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>I worked on this</button>
-                <button type="button" onClick={() => setFormData({...formData, isMaker: false})} className={`flex-1 py-5 px-8 rounded-2xl border-2 transition-all font-black text-center text-sm uppercase ${!formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>I didn't work on this</button>
+                <button type="button" onClick={() => setFormData({...formData, isMaker: true})} className={`flex-1 py-5 px-8 rounded-2xl border-2 transition-all font-black text-center text-sm uppercase ${formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/10' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>I worked on this</button>
+                <button type="button" onClick={() => setFormData({...formData, isMaker: false})} className={`flex-1 py-5 px-8 rounded-2xl border-2 transition-all font-black text-center text-sm uppercase ${!formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/10' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>I didn't work on this</button>
               </div>
             </div>
             <div className="pt-8 flex gap-4">
-              <button type="button" onClick={() => setActiveStep(Step.MEDIA)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all">Back</button>
+              <button type="button" onClick={() => setActiveStep(Step.MEDIA)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all active:scale-[0.98]">Back</button>
               <button type="button" onClick={() => setActiveStep(Step.EXTRAS)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">Next step: Extras <ArrowRight className="w-5 h-5" /></button>
             </div>
           </div>
@@ -196,7 +202,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-800" /> Pricing</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {['Free', 'Paid', 'Paid (with trial)'].map((p) => (
-                  <button key={p} type="button" onClick={() => setFormData({...formData, pricing: p})} className={`py-5 px-6 rounded-2xl border-2 transition-all font-black text-center text-xs uppercase ${formData.pricing === p ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>{p}</button>
+                  <button key={p} type="button" onClick={() => setFormData({...formData, pricing: p})} className={`py-5 px-6 rounded-2xl border-2 transition-all font-black text-center text-xs uppercase ${formData.pricing === p ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/10' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}>{p}</button>
                 ))}
               </div>
             </div>
@@ -204,18 +210,18 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               <div className="flex items-center gap-3 text-emerald-900 font-black uppercase tracking-widest text-xs"><ShieldCheck className="w-5 h-5 text-emerald-800" /> Halal Trust</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Verification Status</label>
-                  <select value={formData.halal_status} onChange={e => setFormData({...formData, halal_status: e.target.value as any})} className="w-full px-6 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base appearance-none cursor-pointer">
+                  <select value={formData.halal_status} onChange={e => setFormData({...formData, halal_status: e.target.value as any})} className="w-full px-6 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base appearance-none cursor-pointer shadow-inner">
                     {HALAL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div className="space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex items-center gap-1.5"><Heart className="w-4 h-4 text-red-500 fill-red-500" /> Sadaqah Component</label>
-                  <input value={formData.sadaqah_info} onChange={e => setFormData({...formData, sadaqah_info: e.target.value})} placeholder="e.g. 5% of profits to charity" className="w-full px-6 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base" />
+                  <input value={formData.sadaqah_info} onChange={e => setFormData({...formData, sadaqah_info: e.target.value})} placeholder="e.g. 5% of profits to charity" className="w-full px-6 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base shadow-inner" />
                 </div>
               </div>
             </div>
             <div className="pt-8 flex gap-4">
-              <button type="button" onClick={() => setActiveStep(Step.MAKERS)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all">Back</button>
-              <button type="button" onClick={() => setActiveStep(Step.CHECKLIST)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98]">Next step: Launch checklist <ArrowRight className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setActiveStep(Step.MAKERS)} className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all active:scale-[0.98]">Back</button>
+              <button type="button" onClick={() => setActiveStep(Step.CHECKLIST)} className="px-10 py-5 bg-emerald-800 text-white rounded-2xl font-black text-lg hover:bg-emerald-900 transition-all flex items-center gap-2 shadow-lg active:scale-[0.98] shadow-emerald-900/10">Next step: Launch checklist <ArrowRight className="w-5 h-5" /></button>
             </div>
           </div>
         );
@@ -232,7 +238,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               ))}
             </div>
             <div className="pt-12">
-              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-black py-7 rounded-[2.5rem] shadow-2xl transition-all active:scale-[0.98] text-2xl flex items-center justify-center gap-4 disabled:opacity-70">
+              <button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-black py-7 rounded-[2.5rem] shadow-2xl transition-all active:scale-[0.98] text-2xl flex items-center justify-center gap-4 disabled:opacity-70 shadow-emerald-900/30">
                 {isSubmitting ? <><Loader2 className="w-8 h-8 animate-spin" />Propagating...</> : <><Rocket className="w-8 h-8" />Confirm and Launch</>}
               </button>
             </div>
@@ -252,14 +258,14 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
           {Object.values(Step).map((step) => {
             const isActive = activeStep === step;
             return (
-              <button key={step} onClick={() => !isSubmitting && setActiveStep(step as Step)} className={`w-full text-left px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] transition-all group flex items-center justify-between ${isActive ? 'bg-white text-emerald-800 shadow-md border border-gray-100' : 'text-gray-400 hover:text-emerald-800'}`}>
+              <button key={step} onClick={() => !isSubmitting && setActiveStep(step as Step)} className={`w-full text-left px-6 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] transition-all group flex items-center justify-between ${isActive ? 'bg-white text-emerald-800 shadow-md border border-gray-100' : 'text-gray-400 hover:text-emerald-800 hover:bg-white/50'}`}>
                 {step}{isActive && <ChevronRight className="w-4 h-4 text-emerald-800" />}
               </button>
             );
           })}
         </aside>
         <main className="flex-1 p-10 md:p-20 overflow-y-auto custom-scrollbar">
-          {error && <div className="mb-10 p-6 bg-red-50 border border-red-100 text-red-600 rounded-3xl flex items-center gap-4"><AlertCircle className="w-6 h-6 shrink-0" /><div className="flex-1"><p className="text-xs font-black uppercase tracking-widest mb-1">Submission Error</p><p className="text-sm font-bold">{error.message}</p></div></div>}
+          {error && <div className="mb-10 p-6 bg-red-50 border border-red-100 text-red-600 rounded-3xl flex items-center gap-4 shadow-sm animate-in slide-in-from-top-4"><AlertCircle className="w-6 h-6 shrink-0" /><div className="flex-1"><p className="text-xs font-black uppercase tracking-widest mb-1">Submission Error</p><p className="text-sm font-bold">{error.message}</p></div></div>}
           {renderStepContent()}
         </main>
       </div>

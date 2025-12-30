@@ -342,6 +342,8 @@ const App: React.FC = () => {
           onSignInClick={() => setIsAuthModalOpen(true)}
           notifications={notifications}
           menuItems={menuItems}
+          categories={categories}
+          onCategorySelect={handleCategorySelect}
         />
       )}
       
