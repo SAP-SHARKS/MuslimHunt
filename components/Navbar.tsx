@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
-  MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
+  MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, ArrowUpRight, Star,
   Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
   Triangle, Clock, Menu, Zap, Layout, Trophy
 } from 'lucide-react';
@@ -10,6 +10,18 @@ import { formatTimeAgo } from '../utils/dateUtils';
 
 const ICON_MAP: Record<string, any> = {
   Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy
+};
+
+// High-fidelity mapping for sub-category discovery
+const CATEGORY_DRILLDOWN: Record<string, string[]> = {
+  'Trending Categories': ['Vibe Coding Tools', 'AI Dictation Apps', 'Halal Habit Trackers', 'ArabicHero Pro'],
+  'Engineering & Development': ['AI Coding Agents', 'AI Code Editors', 'Unified APIs', 'Browser Automation'],
+  'LLMs': ['AI Chatbots', 'Prompt Engineering', 'Vector Databases', 'Privacy Models'],
+  'Productivity': ['AI notetakers', 'Note and writing apps', 'Team collaboration', 'Search'],
+  'Marketing & Sales': ['Ethical Marketing', 'Lead generation', 'Ad Networks', 'SEO Tools'],
+  'Design & Creative': ['AI Generative Media', '3D & Animation', 'Graphic design', 'Video editing'],
+  'Finance': ['Accounting software', 'Fundraising', 'Shariah Investing', 'Payroll'],
+  'Spirituality & Deen': ['Quran Apps', 'Prayer Timings', 'Islamic Education', 'Charity & Zakat']
 };
 
 interface DropdownItem {
@@ -23,97 +35,120 @@ interface DropdownItem {
 
 const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeHoverCategory, setActiveHoverCategory] = useState<string>(items[0]?.label || '');
   const isBestProducts = label === "Best Products";
 
-  // Split items for two-column layout if it's the Best Products menu
-  const browseItems = items.slice(0, 6);
-  const popularItems = items.slice(6);
+  // Reset active category when menu closes or opens
+  useEffect(() => {
+    if (isOpen && items.length > 0) {
+      // Find first non-header item if needed, but here we assume items are categories
+      setActiveHoverCategory(items[0].label);
+    }
+  }, [isOpen, items]);
 
   return (
     <div 
       className="relative group h-full flex items-center" 
       onMouseEnter={() => setIsOpen(true)} 
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseLeave={() => {
+        setIsOpen(false);
+      }}
     >
-      <button className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-emerald-800 py-4 transition-colors">
+      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-emerald-800 py-4 transition-colors">
         {label}
-        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
-        <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[600px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden`}>
+        <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[640px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[2rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
           {isBestProducts ? (
             <div className="flex flex-col">
-              {/* Featured Orbit Awards Banner */}
-              <div className="bg-emerald-900 px-6 py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Orbit Awards 2025 • Nominees Open</span>
+              {/* FEATURED: Orbit Awards Banner - High Fidelity Red Branding */}
+              <div className="bg-red-50/50 px-6 py-4 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-50 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
+                    <Trophy className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-black text-gray-900 leading-none">Orbit Awards</p>
+                    <p className="text-[11px] text-gray-500 font-medium mt-1.5">Awards powered by what reviewers actually say</p>
+                  </div>
                 </div>
-                <ArrowRight className="w-3 h-3 text-emerald-400" />
+                <ArrowRight className="w-4 h-4 text-red-400 group-hover/banner:translate-x-1 transition-transform" />
               </div>
 
-              <div className="flex">
-                {/* Left Column: BROWSE */}
-                <div className="w-3/5 p-6 border-r border-gray-50">
-                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">Browse</span>
+              <div className="flex divide-x divide-gray-100">
+                {/* Left Column: BROWSE PANE (Category Switcher) */}
+                <div className="w-[55%] p-6 pt-5">
                   <div className="grid grid-cols-1 gap-1">
-                    {browseItems.map((item, i) => (
-                      <button key={i} onClick={item.onClick} className="w-full flex items-center gap-4 p-2 hover:bg-gray-50 rounded-xl transition-all text-left group/item">
-                        <div className={`w-9 h-9 ${item.bgClass} rounded-xl flex items-center justify-center ${item.colorClass} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
-                          <item.icon className="w-4.5 h-4.5" />
+                    {items.map((item, i) => (
+                      <button 
+                        key={i} 
+                        onMouseEnter={() => setActiveHoverCategory(item.label)}
+                        onClick={item.onClick} 
+                        className={`w-full flex items-center gap-4 p-2.5 rounded-2xl transition-all text-left group/item relative ${
+                          activeHoverCategory === item.label ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 ${item.bgClass} rounded-full flex items-center justify-center ${item.colorClass} shrink-0 shadow-sm transition-transform group-hover/item:scale-110`}>
+                          <item.icon className="w-5 h-5" />
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 leading-none">{item.label}</p>
-                          <p className="text-[10px] text-gray-500 font-medium truncate mt-1">{item.subtext}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[14px] font-bold leading-none transition-colors ${
+                            activeHoverCategory === item.label ? 'text-blue-900' : 'text-gray-900 group-hover/item:text-emerald-800'
+                          }`}>{item.label}</p>
+                          <p className="text-[11px] text-gray-400 font-medium truncate mt-1.5">{item.subtext}</p>
                         </div>
+                        {activeHoverCategory === item.label && (
+                          <ChevronRight className="w-4 h-4 text-blue-400 animate-in slide-in-from-left-1" />
+                        )}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Right Column: POPULAR NOW */}
-                <div className="w-2/5 p-6 bg-gray-50/30">
-                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 block">Popular Now</span>
-                  <div className="space-y-4 mb-10">
-                    {popularItems.map((item, i) => (
-                      <button key={i} onClick={item.onClick} className="w-full text-left group/pop block">
-                        <p className="text-xs font-bold text-gray-700 group-hover/pop:text-emerald-800 transition-colors leading-tight">{item.label}</p>
+                {/* Right Column: POPULAR NOW PANE (Dynamic Content) */}
+                <div className="w-[45%] p-6 pt-5 bg-gray-50/20 flex flex-col">
+                  <div className="space-y-4 mb-auto px-2">
+                    {(CATEGORY_DRILLDOWN[activeHoverCategory] || CATEGORY_DRILLDOWN['Trending Categories']).map((link, i) => (
+                      <button key={i} className="w-full text-left group/pop flex items-center justify-between py-1">
+                        <p className="text-[13px] font-bold text-gray-700 group-hover/pop:text-emerald-800 transition-colors">{link}</p>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-gray-200 group-hover/pop:text-emerald-500 transition-colors" />
                       </button>
                     ))}
                   </div>
 
-                  {/* PROMOTION Card */}
-                  <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl relative overflow-hidden group/promo cursor-pointer">
-                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/promo:scale-125 transition-transform">
+                  {/* PROMOTION CARD */}
+                  <div className="mt-8 bg-emerald-50 border border-emerald-100 p-5 rounded-[1.5rem] relative overflow-hidden group/promo cursor-pointer">
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/promo:rotate-12 group-hover/promo:scale-125 transition-all">
                       <Sparkles className="w-10 h-10 text-emerald-800" />
                     </div>
-                    <p className="text-[8px] font-black text-emerald-800 uppercase tracking-widest mb-1">Promotion</p>
-                    <p className="text-[11px] font-black text-gray-900 leading-tight">Partner with Muslim Hunt</p>
-                    <button className="mt-2 text-[9px] font-black text-emerald-800 flex items-center gap-1 group-hover/promo:translate-x-1 transition-transform">
-                      View Media Kit <ChevronRight className="w-2 h-2" />
+                    <p className="text-[8px] font-black text-emerald-800 uppercase tracking-[0.2em] mb-1.5">Promotion</p>
+                    <p className="text-[13px] font-black text-gray-900 leading-tight">Partner with Muslim Hunt</p>
+                    <button className="mt-2.5 text-[10px] font-black text-emerald-800 flex items-center gap-1 group-hover/promo:translate-x-1 transition-transform uppercase tracking-widest">
+                      View Media Kit <ChevronRight className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="py-4">
-              <div className="px-5 mb-2">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Browse</span>
+            <div className="py-5">
+              <div className="px-6 mb-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em]">Browse</span>
               </div>
               {items.map((item, i) => (
                 <button 
                   key={i} 
                   onClick={item.onClick}
-                  className="w-full flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 transition-all text-left group/item"
+                  className="w-full flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-all text-left group/item"
                 >
-                  <div className={`w-9 h-9 ${item.bgClass} rounded-xl flex items-center justify-center ${item.colorClass} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
-                    <item.icon className="w-4.5 h-4.5" />
+                  <div className={`w-10 h-10 ${item.bgClass} rounded-xl flex items-center justify-center ${item.colorClass} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
+                    <item.icon className="w-5 h-5" />
                   </div>
-                  <div className="flex flex-col pt-0.5">
-                    <p className="text-sm font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors leading-tight">{item.label}</p>
-                    <p className="text-[11px] text-gray-500 font-medium leading-tight mt-1 line-clamp-1">{item.subtext}</p>
+                  <div className="flex flex-col pt-0.5 min-w-0">
+                    <p className="text-[14px] font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors leading-none">{item.label}</p>
+                    <p className="text-[11px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>
                   </div>
                 </button>
               ))}
@@ -178,11 +213,16 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Strict Navigation Hierarchy: Best Products, Launches, News, Forums
+  const mainNavItems = menuItems.filter(item => 
+    ["Best Products", "Launches", "News", "Forums"].includes(item.label)
+  );
+
   return (
     <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 h-16">
         <div className="flex items-center gap-4">
-          {/* Mobile Hamburger Icon - Top Left */}
+          {/* Mobile Hamburger Icon - Top Left Portrait Fixed */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 -ml-2 text-gray-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all active:scale-90"
@@ -205,9 +245,9 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Desktop Navigation Links - Exclusively Dynamic from Supabase */}
-        <div className="hidden md:flex items-center gap-6 h-full">
-          {menuItems.map((menu) => (
+        {/* Desktop Navigation Links */}
+        <div className="hidden md:flex items-center gap-7 h-full">
+          {mainNavItems.map((menu) => (
             <React.Fragment key={menu.id}>
               {menu.sub_items && menu.sub_items.length > 0 ? (
                 <RichDropdown 
@@ -224,7 +264,7 @@ const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button 
                   onClick={() => menu.view && setView(menu.view)}
-                  className={`text-sm font-medium transition-colors py-4 px-1 flex items-center h-full relative ${
+                  className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${
                     menu.view === currentView ? 'text-emerald-800 font-bold' : 'text-gray-600 hover:text-emerald-800'
                   }`}
                 >
@@ -252,7 +292,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Actions Section */}
+        {/* Global Action Utility Buttons */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowMobileSearch(true)}
@@ -261,10 +301,10 @@ const Navbar: React.FC<NavbarProps> = ({
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Subscribe Button - Positioned left of Sign In/User */}
+          {/* Subscribe Button - Left of Sign In, Gray Border High Fidelity */}
           <button 
             onClick={() => setView(View.NEWSLETTER)}
-            className="hidden sm:block text-gray-600 font-bold text-sm px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors active:scale-95"
+            className="hidden sm:block text-gray-600 font-bold text-[13px] px-5 py-2.5 border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
           >
             Subscribe
           </button>
@@ -278,7 +318,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && (
-                    <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ff6154] rounded-full border-2 border-white" />
+                    <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ff6154] rounded-full border-2 border-white shadow-sm" />
                   )}
                 </button>
                 
@@ -370,7 +410,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-3">
               <button 
                 onClick={onSignInClick}
-                className="text-emerald-800 font-bold text-sm px-4 py-2 hover:bg-emerald-50 rounded-lg transition-colors active:scale-95"
+                className="text-emerald-800 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm"
               >
                 Sign In
               </button>
@@ -379,26 +419,24 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu Overlay - Portrait Optimized Vertical List */}
+      {/* Mobile Menu Overlay - Portrait Dynamic Vertical Stack */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl z-[120] animate-in slide-in-from-top-4 duration-300 overflow-y-auto max-h-[calc(100vh-64px)]">
           <div className="p-6 space-y-8">
-            {/* Quick Access Categories Link */}
             <button 
               onClick={() => { setView(View.CATEGORIES); setIsMobileMenuOpen(false); }}
-              className="w-full flex items-center justify-between p-4 bg-emerald-50 rounded-2xl text-emerald-800 group active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-between p-4 bg-emerald-50/50 rounded-2xl text-emerald-800 group active:scale-[0.98] transition-all border border-emerald-100"
             >
               <div className="flex items-center gap-4">
                 <Layout className="w-6 h-6" />
-                <span className="text-lg font-black uppercase tracking-tight">Explore Categories</span>
+                <span className="text-lg font-black uppercase tracking-tight">Explore Directory</span>
               </div>
               <ChevronRight className="w-5 h-5 opacity-50" />
             </button>
 
-            {/* Dynamic Mobile Menu Mapping */}
-            {menuItems.map((menu) => (
+            {mainNavItems.map((menu) => (
               <div key={menu.id} className="space-y-4">
-                <div className="flex items-center gap-3 px-2">
+                <div className="flex items-center gap-3 px-2 border-b border-gray-50 pb-2">
                   {menu.icon && ICON_MAP[menu.icon] && React.createElement(ICON_MAP[menu.icon], { className: "w-4 h-4 text-emerald-800 opacity-60" })}
                   <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">{menu.label}</h3>
                 </div>
@@ -436,19 +474,15 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             ))}
 
-            {/* Mobile Footer CTAs */}
-            {!user && (
-              <div className="pt-4">
+            <div className="pt-2 pb-10 space-y-4">
+              {!user && (
                 <button 
                   onClick={() => { onSignInClick(); setIsMobileMenuOpen(false); }}
                   className="w-full py-4 bg-emerald-800 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-[0.98] transition-all"
                 >
                   Join the Community
                 </button>
-              </div>
-            )}
-            
-            <div className="pt-2 pb-10">
+              )}
               <button 
                 onClick={() => { setView(View.SPONSOR); setIsMobileMenuOpen(false); }}
                 className="w-full flex items-center justify-center gap-3 p-4 bg-gray-900 text-white rounded-2xl font-bold active:scale-[0.98] transition-all"
@@ -461,7 +495,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
 
-      {/* Mobile Search Modal */}
+      {/* Mobile Search Overlay */}
       {showMobileSearch && (
         <div className="fixed inset-0 z-[150] bg-black/50 lg:hidden" onClick={() => setShowMobileSearch(false)}>
           <div className="bg-white p-4 animate-in slide-in-from-top-2" onClick={(e) => e.stopPropagation()}>
@@ -473,13 +507,13 @@ const Navbar: React.FC<NavbarProps> = ({
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 autoFocus
-                className="flex-1 py-3 bg-transparent border-none outline-none text-lg font-bold text-gray-900"
+                className="flex-1 py-4 bg-transparent border-none outline-none text-lg font-bold text-gray-900"
               />
               <button
                 onClick={() => setShowMobileSearch(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
           </div>
