@@ -131,7 +131,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
@@ -155,13 +155,11 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // LOGIC: Merge database items with INITIAL_PRODUCTS to keep feed busy while showing real items first
-      const fetchedProducts = data && data.length > 0 ? [...data, ...INITIAL_PRODUCTS] : INITIAL_PRODUCTS;
-      setProducts(fetchedProducts);
+      console.log("Database Products:", data);
+      setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
-      setProducts(INITIAL_PRODUCTS);
+      setProducts([]);
     }
   };
 
@@ -346,14 +344,10 @@ const App: React.FC = () => {
 
     filteredProducts.forEach(p => {
       const time = new Date(p.created_at).getTime();
-      // LOGIC: If a product is from the future relative to today's start, count it as today
       if (time >= todayStart) grouped.today.push(p);
       else if (time >= yesterdayStart) grouped.yesterday.push(p);
       else if (time >= lastWeekStart) grouped.lastWeek.push(p);
-      else {
-        // CATCH-ALL: Ensure all older or unrecognized products fall into the lastMonth bucket so they are visible
-        grouped.lastMonth.push(p);
-      }
+      else grouped.lastMonth.push(p);
     });
 
     const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);

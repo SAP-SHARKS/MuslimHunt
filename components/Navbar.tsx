@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
+  Search, LogOut, ChevronDown, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
   Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
   Triangle, Clock, Menu, Zap, Layout
@@ -9,6 +9,7 @@ import {
 import { User, View, Notification, NavMenuItem } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
+// Fix: Added missing 'Zap' and 'Layout' imports to match usage in ICON_MAP and mobile menu
 const ICON_MAP: Record<string, any> = {
   Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone
 };
@@ -31,7 +32,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
         <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 w-80 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1) ] rounded-2xl py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+        <div className="absolute top-full left-0 w-80 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
           {items.map((item, i) => (
             <button 
               key={i} 
@@ -95,7 +96,7 @@ const BestProductsDropdown: React.FC<{ setView: (view: View) => void }> = ({ set
       </button>
       
       {isOpen && (
-        <div className="absolute top-full left-0 w-[620px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1) ] rounded-b-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-0 w-[620px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-b-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="bg-gray-50/50 border-b border-gray-100 p-2">
             <button className="flex items-center gap-4 w-full hover:bg-white p-3 rounded-xl transition-all group/award text-left">
               <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center text-red-600 shadow-sm group-hover/award:scale-105 transition-transform shrink-0">
@@ -256,11 +257,10 @@ const Navbar: React.FC<NavbarProps> = ({
     <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 h-16">
         <div className="flex items-center gap-4">
-          {/* Mobile Hamburger Icon - POSITIONED AT TOP-LEFT FOR MD- */}
+          {/* Mobile Hamburger Icon */}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-gray-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all active:scale-90"
-            aria-label="Toggle Mobile Menu"
+            className="md:hidden p-2 text-gray-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -279,7 +279,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Desktop Navigation Links - MAPPED FROM SUPABASE */}
+        {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-6 h-full">
           <BestProductsDropdown setView={setView} />
           
@@ -301,7 +301,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <button 
                   onClick={() => menu.view && setView(menu.view)}
                   className={`text-sm font-medium transition-colors py-4 px-1 flex items-center h-full ${
-                    menu.view === currentView ? 'text-emerald-800 border-b-2 border-emerald-800' : 'text-gray-600 hover:text-emerald-800'
+                    menu.view === currentView ? 'text-emerald-800' : 'text-gray-600 hover:text-emerald-800'
                   }`}
                 >
                   {menu.label}
@@ -493,7 +493,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu Overlay - SLIDES DOWN FROM NAVBAR */}
+      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl z-[120] animate-in slide-in-from-top-4 duration-300 overflow-y-auto max-h-[80vh]">
           <div className="p-6 space-y-8">
@@ -511,7 +511,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <ArrowRight className="w-6 h-6 text-gray-300 group-hover:text-emerald-800 transition-colors" />
             </button>
 
-            {/* Dynamic Mobile Menu Items - MAPPED FROM DATABASE */}
+            {/* Dynamic Mobile Menu Items */}
             {menuItems.map((menu) => (
               <div key={menu.id} className="space-y-4">
                 <div className="flex items-center gap-3 px-2">
@@ -519,33 +519,26 @@ const Navbar: React.FC<NavbarProps> = ({
                   <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">{menu.label}</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  {menu.sub_items && menu.sub_items.length > 0 ? menu.sub_items.map((sub, idx) => (
+                  {menu.sub_items ? menu.sub_items.map((sub, idx) => (
                     <button
                       key={idx}
                       onClick={() => { setView(sub.view); setIsMobileMenuOpen(false); }}
-                      className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-all text-left group"
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-all text-left"
                     >
-                      <div className={`w-10 h-10 ${sub.bgClass} ${sub.colorClass} rounded-xl flex items-center justify-center shrink-0 shadow-sm group-active:scale-95 transition-transform`}>
+                      <div className={`w-10 h-10 ${sub.bgClass} ${sub.colorClass} rounded-xl flex items-center justify-center shrink-0`}>
                         {sub.icon && ICON_MAP[sub.icon] && React.createElement(ICON_MAP[sub.icon], { className: "w-5 h-5" })}
                       </div>
-                      <div className="flex-1">
+                      <div>
                         <p className="text-sm font-bold text-gray-900">{sub.label}</p>
-                        <p className="text-[11px] text-gray-500 font-medium leading-tight">{sub.subtext}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{sub.subtext}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300" />
                     </button>
                   )) : (
                     <button
                       onClick={() => { menu.view && setView(menu.view); setIsMobileMenuOpen(false); }}
-                      className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-all text-left"
+                      className="flex items-center gap-4 p-4 hover:bg-gray-50 rounded-2xl transition-all text-left"
                     >
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
-                           {menu.icon && ICON_MAP[menu.icon] ? React.createElement(ICON_MAP[menu.icon], { className: "w-5 h-5" }) : <Star className="w-5 h-5" />}
-                         </div>
-                         <span className="text-lg font-bold text-gray-900">{menu.label}</span>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                      <span className="text-lg font-bold text-gray-900">{menu.label}</span>
                     </button>
                   )}
                 </div>
