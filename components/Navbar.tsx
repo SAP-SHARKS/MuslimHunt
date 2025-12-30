@@ -12,16 +12,17 @@ const ICON_MAP: Record<string, any> = {
   Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy
 };
 
-// High-fidelity mapping for sub-category discovery inside Best Products mega-menu
+// High-fidelity mapping for sub-category discovery inside Best Products
 const CATEGORY_DRILLDOWN: Record<string, string[]> = {
-  'Trending Categories': ['Vibe Coding Tools', 'AI Dictation Apps', 'Halal Habit Trackers', 'ArabicHero Pro'],
-  'Engineering & Development': ['AI Coding Agents', 'AI Code Editors', 'Unified APIs', 'Browser Automation'],
-  'LLMs': ['AI Chatbots', 'Prompt Engineering', 'Vector Databases', 'Privacy Models'],
-  'Productivity': ['AI notetakers', 'Note and writing apps', 'Team collaboration', 'Search'],
-  'Marketing & Sales': ['Ethical Marketing', 'Lead generation', 'Ad Networks', 'SEO Tools'],
-  'Design & Creative': ['AI Generative Media', '3D & Animation', 'Graphic design', 'Video editing'],
-  'Finance': ['Accounting software', 'Fundraising', 'Shariah Investing', 'Payroll'],
-  'Spirituality & Deen': ['Quran Apps', 'Prayer Timings', 'Islamic Education', 'Charity & Zakat']
+  'Trending': ['ArabicHero Pro', 'Halal Habit Trackers', 'Vibe Coding Tools', 'AI Dictation Apps'],
+  'Engineering': ['AI Coding Agents', 'AI Code Editors', 'Vibe Coding Tools', 'Browser Automation'],
+  'LLMs': ['AI Chatbots', 'AI Infrastructure Tools', 'Prompt Engineering Tools', 'Vector Databases'],
+  'Productivity': ['AI notetakers', 'Note and writing apps', 'Team collaboration software', 'Search'],
+  'Marketing': ['Lead generation software', 'Marketing automation platforms', 'Ethical SEO Tools'],
+  'Design': ['Video editing', 'AI Generative Media', 'Graphic design tools', '3D & Animation'],
+  'Social': ['Community Platforms', 'Islamic Social Networks', 'Event Management'],
+  'Finance': ['Accounting software', 'Fundraising resources', 'Shariah Investing', 'Zakat Calculators'],
+  'AI Agents': ['AI Voice Agents', 'AI Agent Automation', 'Customer Support Bots']
 };
 
 interface DropdownItem {
@@ -35,8 +36,8 @@ interface DropdownItem {
 
 const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
-  // Pixel-Perfect Hover state management for Best Products
-  const [activeHoverCategory, setActiveHoverCategory] = useState<string>('');
+  // Defaulting to the first item or 'Trending' for Best Products
+  const [activeHoverCategory, setActiveHoverCategory] = useState<string>(items[0]?.label || 'Trending');
   const isBestProducts = label === "Best Products";
 
   useEffect(() => {
@@ -60,7 +61,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
         <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[520px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[1.5rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
           {isBestProducts ? (
             <div className="flex flex-col">
-              {/* ORBIT AWARDS BANNER: Resized for 520px container */}
+              {/* ORBIT AWARDS BANNER: Red Background & Trophy per reference */}
               <div className="bg-red-50 px-5 py-3.5 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-100/50 transition-colors">
                 <div className="flex items-center gap-3.5 text-left">
                   <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
@@ -68,14 +69,14 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                   </div>
                   <div>
                     <p className="text-[13px] font-black text-gray-900 leading-none">Orbit Awards</p>
-                    <p className="text-[10px] text-gray-500 font-medium mt-1">Awards powered by what reviewers actually say</p>
+                    <p className="text-[10px] text-gray-500 font-medium mt-1">Awards powered by what <br/> reviewers actually say</p>
                   </div>
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-red-400 group-hover/banner:translate-x-1 transition-transform" />
               </div>
 
               <div className="flex divide-x divide-gray-100">
-                {/* Left Pane: Categories Switcher (Compact spacing) */}
+                {/* Left Pane: Interactive Categories (Switch on Hover) */}
                 <div className="w-[55%] p-4 pt-3.5">
                   <div className="grid grid-cols-1 gap-0.5">
                     {items.map((item, i) => (
@@ -94,7 +95,6 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                           <p className={`text-[13px] font-bold leading-none transition-colors ${
                             activeHoverCategory === item.label ? 'text-blue-900' : 'text-gray-900 group-hover/item:text-emerald-900'
                           }`}>{item.label}</p>
-                          <p className="text-[10px] text-gray-400 font-medium truncate mt-1">{item.subtext || 'Explore directory'}</p>
                         </div>
                         {activeHoverCategory === item.label && (
                           <ChevronRight className="w-3.5 h-3.5 text-blue-400 animate-in slide-in-from-left-1" />
@@ -104,10 +104,10 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                   </div>
                 </div>
 
-                {/* Right Pane: Dynamic Tool Discovery (Compact spacing) */}
+                {/* Right Pane: Dynamic Discovery links */}
                 <div className="w-[45%] p-4 pt-3.5 bg-gray-50/20 flex flex-col">
                   <div className="space-y-3 mb-auto px-1">
-                    {(CATEGORY_DRILLDOWN[activeHoverCategory] || CATEGORY_DRILLDOWN['Trending Categories']).map((link, i) => (
+                    {(CATEGORY_DRILLDOWN[activeHoverCategory] || CATEGORY_DRILLDOWN['Trending']).map((link, i) => (
                       <button key={i} className="w-full text-left group/pop flex items-center justify-between py-0.5">
                         <p className="text-[12px] font-bold text-gray-700 group-hover/pop:text-emerald-900 transition-colors">{link}</p>
                         <ArrowUpRight className="w-3 h-3 text-gray-200 group-hover/pop:text-emerald-500 transition-colors" />
@@ -115,13 +115,13 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                     ))}
                   </div>
 
-                  {/* PROMOTION CARD: Scaled for smaller container */}
+                  {/* Promotion snippet */}
                   <div className="mt-6 bg-emerald-50 border border-emerald-100 p-4 rounded-2xl relative overflow-hidden group/promo cursor-pointer">
                     <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/promo:rotate-12 group-hover/promo:scale-125 transition-all">
                       <Sparkles className="w-8 h-8 text-emerald-800" />
                     </div>
                     <p className="text-[7px] font-black text-emerald-800 uppercase tracking-[0.2em] mb-1">Promotion</p>
-                    <p className="text-[12px] font-black text-gray-900 leading-tight">Partner with Muslim Hunt</p>
+                    <p className="text-[12px] font-black text-gray-900 leading-tight">Sponsor Muslim Hunt</p>
                     <button className="mt-1.5 text-[9px] font-black text-emerald-800 flex items-center gap-1 group-hover/promo:translate-x-0.5 transition-transform uppercase tracking-widest">
                       Media Kit <ChevronRight className="w-2.5 h-2.5" />
                     </button>
@@ -130,7 +130,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
               </div>
             </div>
           ) : (
-            /* Standard High-Fidelity Dropdown (Launches, News, Forums) */
+            /* Standard high-fidelity dropdown for other menus */
             <div className="py-4">
               {items.map((item, i) => (
                 <button 
@@ -204,7 +204,7 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Main Navigation Structure: Best Products, Launches, News, Forums, Advertise
+  // Strict Navigation structure: Best Products, Launches, News, Forums, Advertise
   const mainNavItems = menuItems.filter(item => 
     ["Best Products", "Launches", "News", "Forums", "Advertise"].includes(item.label)
   );
@@ -291,7 +291,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <Search className="w-5 h-5" />
           </button>
 
-          {/* SUBSCRIBE BUTTON: Perfectly positioned to the left of Sign In / User Avatar */}
+          {/* SUBSCRIBE BUTTON: Located to the left of Sign In / User */}
           <button 
             onClick={() => setView(View.NEWSLETTER)}
             className="hidden sm:block text-gray-600 font-bold text-[13px] px-5 py-2.5 border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
@@ -367,7 +367,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu - Hamburger in Top Left Portrait View */}
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl z-[120] animate-in slide-in-from-top-4 duration-300 overflow-y-auto max-h-[calc(100vh-64px)]">
           <div className="p-6 space-y-8">
@@ -414,7 +414,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             ))}
             {!user && <button onClick={() => { onSignInClick(); setIsMobileMenuOpen(false); }} className="w-full py-4 bg-emerald-800 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-900/20 active:scale-[0.98]">Join the Community</button>}
-            <button onClick={() => { setView(View.SPONSOR); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-3 p-4 bg-gray-900 text-white rounded-2xl font-bold active:scale-[0.98]"><Megaphone className="w-5 h-5 text-emerald-400" />Partner with us</button>
+            <button onClick={() => { setView(View.SPONSOR); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-center gap-3 p-4 bg-gray-900 text-white rounded-2xl font-bold active:scale-[0.98]"><Megaphone className="w-5 h-5 text-emerald-400" />Advertise</button>
           </div>
         </div>
       )}
