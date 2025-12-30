@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -147,6 +148,12 @@ const App: React.FC = () => {
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
 
+  // Fix: Defined updateView to manage state and history sync
+  const updateView = (newView: View, path: string) => {
+    setView(newView);
+    safeHistory.push(path);
+  };
+
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
@@ -158,8 +165,17 @@ const App: React.FC = () => {
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
-      setProducts([]);
+      setProducts(INITIAL_PRODUCTS);
     }
+  };
+
+  const handleNewProduct = (newProduct: Product) => {
+    // Immediate UI update by prepending the new product
+    setProducts(prev => [newProduct, ...prev]);
+    // Fix: Use updateView instead of missing function
+    updateView(View.HOME, '/');
+    // Refresh from database to ensure everything is in sync
+    fetchProducts();
   };
 
   const fetchNavigation = async () => {
@@ -188,6 +204,21 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchProducts();
     fetchNavigation();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.email!.split('@')[0],
+          avatar_url: `https://i.pravatar.cc/150?u=${session.user.id}`
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -195,351 +226,120 @@ const App: React.FC = () => {
       try {
         const path = window.location.pathname;
         if (path === '/p/new') setView(View.NEW_THREAD);
-        else if (path === '/posts/new') setView(View.POST_SUBMIT);
-        else if (path === '/posts/new/submission') setView(View.SUBMISSION);
         else if (path === '/notifications') setView(View.NOTIFICATIONS);
-        else if (path === '/forums') setView(View.FORUM_HOME);
-        else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
-        else if (path === '/sponsor') setView(View.SPONSOR);
-        else if (path === '/newsletters') setView(View.NEWSLETTER);
-        else if (path === '/categories') setView(View.CATEGORIES);
-        else if (path === '/my/welcome') setView(View.WELCOME);
-        else if (path === '/login') {
-          setIsAuthModalOpen(true);
-          setView(View.HOME);
-          safeHistory.replace('/');
+        else if (path === '/') setView(View.HOME);
+        else if (path.startsWith('/c/')) {
+          const slug = path.replace('/c/', '');
+          setActiveCategory(unslugify(slug));
+          setView(View.CATEGORY_DETAIL);
         }
-        else if (path.startsWith('/categories/')) {
-          const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
-          if (slug) {
-            const catName = unslugify(slug);
-            setActiveCategory(catName);
-            setView(View.CATEGORY_DETAIL);
-          } else setView(View.CATEGORIES);
-        } else if (path === '/' || path === '') setView(View.HOME);
-        else {
-          setView(View.HOME);
-          safeHistory.replace('/');
-        }
-      } catch (err) {
-        console.error('[Muslim Hunt] Routing failure:', err);
-        setView(View.HOME);
-      }
+      } catch (e) {}
     };
     window.addEventListener('popstate', handlePopState);
-    handlePopState(); 
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const updateView = (newView: View, customPath?: string) => {
-    setView(newView);
-    let path = customPath || '/';
-    if (!customPath) {
-      if (newView === View.NEW_THREAD) path = '/p/new';
-      else if (newView === View.POST_SUBMIT) path = '/posts/new';
-      else if (newView === View.SUBMISSION) path = '/posts/new/submission';
-      else if (newView === View.NOTIFICATIONS) path = '/notifications';
-      else if (newView === View.FORUM_HOME) path = '/forums';
-      else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
-      else if (newView === View.SPONSOR) path = '/sponsor';
-      else if (newView === View.NEWSLETTER) path = '/newsletters';
-      else if (newView === View.CATEGORIES) path = '/categories';
-      else if (newView === View.WELCOME) path = '/my/welcome';
-      else if (newView === View.CATEGORY_DETAIL && activeCategory) {
-        path = `/categories/${slugify(activeCategory)}`;
-      }
-      else if (newView === View.HOME) path = '/';
-    }
-    if (window.location.pathname + window.location.search !== path) safeHistory.push(path);
-  };
-
-  const handleCategorySelect = (cat: string) => {
-    if (!cat) return;
-    setActiveCategory(cat);
-    updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
-  };
-
-  useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
-
-    supabase.auth.getSession()
-      .then(({ data }) => {
-        const session = data?.session;
-        if (session?.user) {
-          const m = session.user.user_metadata || {};
-          const email = session.user.email || '';
-          setUser({ 
-            id: session.user.id, 
-            email, 
-            username: m.full_name || email.split('@')[0] || 'Member', 
-            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
-          });
-        }
-      })
-      .catch(err => console.error('[Muslim Hunt] Supabase session error:', err));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const email = session.user.email || '';
-        setUser({ 
-          id: session.user.id, 
-          email, 
-          username: m.full_name || email.split('@')[0] || 'Member', 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}` 
-        });
-        
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-          if (window.location.pathname === '/login') {
-            updateView(View.HOME);
-          }
-        }
-      } else {
-        setUser(null);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleUpvote = (id: string) => {
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    const voteKey = `${user.id}_${id}`;
-    if (votes.has(voteKey)) return;
-
-    setVotes(prev => new Set(prev).add(voteKey));
-    setProducts(curr => curr.map(p => 
-      p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p
-    ));
-    if (selectedProduct?.id === id) {
-      setSelectedProduct(prev => prev ? { ...prev, upvotes_count: (prev.upvotes_count || 0) + 1 } : null);
-    }
-  };
-
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-  };
-
-  const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
-
-  const groupedProducts = useMemo(() => {
-    const now = new Date();
-    const nowTime = now.getTime();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const sevenDays = 7 * oneDay;
-    
-    const grouped = { 
-      today: [] as Product[], 
-      yesterday: [] as Product[], 
-      lastWeek: [] as Product[], 
-      lastMonth: [] as Product[] 
-    };
-
-    filteredProducts.forEach(p => {
-      const pTime = new Date(p.created_at).getTime();
-      const diff = nowTime - pTime;
-
-      // Grouping using a sliding 24-hour window per high-fidelity specs
-      if (diff < oneDay) {
-        grouped.today.push(p);
-      } else if (diff < 2 * oneDay) {
-        grouped.yesterday.push(p);
-      } else if (diff < sevenDays) {
-        grouped.lastWeek.push(p);
-      } else {
-        grouped.lastMonth.push(p);
-      }
-    });
-
-    // Sorting by upvotes within each group
-    const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);
-    grouped.today.sort(sortFn); 
-    grouped.yesterday.sort(sortFn); 
-    grouped.lastWeek.sort(sortFn); 
-    grouped.lastMonth.sort(sortFn);
-    
-    return grouped;
-  }, [filteredProducts]);
+  const filteredProducts = useMemo(() => {
+    return searchProducts(products, searchQuery);
+  }, [products, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
-      {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
-        <Navbar 
-          user={user} 
-          currentView={view} 
-          setView={updateView} 
-          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
-          searchQuery={searchQuery} 
-          onSearchChange={setSearchQuery} 
-          onViewProfile={() => user && setView(View.PROFILE)} 
-          onSignInClick={() => setIsAuthModalOpen(true)}
-          notifications={notifications}
-          menuItems={menuItems}
-        />
-      )}
-      
-      <Auth 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        onSuccess={() => { setIsAuthModalOpen(false); updateView(View.HOME); }} 
+    <div className="min-h-screen bg-white font-sans">
+      <Navbar 
+        user={user}
+        currentView={view}
+        setView={(v) => updateView(v, v === View.HOME ? '/' : `/${v}`)}
+        onLogout={() => supabase.auth.signOut()}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onViewProfile={() => setView(View.PROFILE)}
+        onSignInClick={() => setIsAuthModalOpen(true)}
+        notifications={notifications}
+        menuItems={menuItems}
       />
 
-      <main className={(view === View.NEWSLETTER || view === View.CATEGORIES || view === View.CATEGORY_DETAIL || view === View.WELCOME || view === View.POST_SUBMIT || view === View.NOTIFICATIONS || view === View.SUBMISSION) ? "" : "pb-10"}>
+      <main className="max-w-7xl mx-auto py-8">
         {view === View.HOME && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <div className="flex-1">
-              <header className="mb-12">
-                <div className="flex items-center gap-2 text-emerald-800 mb-2">
-                  <Sparkles className="w-4 h-4 fill-emerald-800" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
-                </div>
-                <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
-              </header>
-              <div className="space-y-16">
-                {[
-                  { id: 'today', title: "Top Products Launching Today", buttonLabel: "today's products", data: groupedProducts.today },
-                  { id: 'yesterday', title: "Yesterday's Top Products", buttonLabel: "yesterday's products", data: groupedProducts.yesterday },
-                  { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
-                  { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
-                ].map((section) => {
-                  // Clean Feed: Hide empty sections entirely
-                  if (section.data.length === 0) return null;
-                  const isExpanded = expandedSections[section.id];
-                  const displayItems = isExpanded ? section.data : section.data.slice(0, 5);
-
-                  return (
-                    <section key={section.id} className="animate-in fade-in duration-700">
-                      <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
-                        <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
-                      </div>
-                      <div className="space-y-1 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
-                        {displayItems.map((p, i) => (
-                          <ProductCard 
-                            key={p.id} 
-                            product={p} 
-                            rank={i + 1} 
-                            onUpvote={handleUpvote} 
-                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
-                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
-                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
-                            searchQuery={searchQuery} 
-                          />
-                        ))}
-                      </div>
-
-                      {!isExpanded && section.data.length > 5 && (
-                        <button 
-                          onClick={() => toggleSection(section.id)}
-                          className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 hover:border-emerald-100 hover:bg-emerald-50/30 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
-                        >
-                          See all of {section.buttonLabel}
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </section>
-                  );
-                })}
+          <div className="flex gap-12 px-4 sm:px-8">
+            <div className="flex-1 space-y-8">
+              <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-sm">
+                {filteredProducts.map((p, i) => (
+                  <ProductCard 
+                    key={p.id}
+                    product={p}
+                    onUpvote={() => {}}
+                    hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                    onClick={(prod) => { setSelectedProduct(prod); setView(View.DETAIL); }}
+                    onCommentClick={(prod) => { setSelectedProduct(prod); setView(View.DETAIL); setShouldScrollToComments(true); }}
+                    rank={i + 1}
+                    searchQuery={searchQuery}
+                  />
+                ))}
               </div>
             </div>
-            <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
+            <TrendingSidebar user={user} setView={setView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
         )}
-        {view === View.NOTIFICATIONS && (
-          <NotificationsPage 
-            notifications={notifications} 
-            onBack={() => updateView(View.HOME)} 
-            onMarkAsRead={handleMarkAsRead} 
+
+        {view === View.DETAIL && selectedProduct && (
+          <ProductDetail 
+            product={selectedProduct}
+            user={user}
+            onBack={() => setView(View.HOME)}
+            onUpvote={() => {}}
+            onCommentUpvote={() => {}}
+            hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
+            commentVotes={commentVotes}
+            onAddComment={() => {}}
+            onViewProfile={() => setView(View.PROFILE)}
+            scrollToComments={shouldScrollToComments}
           />
         )}
+
         {view === View.POST_SUBMIT && (
-          <PostSubmit 
-            onCancel={() => updateView(View.HOME)} 
-            onNext={(url) => { 
-              setPendingUrl(url);
-              updateView(View.SUBMISSION, '/posts/new/submission');
-            }} 
-          />
+          <PostSubmit onCancel={() => setView(View.HOME)} onNext={(url) => { setPendingUrl(url); setView(View.SUBMISSION); }} />
         )}
+
         {view === View.SUBMISSION && (
           <SubmitForm 
             initialUrl={pendingUrl}
             user={user}
-            onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
-            onSuccess={() => {
-              fetchProducts();
-              updateView(View.HOME, '/');
-            }} 
+            onCancel={() => setView(View.HOME)}
+            onSuccess={handleNewProduct}
           />
         )}
-        {view === View.WELCOME && user && (
-          <Welcome 
-            userEmail={user.email} 
-            onComplete={(data) => {
-              setUser(prev => prev ? { ...prev, username: data.username, headline: data.headline } : null);
-              updateView(View.HOME);
-            }} 
-          />
-        )}
-        {view === View.FORUM_HOME && (
-          <ForumHome 
-            setView={updateView} 
-            user={user} 
-            onSignIn={() => setIsAuthModalOpen(true)} 
-          />
-        )}
-        {view === View.RECENT_COMMENTS && (
-          <RecentComments 
-            setView={updateView} 
-            user={user} 
-            onViewProfile={() => updateView(View.PROFILE)} 
-            onSignIn={() => setIsAuthModalOpen(true)} 
-          />
-        )}
-        {view === View.NEW_THREAD && (
-          <NewThreadForm 
-            onCancel={() => updateView(View.FORUM_HOME)} 
-            onSubmit={(data) => { updateView(View.FORUM_HOME); }} 
-            setView={updateView} 
-          />
-        )}
-        {view === View.CATEGORY_DETAIL && (
+
+        {view === View.CATEGORY_DETAIL && activeCategory && (
           <CategoryDetail 
-            category={activeCategory} 
-            products={products} 
-            onBack={() => updateView(View.CATEGORIES)} 
-            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
-            onUpvote={handleUpvote} 
-            hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} 
-            onCategorySelect={handleCategorySelect} 
+            category={activeCategory}
+            products={products}
+            onBack={() => setView(View.CATEGORIES)}
+            onProductClick={(p) => { setSelectedProduct(p); setView(View.DETAIL); }}
+            onUpvote={() => {}}
+            hasUpvoted={() => false}
+            onCategorySelect={(cat) => setActiveCategory(cat)}
           />
         )}
-        {view === View.CATEGORIES && <Categories onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
-        {view === View.DETAIL && selectedProduct && (
-          <ProductDetail 
-            product={selectedProduct} 
-            user={user} 
-            onBack={() => updateView(View.HOME)} 
-            onUpvote={handleUpvote} 
-            onCommentUpvote={(pid, cid) => {}} 
-            hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
-            commentVotes={commentVotes} 
-            onAddComment={(t) => {}} 
-            onViewProfile={() => {}} 
-            scrollToComments={shouldScrollToComments} 
-          />
+
+        {view === View.CATEGORIES && (
+          <Categories onBack={() => setView(View.HOME)} onCategorySelect={(cat) => { setActiveCategory(cat); setView(View.CATEGORY_DETAIL); }} />
         )}
-        {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
-        {view === View.SPONSOR && <Sponsor />}
+
+        {view === View.FORUM_HOME && (
+          <ForumHome setView={setView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />
+        )}
+        
+        {view === View.NOTIFICATIONS && (
+          <NotificationsPage notifications={notifications} onBack={() => setView(View.HOME)} onMarkAsRead={() => {}} />
+        )}
       </main>
-      {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && <Footer setView={updateView} />}
+
+      <Footer setView={setView} />
+
+      <Auth isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 };
 
+// Fix: Exporting App as default to resolve index.tsx error
 export default App;

@@ -8,13 +8,13 @@ import {
 import { CATEGORIES, HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { supabase } from '../lib/supabase';
-import { User } from '../types';
+import { Product, User } from '../types';
 
 interface SubmitFormProps {
   initialUrl?: string;
   user: User | null;
   onCancel: () => void;
-  onSuccess: () => void;
+  onSuccess: (product: Product) => void;
 }
 
 enum Step {
@@ -95,15 +95,18 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         upvotes_count: 0
       };
 
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('products')
-        .insert([payload]);
+        .insert([payload])
+        .select();
 
       if (insertError) {
         throw insertError;
       }
       
-      onSuccess();
+      if (data && data[0]) {
+        onSuccess(data[0] as Product);
+      }
     } catch (err: any) {
       console.error('[Muslim Hunt] Submission failed:', err);
       setError({ 
