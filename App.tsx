@@ -162,12 +162,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleNewProduct = (newProduct: Product) => {
-    setProducts(prev => [newProduct, ...prev]);
-    updateView(View.HOME, '/');
-    fetchProducts(); // Refresh in background to sync with DB
-  };
-
   const fetchNavigation = async () => {
     try {
       const { data, error } = await supabase
@@ -363,13 +357,8 @@ const App: React.FC = () => {
       }
     });
 
-    // Sorting within each group: Primary = upvotes, Secondary = created_at (desc)
-    const sortFn = (a: Product, b: Product) => {
-      const voteDiff = (b.upvotes_count || 0) - (a.upvotes_count || 0);
-      if (voteDiff !== 0) return voteDiff;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    };
-
+    // Sorting by upvotes within each group
+    const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);
     grouped.today.sort(sortFn); 
     grouped.yesterday.sort(sortFn); 
     grouped.lastWeek.sort(sortFn); 
@@ -482,7 +471,10 @@ const App: React.FC = () => {
             initialUrl={pendingUrl}
             user={user}
             onCancel={() => updateView(View.POST_SUBMIT, '/posts/new')} 
-            onSuccess={handleNewProduct} 
+            onSuccess={() => {
+              fetchProducts();
+              updateView(View.HOME, '/');
+            }} 
           />
         )}
         {view === View.WELCOME && user && (
