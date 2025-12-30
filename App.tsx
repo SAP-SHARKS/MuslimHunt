@@ -155,7 +155,6 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log("Database Products:", data);
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
@@ -331,9 +330,9 @@ const App: React.FC = () => {
 
   const groupedProducts = useMemo(() => {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const yesterdayStart = todayStart - 86400000;
-    const lastWeekStart = todayStart - 7 * 86400000;
+    const nowTime = now.getTime();
+    const oneDay = 24 * 60 * 60 * 1000;
+    const sevenDays = 7 * oneDay;
     
     const grouped = { 
       today: [] as Product[], 
@@ -343,13 +342,22 @@ const App: React.FC = () => {
     };
 
     filteredProducts.forEach(p => {
-      const time = new Date(p.created_at).getTime();
-      if (time >= todayStart) grouped.today.push(p);
-      else if (time >= yesterdayStart) grouped.yesterday.push(p);
-      else if (time >= lastWeekStart) grouped.lastWeek.push(p);
-      else grouped.lastMonth.push(p);
+      const pTime = new Date(p.created_at).getTime();
+      const diff = nowTime - pTime;
+
+      // Grouping using a sliding 24-hour window per high-fidelity specs
+      if (diff < oneDay) {
+        grouped.today.push(p);
+      } else if (diff < 2 * oneDay) {
+        grouped.yesterday.push(p);
+      } else if (diff < sevenDays) {
+        grouped.lastWeek.push(p);
+      } else {
+        grouped.lastMonth.push(p);
+      }
     });
 
+    // Sorting by upvotes within each group
     const sortFn = (a: Product, b: Product) => (b.upvotes_count || 0) - (a.upvotes_count || 0);
     grouped.today.sort(sortFn); 
     grouped.yesterday.sort(sortFn); 
@@ -400,12 +408,13 @@ const App: React.FC = () => {
                   { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
                   { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
                 ].map((section) => {
+                  // Clean Feed: Hide empty sections entirely
                   if (section.data.length === 0) return null;
                   const isExpanded = expandedSections[section.id];
                   const displayItems = isExpanded ? section.data : section.data.slice(0, 5);
 
                   return (
-                    <section key={section.id}>
+                    <section key={section.id} className="animate-in fade-in duration-700">
                       <div className="flex items-center justify-between mb-6 border-b border-emerald-50 pb-4">
                         <h2 className="text-2xl font-serif font-bold text-emerald-900">{section.title}</h2>
                       </div>

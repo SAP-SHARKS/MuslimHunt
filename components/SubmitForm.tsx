@@ -61,8 +61,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
-      // EXPLICIT MAPPING: Ensure payload matches Supabase column names exactly
-      // including upvotes_count: 0 for new launches
+      // Data Integrity: Every submission is stamped with a precise current timestamp
       const payload = {
         name: formData.name,
         url: formData.url,
@@ -72,9 +71,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         halal_status: formData.halal_status,
         sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url,
-        founder_id: user.id, // Data Integrity: Link to authenticated user
-        created_at: new Date().toISOString(),
-        upvotes_count: 0 // Reset to 0 for fresh launches
+        founder_id: user.id, 
+        created_at: new Date().toISOString(), // Mandatory automatic stamping
+        upvotes_count: 0
       };
 
       const { error: insertError } = await supabase
@@ -82,8 +81,6 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         .insert([payload]);
 
       if (insertError) {
-        // High-Fidelity Schema Cache Error Detection
-        // codes: 42703 (undefined_column), PGRST204 (Column not found)
         const msg = insertError.message.toLowerCase();
         const isSchemaError = 
           msg.includes('column') || 
@@ -94,7 +91,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         throw { ...insertError, isSchemaError };
       }
       
-      onSuccess(); // Redirect to home via App.tsx callback
+      onSuccess();
     } catch (err: any) {
       console.error('[Muslim Hunt] Submission failed:', err);
       setError({ 
