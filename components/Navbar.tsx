@@ -4,13 +4,15 @@ import {
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, ArrowUpRight, Star,
   Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
-  Triangle, Clock, Menu, Zap, Layout, Trophy, Hash
+  Triangle, Clock, Menu, Zap, Layout, Trophy, Hash,
+  Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
 const ICON_MAP: Record<string, any> = {
-  Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy, Hash
+  Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy, Hash,
+  Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby
 };
 
 const CATEGORY_DRILLDOWN: Record<string, string[]> = {

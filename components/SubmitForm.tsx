@@ -4,7 +4,6 @@ import {
   X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
   Calendar, Link as LinkIcon, User as UserIcon, Plus, 
   CheckCircle2, DollarSign, Tag, Clock, Rocket, Sparkles, Image as ImageIcon,
-  // Added ChevronDown to fix "Cannot find name 'ChevronDown'" error
   Check, ChevronRight, Search, ChevronDown
 } from 'lucide-react';
 import { HALAL_STATUSES } from '../constants';
@@ -142,7 +141,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                   <div className="relative">
                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold appearance-none cursor-pointer shadow-inner">
                       {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
-                        <optgroup key={group} label={group} className="font-black uppercase tracking-widest text-xs bg-white text-emerald-800">
+                        <optgroup key={group} label={group} className="font-black uppercase tracking-widest text-[10px] bg-white text-emerald-800 py-2">
                           {items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
                         </optgroup>
                       ))}

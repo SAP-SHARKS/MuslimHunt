@@ -1,10 +1,14 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, Search, Sparkles, ChevronRight, Hash, Code, Palette, DollarSign, Megaphone, CheckSquare, BookOpen } from 'lucide-react';
+import { 
+  ArrowLeft, Search, Sparkles, ChevronRight, Hash, Code, Palette, DollarSign, Megaphone, CheckSquare, BookOpen,
+  Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby
+} from 'lucide-react';
 import { Category } from '../types.ts';
 
 const ICON_MAP: Record<string, any> = {
-  CheckSquare, Code, Palette, DollarSign, Megaphone, BookOpen
+  CheckSquare, Code, Palette, DollarSign, Megaphone, BookOpen,
+  Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby
 };
 
 interface CategoriesProps {
@@ -64,7 +68,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
             <div className="relative group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
               <input 
-                type="text" placeholder="Search categories..." value={searchTerm}
+                type="text" placeholder="Search categories (e.g. crypto, wallet, travel)..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-md font-medium outline-none focus:bg-white focus:border-emerald-800 focus:ring-4 focus:ring-emerald-900/5 transition-all shadow-sm"
               />
@@ -81,7 +85,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
         </div>
 
         <div className="space-y-32 pb-32">
-          {/* Fix: Explicitly cast to [string, Category[]][] to ensure 'items' is inferred correctly */}
+          {/* Explicitly cast to [string, Category[]][] to ensure 'items' is inferred correctly */}
           {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
             <section key={group} id={group} className="scroll-mt-20">
               <div className="flex items-center gap-3 mb-10 border-b border-gray-100 pb-6">
