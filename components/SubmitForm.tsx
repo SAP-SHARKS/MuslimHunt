@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, Database } from 'lucide-react';
+import { X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, Database, Calendar } from 'lucide-react';
 import { CATEGORIES, HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
 import { supabase } from '../lib/supabase';
@@ -19,6 +19,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     tagline: '',
     description: '',
     category: CATEGORIES[0],
+    launchDate: new Date().toISOString().split('T')[0], // Default to today
     halal_status: HALAL_STATUSES[1], // Default to Self-Certified
     sadaqah_info: '',
     logo_url: `https://picsum.photos/seed/${Math.random()}/200/200`
@@ -61,7 +62,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
     setError(null);
 
     try {
-      // Data Integrity: Every submission is stamped with a precise current timestamp
+      // Data Integrity: Map manual launchDate to created_at column
       const payload = {
         name: formData.name,
         url: formData.url,
@@ -72,7 +73,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url,
         founder_id: user.id, 
-        created_at: new Date().toISOString(), // Mandatory automatic stamping
+        created_at: new Date(formData.launchDate).toISOString(), // Use the user-selected date
         upvotes_count: 0
       };
 
@@ -118,7 +119,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-10 bg-white p-10 sm:p-14 rounded-[3.5rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
+      <form onSubmit={handleSubmit} className="space-y-12 bg-white p-10 sm:p-14 rounded-[3.5rem] border border-gray-100 shadow-2xl shadow-emerald-900/5">
         {error && (
           <div className={`p-6 rounded-3xl border flex flex-col gap-4 animate-in slide-in-from-top-4 ${error.isSchemaError ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-red-50 border-red-100 text-red-600'}`}>
             <div className="flex items-center gap-3">
@@ -128,86 +129,78 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             <p className="text-sm font-bold leading-relaxed px-1">
               {error.message}
             </p>
-            {error.isSchemaError && (
-              <div className="mt-2 p-5 bg-white/70 rounded-2xl border border-amber-100 space-y-4">
-                <div className="flex items-center gap-2 text-amber-800">
-                  <Database className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">PostgREST Schema Out of Sync</span>
-                </div>
-                <p className="text-[12px] font-medium leading-relaxed">
-                  The API hasn't recognized your new database columns yet. To fix this permanently, run the trigger script in <b>supabase_schema.sql</b>. For an immediate fix, run this manual command in your SQL Editor:
-                </p>
-                <div className="relative group/code">
-                  <code className="block bg-gray-900 text-amber-400 p-4 rounded-xl border border-gray-800 shadow-inner font-mono text-xs overflow-x-auto">
-                    NOTIFY pgrst, 'reload schema';
-                  </code>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-3">
-            <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Product Name</label>
-            <input 
-              required
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              placeholder="e.g., QuranFlow"
-              className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
-            />
-          </div>
-          <div className="space-y-3">
-            <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Website URL</label>
-            <input 
-              required
-              type="url"
-              value={formData.url}
-              onChange={e => setFormData({...formData, url: e.target.value})}
-              placeholder="https://yourproduct.com"
-              className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Description</label>
-          <textarea 
-            required
-            rows={5}
-            value={formData.description}
-            onChange={e => setFormData({...formData, description: e.target.value})}
-            placeholder="What does your product do? Be specific about the Halal focus and Ummah impact."
-            className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-lg font-medium leading-relaxed shadow-inner"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Tagline</label>
-              <button 
-                type="button"
-                onClick={handleGeminiOptimize}
-                disabled={isOptimizing || !formData.description}
-                className="text-[10px] flex items-center gap-1.5 text-emerald-800 hover:text-emerald-900 disabled:opacity-50 font-black uppercase tracking-widest transition-all"
-              >
-                {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                Gemini AI Optimize
-              </button>
+        {/* Section 1: Product Details */}
+        <div className="space-y-8">
+          <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-800">
+              <Info className="w-5 h-5" />
             </div>
-            <input 
+            <h3 className="text-2xl font-serif font-bold text-emerald-900">Product Details</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Product Name</label>
+              <input 
+                required
+                value={formData.name}
+                onChange={e => setFormData({...formData, name: e.target.value})}
+                placeholder="e.g., QuranFlow"
+                className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Website URL</label>
+              <input 
+                required
+                type="url"
+                value={formData.url}
+                onChange={e => setFormData({...formData, url: e.target.value})}
+                placeholder="https://yourproduct.com"
+                className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Description</label>
+            <textarea 
               required
-              value={formData.tagline}
-              onChange={e => setFormData({...formData, tagline: e.target.value})}
-              placeholder="1-sentence catchy tagline"
-              className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
+              rows={4}
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+              placeholder="What does your product do? Be specific about the focus and impact."
+              className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-lg font-medium leading-relaxed shadow-inner"
             />
           </div>
-          <div className="space-y-3">
-            <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
-            <div className="relative">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Tagline</label>
+                <button 
+                  type="button"
+                  onClick={handleGeminiOptimize}
+                  disabled={isOptimizing || !formData.description}
+                  className="text-[10px] flex items-center gap-1.5 text-emerald-800 hover:text-emerald-900 disabled:opacity-50 font-black uppercase tracking-widest transition-all"
+                >
+                  {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                  AI Help
+                </button>
+              </div>
+              <input 
+                required
+                value={formData.tagline}
+                onChange={e => setFormData({...formData, tagline: e.target.value})}
+                placeholder="1-sentence catchy tagline"
+                className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
+              />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
               <select 
                 value={formData.category}
                 onChange={e => setFormData({...formData, category: e.target.value})}
@@ -217,14 +210,25 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <ArrowRight className="w-5 h-5 rotate-90" />
-              </div>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
+              <Calendar className="w-3.5 h-3.5 text-emerald-800" />
+              Launch Date
+            </label>
+            <input 
+              required
+              type="date"
+              value={formData.launchDate}
+              onChange={e => setFormData({...formData, launchDate: e.target.value})}
+              className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold shadow-inner"
+            />
           </div>
         </div>
 
-        {/* Halal Trust Section */}
+        {/* Section 2: Halal Trust & Impact */}
         <div className="p-8 sm:p-12 bg-emerald-50/50 rounded-[3rem] border border-emerald-100/50 space-y-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-10 opacity-[0.03] pointer-events-none">
             <ShieldCheck className="w-64 h-64" />
@@ -232,7 +236,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
           
           <div className="flex items-center gap-3 text-emerald-900 font-black uppercase tracking-[0.15em] text-sm relative z-10">
             <ShieldCheck className="w-6 h-6 text-emerald-800" />
-            Verification & Impact Profile
+            Halal Trust & Impact Profile
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 relative z-10">
@@ -257,7 +261,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
                 name="sadaqah_info"
                 value={formData.sadaqah_info}
                 onChange={e => setFormData({...formData, sadaqah_info: e.target.value})}
-                placeholder="e.g. 2.5% profits to Gaza"
+                placeholder="e.g. 2.5% profits to charity"
                 className="w-full px-6 py-4 bg-white border border-gray-200 rounded-2xl outline-none focus:border-emerald-800 transition-all font-bold text-gray-700 shadow-sm"
               />
             </div>
@@ -273,7 +277,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, onCancel
             {isSubmitting ? (
               <>
                 <Loader2 className="w-7 h-7 animate-spin" />
-                Propagating to API...
+                Launching...
               </>
             ) : (
               <>
