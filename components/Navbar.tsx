@@ -57,94 +57,94 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
       </button>
       
       {isOpen && (
-        <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[640px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[2rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
+        <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[520px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[1.5rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
           {isBestProducts ? (
             <div className="flex flex-col">
-              {/* ORBIT AWARDS BANNER: Red Background & Trophy Icon per High-Fidelity Specs */}
-              <div className="bg-red-50 px-6 py-4 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-100/50 transition-colors">
-                <div className="flex items-center gap-4 text-left">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
-                    <Trophy className="w-5 h-5 text-red-600" />
+              {/* ORBIT AWARDS BANNER: Resized for 520px container */}
+              <div className="bg-red-50 px-5 py-3.5 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-100/50 transition-colors">
+                <div className="flex items-center gap-3.5 text-left">
+                  <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
+                    <Trophy className="w-4.5 h-4.5 text-red-600" />
                   </div>
                   <div>
-                    <p className="text-[14px] font-black text-gray-900 leading-none">Orbit Awards</p>
-                    <p className="text-[11px] text-gray-500 font-medium mt-1.5">Awards powered by what reviewers actually say</p>
+                    <p className="text-[13px] font-black text-gray-900 leading-none">Orbit Awards</p>
+                    <p className="text-[10px] text-gray-500 font-medium mt-1">Awards powered by what reviewers actually say</p>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-red-400 group-hover/banner:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 text-red-400 group-hover/banner:translate-x-1 transition-transform" />
               </div>
 
               <div className="flex divide-x divide-gray-100">
-                {/* Left Pane: Categories Switcher */}
-                <div className="w-[55%] p-6 pt-5">
-                  <div className="grid grid-cols-1 gap-1">
+                {/* Left Pane: Categories Switcher (Compact spacing) */}
+                <div className="w-[55%] p-4 pt-3.5">
+                  <div className="grid grid-cols-1 gap-0.5">
                     {items.map((item, i) => (
                       <button 
                         key={i} 
                         onMouseEnter={() => setActiveHoverCategory(item.label)}
                         onClick={item.onClick} 
-                        className={`w-full flex items-center gap-4 p-2.5 rounded-2xl transition-all text-left group/item relative ${
+                        className={`w-full flex items-center gap-3 p-1.5 rounded-xl transition-all text-left group/item relative ${
                           activeHoverCategory === item.label ? 'bg-blue-50 shadow-sm' : 'hover:bg-gray-50/50'
                         }`}
                       >
-                        <div className={`w-10 h-10 ${item.bgClass || 'bg-gray-50'} rounded-full flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 shadow-sm transition-transform group-hover/item:scale-110`}>
-                          <item.icon className="w-5 h-5" />
+                        <div className={`w-8 h-8 ${item.bgClass || 'bg-gray-50'} rounded-full flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 shadow-sm transition-transform group-hover/item:scale-105`}>
+                          <item.icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-[14px] font-bold leading-none transition-colors ${
+                          <p className={`text-[13px] font-bold leading-none transition-colors ${
                             activeHoverCategory === item.label ? 'text-blue-900' : 'text-gray-900 group-hover/item:text-emerald-900'
                           }`}>{item.label}</p>
-                          <p className="text-[11px] text-gray-400 font-medium truncate mt-1.5">{item.subtext || 'Explore directory'}</p>
+                          <p className="text-[10px] text-gray-400 font-medium truncate mt-1">{item.subtext || 'Explore directory'}</p>
                         </div>
                         {activeHoverCategory === item.label && (
-                          <ChevronRight className="w-4 h-4 text-blue-400 animate-in slide-in-from-left-1" />
+                          <ChevronRight className="w-3.5 h-3.5 text-blue-400 animate-in slide-in-from-left-1" />
                         )}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Right Pane: Dynamic Tool Discovery (Hover-Driven) */}
-                <div className="w-[45%] p-6 pt-5 bg-gray-50/20 flex flex-col">
-                  <div className="space-y-4 mb-auto px-2">
+                {/* Right Pane: Dynamic Tool Discovery (Compact spacing) */}
+                <div className="w-[45%] p-4 pt-3.5 bg-gray-50/20 flex flex-col">
+                  <div className="space-y-3 mb-auto px-1">
                     {(CATEGORY_DRILLDOWN[activeHoverCategory] || CATEGORY_DRILLDOWN['Trending Categories']).map((link, i) => (
-                      <button key={i} className="w-full text-left group/pop flex items-center justify-between py-1">
-                        <p className="text-[13px] font-bold text-gray-700 group-hover/pop:text-emerald-900 transition-colors">{link}</p>
-                        <ArrowUpRight className="w-3.5 h-3.5 text-gray-200 group-hover/pop:text-emerald-500 transition-colors" />
+                      <button key={i} className="w-full text-left group/pop flex items-center justify-between py-0.5">
+                        <p className="text-[12px] font-bold text-gray-700 group-hover/pop:text-emerald-900 transition-colors">{link}</p>
+                        <ArrowUpRight className="w-3 h-3 text-gray-200 group-hover/pop:text-emerald-500 transition-colors" />
                       </button>
                     ))}
                   </div>
 
-                  {/* PROMOTION CARD */}
-                  <div className="mt-8 bg-emerald-50 border border-emerald-100 p-5 rounded-[1.5rem] relative overflow-hidden group/promo cursor-pointer">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/promo:rotate-12 group-hover/promo:scale-125 transition-all">
-                      <Sparkles className="w-10 h-10 text-emerald-800" />
+                  {/* PROMOTION CARD: Scaled for smaller container */}
+                  <div className="mt-6 bg-emerald-50 border border-emerald-100 p-4 rounded-2xl relative overflow-hidden group/promo cursor-pointer">
+                    <div className="absolute top-0 right-0 p-2 opacity-10 group-hover/promo:rotate-12 group-hover/promo:scale-125 transition-all">
+                      <Sparkles className="w-8 h-8 text-emerald-800" />
                     </div>
-                    <p className="text-[8px] font-black text-emerald-800 uppercase tracking-[0.2em] mb-1.5">Promotion</p>
-                    <p className="text-[13px] font-black text-gray-900 leading-tight">Partner with Muslim Hunt</p>
-                    <button className="mt-2.5 text-[10px] font-black text-emerald-800 flex items-center gap-1 group-hover/promo:translate-x-1 transition-transform uppercase tracking-widest">
-                      View Media Kit <ChevronRight className="w-2.5 h-2.5" />
+                    <p className="text-[7px] font-black text-emerald-800 uppercase tracking-[0.2em] mb-1">Promotion</p>
+                    <p className="text-[12px] font-black text-gray-900 leading-tight">Partner with Muslim Hunt</p>
+                    <button className="mt-1.5 text-[9px] font-black text-emerald-800 flex items-center gap-1 group-hover/promo:translate-x-0.5 transition-transform uppercase tracking-widest">
+                      Media Kit <ChevronRight className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            /* High-Fidelity Dropdown for Launches, News, Forums */
-            <div className="py-5">
+            /* Standard High-Fidelity Dropdown (Launches, News, Forums) */
+            <div className="py-4">
               {items.map((item, i) => (
                 <button 
                   key={i} 
                   onClick={item.onClick}
-                  className="w-full flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-all text-left group/item"
+                  className="w-full flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 transition-all text-left group/item"
                 >
-                  <div className={`w-10 h-10 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
-                    <item.icon className="w-5 h-5" />
+                  <div className={`w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 group-hover/item:scale-105 transition-transform shadow-sm`}>
+                    <item.icon className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col pt-0.5 min-w-0 text-left">
-                    <p className="text-[14px] font-bold text-gray-900 group-hover/item:text-emerald-900 transition-colors leading-none">{item.label}</p>
+                    <p className="text-[13px] font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors leading-none">{item.label}</p>
                     {item.subtext && (
-                      <p className="text-[11px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>
+                      <p className="text-[10px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>
                     )}
                   </div>
                 </button>
@@ -302,7 +302,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <div className="flex items-center gap-3">
               <div className="relative" ref={notificationDropdownRef}>
-                <button onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} className={`p-2 transition-colors relative ${showNotificationDropdown ? 'text-emerald-900' : 'text-gray-400 hover:text-emerald-900'}`}>
+                <button onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} className={`p-2 transition-colors relative ${showNotificationDropdown ? 'text-emerald-900' : 'text-gray-400 hover:text-emerald-800'}`}>
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ff6154] rounded-full border-2 border-white shadow-sm" />}
                 </button>
