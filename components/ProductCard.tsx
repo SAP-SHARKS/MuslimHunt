@@ -107,7 +107,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           }`}
         >
           <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted ? 'fill-white' : ''}`} />
-          <span className="text-[11px] font-black tracking-tighter">{product.upvotes_count}</span>
+          <span className="text-[11px] font-black tracking-tighter">{product.upvotes_count || 0}</span>
         </button>
       </div>
     </div>
