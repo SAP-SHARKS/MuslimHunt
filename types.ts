@@ -1,3 +1,4 @@
+
 export interface Profile {
   id: string;
   username: string;
@@ -45,6 +46,14 @@ export interface Product {
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  icon_name: string;
+  parent_category: string;
 }
 
 export interface Notification {
