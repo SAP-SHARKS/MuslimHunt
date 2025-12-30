@@ -12,7 +12,7 @@ const ICON_MAP: Record<string, any> = {
   Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy
 };
 
-// High-fidelity mapping for sub-category discovery inside Best Products
+// High-fidelity mapping for sub-category discovery inside Best Products mega-menu
 const CATEGORY_DRILLDOWN: Record<string, string[]> = {
   'Trending Categories': ['Vibe Coding Tools', 'AI Dictation Apps', 'Halal Habit Trackers', 'ArabicHero Pro'],
   'Engineering & Development': ['AI Coding Agents', 'AI Code Editors', 'Unified APIs', 'Browser Automation'],
@@ -35,7 +35,8 @@ interface DropdownItem {
 
 const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeHoverCategory, setActiveHoverCategory] = useState<string>(items[0]?.label || '');
+  // Pixel-Perfect Hover state management for Best Products
+  const [activeHoverCategory, setActiveHoverCategory] = useState<string>('');
   const isBestProducts = label === "Best Products";
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
       onMouseEnter={() => setIsOpen(true)} 
       onMouseLeave={() => setIsOpen(false)}
     >
-      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-emerald-800 py-4 transition-colors">
+      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-emerald-900 py-4 transition-colors">
         {label}
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -59,10 +60,10 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
         <div className={`absolute top-full left-0 ${isBestProducts ? 'w-[640px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[2rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
           {isBestProducts ? (
             <div className="flex flex-col">
-              {/* FEATURED: Orbit Awards Banner */}
-              <div className="bg-red-50/50 px-6 py-4 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
+              {/* ORBIT AWARDS BANNER: Red Background & Trophy Icon per High-Fidelity Specs */}
+              <div className="bg-red-50 px-6 py-4 flex items-center justify-between group/banner cursor-pointer border-b border-red-100/40 hover:bg-red-100/50 transition-colors">
+                <div className="flex items-center gap-4 text-left">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-red-100 shadow-sm">
                     <Trophy className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
@@ -74,7 +75,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
               </div>
 
               <div className="flex divide-x divide-gray-100">
-                {/* Left Column: BROWSE PANE */}
+                {/* Left Pane: Categories Switcher */}
                 <div className="w-[55%] p-6 pt-5">
                   <div className="grid grid-cols-1 gap-1">
                     {items.map((item, i) => (
@@ -83,7 +84,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                         onMouseEnter={() => setActiveHoverCategory(item.label)}
                         onClick={item.onClick} 
                         className={`w-full flex items-center gap-4 p-2.5 rounded-2xl transition-all text-left group/item relative ${
-                          activeHoverCategory === item.label ? 'bg-blue-50/80' : 'hover:bg-gray-50/50'
+                          activeHoverCategory === item.label ? 'bg-blue-50 shadow-sm' : 'hover:bg-gray-50/50'
                         }`}
                       >
                         <div className={`w-10 h-10 ${item.bgClass || 'bg-gray-50'} rounded-full flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 shadow-sm transition-transform group-hover/item:scale-110`}>
@@ -91,9 +92,9 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-[14px] font-bold leading-none transition-colors ${
-                            activeHoverCategory === item.label ? 'text-blue-900' : 'text-gray-900 group-hover/item:text-emerald-800'
+                            activeHoverCategory === item.label ? 'text-blue-900' : 'text-gray-900 group-hover/item:text-emerald-900'
                           }`}>{item.label}</p>
-                          <p className="text-[11px] text-gray-400 font-medium truncate mt-1.5">{item.subtext}</p>
+                          <p className="text-[11px] text-gray-400 font-medium truncate mt-1.5">{item.subtext || 'Explore directory'}</p>
                         </div>
                         {activeHoverCategory === item.label && (
                           <ChevronRight className="w-4 h-4 text-blue-400 animate-in slide-in-from-left-1" />
@@ -103,12 +104,12 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                   </div>
                 </div>
 
-                {/* Right Column: POPULAR NOW PANE */}
+                {/* Right Pane: Dynamic Tool Discovery (Hover-Driven) */}
                 <div className="w-[45%] p-6 pt-5 bg-gray-50/20 flex flex-col">
                   <div className="space-y-4 mb-auto px-2">
                     {(CATEGORY_DRILLDOWN[activeHoverCategory] || CATEGORY_DRILLDOWN['Trending Categories']).map((link, i) => (
                       <button key={i} className="w-full text-left group/pop flex items-center justify-between py-1">
-                        <p className="text-[13px] font-bold text-gray-700 group-hover/pop:text-emerald-800 transition-colors">{link}</p>
+                        <p className="text-[13px] font-bold text-gray-700 group-hover/pop:text-emerald-900 transition-colors">{link}</p>
                         <ArrowUpRight className="w-3.5 h-3.5 text-gray-200 group-hover/pop:text-emerald-500 transition-colors" />
                       </button>
                     ))}
@@ -129,7 +130,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
               </div>
             </div>
           ) : (
-            /* Single Column Dropdown for Launches, News, Forums */
+            /* High-Fidelity Dropdown for Launches, News, Forums */
             <div className="py-5">
               {items.map((item, i) => (
                 <button 
@@ -140,8 +141,8 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
                   <div className={`w-10 h-10 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 group-hover/item:scale-110 transition-transform shadow-sm`}>
                     <item.icon className="w-5 h-5" />
                   </div>
-                  <div className="flex flex-col pt-0.5 min-w-0">
-                    <p className="text-[14px] font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors leading-none">{item.label}</p>
+                  <div className="flex flex-col pt-0.5 min-w-0 text-left">
+                    <p className="text-[14px] font-bold text-gray-900 group-hover/item:text-emerald-900 transition-colors leading-none">{item.label}</p>
                     {item.subtext && (
                       <p className="text-[11px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>
                     )}
@@ -203,7 +204,7 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter to the specified navigation hierarchy: Best Products, Launches, News, Forums, Advertise
+  // Main Navigation Structure: Best Products, Launches, News, Forums, Advertise
   const mainNavItems = menuItems.filter(item => 
     ["Best Products", "Launches", "News", "Forums", "Advertise"].includes(item.label)
   );
@@ -214,7 +215,7 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 -ml-2 text-gray-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all active:scale-90"
+            className="md:hidden p-2 -ml-2 text-gray-600 hover:text-emerald-900 hover:bg-emerald-50 rounded-lg transition-all active:scale-90"
             aria-label="Toggle Navigation"
           >
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -233,7 +234,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Desktop Dynamic Navigation */}
+        {/* Dynamic Desktop Navigation */}
         <div className="hidden md:flex items-center gap-7 h-full">
           {mainNavItems.map((menu) => (
             <React.Fragment key={menu.id}>
@@ -251,14 +252,20 @@ const Navbar: React.FC<NavbarProps> = ({
                 />
               ) : (
                 <button 
-                  onClick={() => (menu.view || (menu as any).view_name) && setView((menu.view || (menu as any).view_name) as View)}
+                  onClick={() => {
+                    const targetView = (menu.view || (menu as any).view_name);
+                    if (targetView) {
+                      setView(targetView as View);
+                      setIsMobileMenuOpen(false);
+                    }
+                  }}
                   className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${
-                    (menu.view || (menu as any).view_name) === currentView ? 'text-emerald-800 font-bold' : 'text-gray-600 hover:text-emerald-800'
+                    (menu.view || (menu as any).view_name) === currentView ? 'text-emerald-900 font-black' : 'text-gray-600 hover:text-emerald-900'
                   }`}
                 >
                   {menu.label}
                   {(menu.view || (menu as any).view_name) === currentView && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-800 rounded-full" />
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-900 rounded-full" />
                   )}
                 </button>
               )}
@@ -280,11 +287,11 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowMobileSearch(true)} className="lg:hidden p-2 text-gray-600 hover:text-emerald-800 transition-colors">
+          <button onClick={() => setShowMobileSearch(true)} className="lg:hidden p-2 text-gray-600 hover:text-emerald-900 transition-colors">
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Subscribe Button - Positioned to the left of Sign In / User */}
+          {/* SUBSCRIBE BUTTON: Perfectly positioned to the left of Sign In / User Avatar */}
           <button 
             onClick={() => setView(View.NEWSLETTER)}
             className="hidden sm:block text-gray-600 font-bold text-[13px] px-5 py-2.5 border border-gray-200 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-95 shadow-sm"
@@ -295,7 +302,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {user ? (
             <div className="flex items-center gap-3">
               <div className="relative" ref={notificationDropdownRef}>
-                <button onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} className={`p-2 transition-colors relative ${showNotificationDropdown ? 'text-emerald-800' : 'text-gray-400 hover:text-emerald-800'}`}>
+                <button onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} className={`p-2 transition-colors relative ${showNotificationDropdown ? 'text-emerald-900' : 'text-gray-400 hover:text-emerald-900'}`}>
                   <Bell className="w-5 h-5" />
                   {unreadCount > 0 && <div className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#ff6154] rounded-full border-2 border-white shadow-sm" />}
                 </button>
@@ -305,8 +312,8 @@ const Navbar: React.FC<NavbarProps> = ({
                     <div className="space-y-4 mb-6">
                       {notifications.length === 0 ? <p className="text-[13px] text-gray-400 italic text-center py-4">No unread notifications!</p> : notifications.slice(0, 2).map((n) => (
                         <div key={n.id} className="flex gap-3 group/notif cursor-pointer">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-800 border border-emerald-100 shadow-sm">
-                            {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-emerald-800" /> : <MessageSquare className="w-4 h-4" />}
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 text-emerald-900 border border-emerald-100 shadow-sm">
+                            {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-emerald-900" /> : <MessageSquare className="w-4 h-4" />}
                           </div>
                           <div className="min-w-0">
                             <p className="text-[13px] font-medium text-gray-900 leading-snug line-clamp-2">{n.message}</p>
@@ -352,7 +359,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <button onClick={onSignInClick} className="text-emerald-800 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm">
+              <button onClick={onSignInClick} className="text-emerald-900 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm">
                 Sign In
               </button>
             </div>
@@ -360,12 +367,12 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - Hamburger in Top Left Portrait View */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-2xl z-[120] animate-in slide-in-from-top-4 duration-300 overflow-y-auto max-h-[calc(100vh-64px)]">
           <div className="p-6 space-y-8">
-            <button onClick={() => { setView(View.CATEGORIES); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-between p-4 bg-emerald-50/50 rounded-2xl text-emerald-800 border border-emerald-100">
-              <div className="flex items-center gap-4"><Layout className="w-6 h-6" /><span className="text-lg font-black uppercase tracking-tight">Explore Directory</span></div>
+            <button onClick={() => { setView(View.CATEGORIES); setIsMobileMenuOpen(false); }} className="w-full flex items-center justify-between p-4 bg-emerald-50/50 rounded-2xl text-emerald-900 border border-emerald-100 font-bold uppercase tracking-widest text-sm shadow-inner">
+              <div className="flex items-center gap-4"><Layout className="w-6 h-6" /><span className="tracking-tight">Explore Directory</span></div>
               <ChevronRight className="w-5 h-5 opacity-50" />
             </button>
             {mainNavItems.map((menu) => (
@@ -380,14 +387,20 @@ const Navbar: React.FC<NavbarProps> = ({
                       <div className={`w-10 h-10 ${sub.bgClass || 'bg-gray-50'} ${sub.colorClass || 'text-gray-400'} rounded-xl flex items-center justify-center shrink-0 shadow-sm`}>
                         {sub.icon && ICON_MAP[sub.icon] && React.createElement(ICON_MAP[sub.icon], { className: "w-5 h-5" })}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 text-left">
                         <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-800">{sub.label}</p>
                         <p className="text-[11px] text-gray-500 font-medium leading-tight">{sub.subtext}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-300" />
                     </button>
                   )) : (
-                    <button onClick={() => { (menu.view || (menu as any).view_name) && setView((menu.view || (menu as any).view_name)); setIsMobileMenuOpen(false); }} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl text-left">
+                    <button onClick={() => { 
+                      const targetView = (menu.view || (menu as any).view_name);
+                      if (targetView) {
+                        setView(targetView as View); 
+                        setIsMobileMenuOpen(false); 
+                      }
+                    }} className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl text-left">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
                           {menu.icon && ICON_MAP[menu.icon] ? React.createElement(ICON_MAP[menu.icon], { className: "w-5 h-5" }) : <Star className="w-5 h-5" />}
