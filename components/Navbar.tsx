@@ -1,5 +1,4 @@
-
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, ArrowUpRight, Star,
@@ -38,21 +37,14 @@ interface DropdownItem {
 
 const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Default to Productivity if it exists in the list, otherwise first item
-  const defaultHover = useMemo(() => {
-    const hasProductivity = items.find(item => item.label === 'Productivity');
-    return hasProductivity ? 'Productivity' : (items[0]?.label || '');
-  }, [items]);
-  
-  const [activeHoverCategory, setActiveHoverCategory] = useState<string>(defaultHover);
+  const [activeHoverCategory, setActiveHoverCategory] = useState<string>(items[0]?.label || 'Trending');
   const isBestProducts = label === "Best Products";
 
   useEffect(() => {
-    if (isOpen) {
-      setActiveHoverCategory(defaultHover);
+    if (isOpen && items.length > 0) {
+      setActiveHoverCategory(items[0].label);
     }
-  }, [isOpen, defaultHover]);
+  }, [isOpen, items]);
 
   return (
     <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
@@ -153,14 +145,12 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const mainNavItems = useMemo(() => {
-    return menuItems.filter(item => ["Best Products", "Launches", "News", "Forums", "Advertise"].includes(item.label));
-  }, [menuItems]);
-
   const filteredCategories = categories.filter(c => 
     c.name.toLowerCase().includes(mobileCategorySearch.toLowerCase()) ||
     c.parent_category.toLowerCase().includes(mobileCategorySearch.toLowerCase())
   ).slice(0, 10);
+
+  const mainNavItems = menuItems.filter(item => ["Best Products", "Launches", "News", "Forums", "Advertise"].includes(item.label));
 
   return (
     <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8">
@@ -176,54 +166,22 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="hidden md:flex items-center gap-7 h-full">
-          {mainNavItems.map((menu) => {
-            let dropdownItems = menu.sub_items || [];
-            
-            // If "Best Products", derive unique parents based on sorted categories
-            if (menu.label === "Best Products" && categories.length > 0) {
-              const uniqueParents: string[] = [];
-              const derivedItems: any[] = [];
-              categories.forEach(cat => {
-                if (!uniqueParents.includes(cat.parent_category)) {
-                  uniqueParents.push(cat.parent_category);
-                  derivedItems.push({
-                    label: cat.parent_category,
-                    icon: cat.icon_name,
-                    bgClass: 'bg-emerald-50',
-                    colorClass: 'text-emerald-800'
-                  });
-                }
-              });
-              dropdownItems = derivedItems;
-            }
-
-            return (
-              <React.Fragment key={menu.id}>
-                {dropdownItems.length > 0 ? (
-                  <RichDropdown label={menu.label} items={dropdownItems.map(sub => ({
-                    label: sub.label, 
-                    subtext: sub.subtext, 
-                    icon: ICON_MAP[sub.icon] || Star,
-                    bgClass: sub.bgClass, 
-                    colorClass: sub.colorClass,
-                    onClick: () => { 
-                      if (menu.label === "Best Products") {
-                        onCategorySelect?.(sub.label);
-                      } else {
-                        setView(sub.view); 
-                      }
-                      setIsMobileMenuOpen(false); 
-                    }
-                  }))} />
-                ) : (
-                  <button onClick={() => { const tv = (menu.view || (menu as any).view_name); if (tv) { setView(tv as View); setIsMobileMenuOpen(false); } }}
-                    className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'text-emerald-900 font-black' : 'text-gray-600 hover:text-emerald-900'}`}>
-                    {menu.label}{(menu.view || (menu as any).view_name) === currentView && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-900 rounded-full" />}
-                  </button>
-                )}
-              </React.Fragment>
-            );
-          })}
+          {mainNavItems.map((menu) => (
+            <React.Fragment key={menu.id}>
+              {menu.sub_items && menu.sub_items.length > 0 ? (
+                <RichDropdown label={menu.label} items={menu.sub_items.map(sub => ({
+                  label: sub.label, subtext: sub.subtext, icon: ICON_MAP[sub.icon] || Star,
+                  bgClass: sub.bgClass, colorClass: sub.colorClass,
+                  onClick: () => { setView(sub.view); setIsMobileMenuOpen(false); }
+                }))} />
+              ) : (
+                <button onClick={() => { const tv = (menu.view || (menu as any).view_name); if (tv) { setView(tv as View); setIsMobileMenuOpen(false); } }}
+                  className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'text-emerald-900 font-black' : 'text-gray-600 hover:text-emerald-900'}`}>
+                  {menu.label}{(menu.view || (menu as any).view_name) === currentView && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-900 rounded-full" />}
+                </button>
+              )}
+            </React.Fragment>
+          ))}
         </div>
 
         <div className="flex-1 max-w-sm hidden lg:block">
