@@ -454,7 +454,7 @@ const App: React.FC = () => {
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
-        {view === View.ADMIN_PANEL && <AdminPanel onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
+        {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
         {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={() => updateView(View.FORUM_HOME)} setView={updateView} />}

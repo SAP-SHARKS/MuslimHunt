@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
@@ -5,7 +6,7 @@ import {
   Rocket, Compass, Mail, FileText, Flame, Calendar, Plus, Bell, Settings, User as UserIcon,
   Triangle, Clock, Menu, Zap, Layout, Trophy, Hash,
   Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby,
-  CheckCircle
+  CheckCircle, ShieldCheck
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
@@ -136,7 +137,6 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Flex with gap-4 and items-center */}
         <div className="flex items-center gap-4">
           <button onClick={() => setShowMobileSearch(true)} className="lg:hidden p-2 text-gray-600 hover:text-emerald-900 transition-colors"><Search className="w-5 h-5" /></button>
           
@@ -155,7 +155,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Notification Bell next to Profile Avatar */}
               <div className="relative flex items-center" ref={notificationDropdownRef}>
                 <NotificationBell 
                   userId={user.id} 
@@ -191,11 +190,18 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* User Dropdown */}
               <div className="relative flex items-center" ref={userDropdownRef}>
-                <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
+                <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
                 {showUserDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-2 mb-1 border-b border-gray-50">
+                      <p className="text-[10px] font-black text-emerald-800 uppercase tracking-tighter truncate">{user.username}</p>
+                    </div>
+                    {user.is_admin && (
+                      <button onClick={() => { setView(View.ADMIN_PANEL); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-sm font-bold text-emerald-900">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600" /> Admin Panel
+                      </button>
+                    )}
                     <button onClick={() => { onViewProfile(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
                     <button onClick={() => { onLogout(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 border-t border-gray-50"><LogOut className="w-4 h-4" /> Logout</button>
                   </div>
