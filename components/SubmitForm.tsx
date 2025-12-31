@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
   Calendar, Link as LinkIcon, User as UserIcon, Plus, 
   CheckCircle2, DollarSign, Tag, Clock, Rocket, Sparkles, Image as ImageIcon,
-  Check, ChevronRight, Search, ChevronDown
+  Check, ChevronRight, Search, ChevronDown, MessageSquare, Ticket
 } from 'lucide-react';
 import { HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
@@ -28,11 +29,13 @@ enum Step {
 
 const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categories, onCancel, onSuccess }) => {
   const [activeStep, setActiveStep] = useState<Step>(Step.MAIN_INFO);
+  const [isDone, setIsDone] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     url: initialUrl,
     tagline: '',
     description: '',
+    firstComment: '',
     category: '',
     launchDate: new Date().toISOString().split('T')[0],
     halal_status: HALAL_STATUSES[1],
@@ -80,14 +83,35 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     setError(null);
     try {
       const payload = {
-        name: formData.name, url: formData.url, tagline: formData.tagline, description: formData.description,
-        category: formData.category, halal_status: formData.halal_status, sadaqah_info: formData.sadaqah_info,
-        logo_url: formData.logo_url, founder_id: user.id, created_at: new Date(formData.launchDate).toISOString(),
-        upvotes_count: 0
+        name: formData.name, 
+        url: formData.url, 
+        tagline: formData.tagline, 
+        description: formData.description,
+        category: formData.category, 
+        halal_status: formData.halal_status, 
+        sadaqah_info: formData.sadaqah_info,
+        logo_url: formData.logo_url, 
+        founder_id: user.id, 
+        created_at: new Date(formData.launchDate).toISOString(),
+        upvotes_count: 0,
+        is_approved: false, // EXPLICITLY PENDING
+        // Meta-fields for the launch
+        metadata: {
+          first_comment: formData.firstComment,
+          pricing: formData.pricing,
+          promo: {
+            offer: formData.promoOffer,
+            code: formData.promoCode,
+            expiry: formData.promoExpiry
+          }
+        }
       };
       const { data, error: insertError } = await supabase.from('products').insert([payload]).select();
       if (insertError) throw insertError;
-      if (data?.[0]) onSuccess(data[0] as Product);
+      if (data?.[0]) {
+        setIsDone(true);
+        setTimeout(() => onSuccess(data[0] as Product), 3000);
+      }
     } catch (err: any) {
       setError({ message: err.message || 'Submission failed.' });
     } finally {
@@ -95,14 +119,37 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     }
   };
 
+  // Group categories into an ordered array to maintain priority (Productivity first)
   const groupedCategories = useMemo(() => {
-    const groups: Record<string, Category[]> = {};
+    const groups: { parent: string; items: Category[] }[] = [];
     categories.forEach(cat => {
-      if (!groups[cat.parent_category]) groups[cat.parent_category] = [];
-      groups[cat.parent_category].push(cat);
+      let group = groups.find(g => g.parent === cat.parent_category);
+      if (!group) {
+        group = { parent: cat.parent_category, items: [] };
+        groups.push(group);
+      }
+      group.items.push(cat);
     });
     return groups;
   }, [categories]);
+
+  if (isDone) {
+    return (
+      <div className="max-w-2xl mx-auto py-32 px-4 text-center animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-24 h-24 bg-emerald-50 rounded-[3rem] flex items-center justify-center text-emerald-800 mx-auto mb-8 shadow-inner border border-emerald-100/50">
+          <ShieldCheck className="w-12 h-12" />
+        </div>
+        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Submitted for review.</h2>
+        <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-lg mx-auto mb-10">
+          Your product has been submitted to the queue. It will appear on the discovery feed once approved by our community moderators.
+        </p>
+        <div className="flex items-center justify-center gap-2 text-emerald-800 font-black uppercase tracking-widest text-[10px]">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Returning to home...
+        </div>
+      </div>
+    );
+  }
 
   const renderStepContent = () => {
     switch (activeStep) {
@@ -134,7 +181,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               </div>
               <div className="space-y-2">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Description</label>
-                <textarea required rows={5} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="What does your product do?" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-lg font-medium leading-relaxed shadow-inner" />
+                <textarea required rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="What does your product do?" className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-lg font-medium leading-relaxed shadow-inner" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5 text-emerald-800" /> First Comment</label>
+                <textarea rows={3} value={formData.firstComment} onChange={e => setFormData({...formData, firstComment: e.target.value})} placeholder="Explain why you built this to the community..." className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-base font-medium shadow-inner" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
@@ -148,9 +199,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
                   <div className="relative">
                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold appearance-none cursor-pointer shadow-inner">
-                      {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
-                        <optgroup key={group} label={group} className="font-black uppercase tracking-widest text-[10px] bg-white text-emerald-800 py-2">
-                          {items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
+                      {groupedCategories.map((group) => (
+                        <optgroup key={group.parent} label={group.parent} className="font-black uppercase tracking-widest text-[10px] bg-white text-emerald-800 py-2">
+                          {group.items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
                         </optgroup>
                       ))}
                     </select>
@@ -213,6 +264,27 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                 ))}
               </div>
             </div>
+
+            <div className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6">
+              <div className="flex items-center gap-3 text-gray-900 font-black uppercase tracking-widest text-xs"><Ticket className="w-5 h-5 text-emerald-800" /> Community Offer</div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">What is the offer?</label>
+                  <input value={formData.promoOffer} onChange={e => setFormData({...formData, promoOffer: e.target.value})} placeholder="e.g. 20% off for the first month" className="w-full px-6 py-4 bg-white border border-gray-100 focus:border-emerald-800 rounded-2xl outline-none font-bold text-sm" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Code</label>
+                    <input value={formData.promoCode} onChange={e => setFormData({...formData, promoCode: e.target.value})} placeholder="MUSLIMHUNT20" className="w-full px-6 py-4 bg-white border border-gray-100 focus:border-emerald-800 rounded-2xl outline-none font-bold text-sm uppercase" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Expiration Date</label>
+                    <input type="date" value={formData.promoExpiry} onChange={e => setFormData({...formData, promoExpiry: e.target.value})} className="w-full px-6 py-4 bg-white border border-gray-100 focus:border-emerald-800 rounded-2xl outline-none font-bold text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="p-10 bg-white border border-emerald-100 rounded-[3rem] space-y-8">
               <div className="flex items-center gap-3 text-emerald-900 font-black uppercase tracking-widest text-xs"><ShieldCheck className="w-5 h-5 text-emerald-800" /> Halal Trust</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

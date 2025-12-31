@@ -16,11 +16,14 @@ import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
+import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
+
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -67,6 +70,19 @@ const unslugify = (slug: string, categories: Category[]) => {
 export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => (
   <aside className="hidden xl:block w-80 shrink-0">
     <div className="sticky top-24 space-y-8">
+      {ADMIN_EMAILS.includes(user?.email || '') && (
+        <section className="bg-emerald-900 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-emerald-800">
+           <div className="flex items-center gap-2 mb-4 text-emerald-400">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
+           </div>
+           <h3 className="text-xl font-bold mb-4">Pending Approvals</h3>
+           <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
+             Open Admin Panel
+           </button>
+        </section>
+      )}
+
       <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
         <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
           <h3 
@@ -150,6 +166,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .eq('is_approved', true) // PUBLIC FEED ONLY SHOWS APPROVED
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -164,7 +181,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('product_categories')
         .select('*')
-        .order('parent_category', { ascending: true })
+        .order('display_order', { ascending: true })
         .order('name', { ascending: true });
       
       if (!error && data) {
@@ -176,7 +193,8 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
-    setProducts(prev => [newProduct, ...prev]);
+    // New products are pending approval, so they won't show in state immediately if fetchProducts is strict
+    // but for UX we can set a message or navigate home
     updateView(View.HOME, '/');
     fetchProducts(); 
   };
@@ -223,6 +241,7 @@ const App: React.FC = () => {
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
+        else if (path === '/admin') setView(View.ADMIN_PANEL);
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -259,6 +278,7 @@ const App: React.FC = () => {
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
+      else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }
@@ -413,6 +433,7 @@ const App: React.FC = () => {
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
+        {view === View.ADMIN_PANEL && <AdminPanel onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
         {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={() => updateView(View.FORUM_HOME)} setView={updateView} />}

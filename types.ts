@@ -46,6 +46,8 @@ export interface Product {
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
+  is_approved: boolean;
+  metadata?: any;
 }
 
 export interface Category {
@@ -116,5 +118,6 @@ export enum View {
   WELCOME = 'welcome',
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
-  SUBMISSION = 'submission' // /posts/new/submission
+  SUBMISSION = 'submission', // /posts/new/submission
+  ADMIN_PANEL = 'admin_panel'
 }
