@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
 import ProductDetail from './components/ProductDetail.tsx';
-import SubmissionFlow from './components/SubmissionFlow.tsx';
+import SubmitForm from './components/SubmitForm.tsx';
 import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
@@ -247,6 +247,7 @@ const App: React.FC = () => {
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
         else if (path === '/admin') {
+          // Double check admin status on back/forward navigation
           if (user?.email === ADMIN_EMAIL) {
             setView(View.ADMIN_PANEL);
           } else {
@@ -274,9 +275,10 @@ const App: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
     handlePopState(); 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [categories, user]);
+  }, [categories, user]); // Added user to deps to handle admin check correctly
 
   const updateView = (newView: View, customPath?: string) => {
+    // Security check for Admin Panel
     if (newView === View.ADMIN_PANEL && !isAdmin) {
       console.warn('[Muslim Hunt] Unauthorized attempt to access admin panel.');
       setView(View.HOME);
@@ -434,7 +436,7 @@ const App: React.FC = () => {
           </div>
         )}
         {view === View.CATEGORIES && <Categories categories={categories} onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
-        {view === View.SUBMISSION && <SubmissionFlow initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
+        {view === View.SUBMISSION && <SubmitForm initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
         {view === View.CATEGORY_DETAIL && (
           <CategoryDetail 
             category={activeCategory} products={products} categories={categories}
