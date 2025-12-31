@@ -110,7 +110,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
       if (insertError) throw insertError;
       if (data?.[0]) {
         setIsDone(true);
-        setTimeout(() => onSuccess(data[0] as Product), 4000);
+        setTimeout(() => onSuccess(data[0] as Product), 3000);
       }
     } catch (err: any) {
       setError({ message: err.message || 'Submission failed.' });
@@ -139,9 +139,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         <div className="w-24 h-24 bg-emerald-50 rounded-[3rem] flex items-center justify-center text-emerald-800 mx-auto mb-8 shadow-inner border border-emerald-100/50">
           <ShieldCheck className="w-12 h-12" />
         </div>
-        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Submitted.</h2>
+        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Submitted for review.</h2>
         <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-lg mx-auto mb-10">
-          Your product is now under review by the Admin. You will see it on the feed once approved.
+          Your product has been submitted to the queue. It will appear on the discovery feed once approved by our community moderators.
         </p>
         <div className="flex items-center justify-center gap-2 text-emerald-800 font-black uppercase tracking-widest text-[10px]">
           <Loader2 className="w-4 h-4 animate-spin" />
