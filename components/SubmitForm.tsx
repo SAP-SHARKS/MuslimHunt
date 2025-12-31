@@ -56,10 +56,8 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     if (initialUrl) setFormData(prev => ({ ...prev, url: initialUrl }));
   }, [initialUrl]);
 
-  // Ensure a default category is set once categories are loaded
   useEffect(() => {
     if (!formData.category && categories.length > 0) {
-      // Find Productivity or fallback to the first category
       const defaultCat = categories.find(c => c.name === 'Productivity') || categories[0];
       setFormData(prev => ({ ...prev, category: defaultCat.name }));
     }
@@ -94,8 +92,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         founder_id: user.id, 
         created_at: new Date(formData.launchDate).toISOString(),
         upvotes_count: 0,
-        is_approved: false, // EXPLICITLY PENDING
-        // Meta-fields for the launch
+        is_approved: false, // MANDATORY: Pending moderator review
         metadata: {
           first_comment: formData.firstComment,
           pricing: formData.pricing,
@@ -108,10 +105,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
       };
       const { data, error: insertError } = await supabase.from('products').insert([payload]).select();
       if (insertError) throw insertError;
-      if (data?.[0]) {
-        setIsDone(true);
-        setTimeout(() => onSuccess(data[0] as Product), 3000);
-      }
+      
+      setIsDone(true);
+      setTimeout(() => {
+        if (data?.[0]) onSuccess(data[0] as Product);
+      }, 4000);
     } catch (err: any) {
       setError({ message: err.message || 'Submission failed.' });
     } finally {
@@ -119,16 +117,11 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     }
   };
 
-  // Group categories into an ordered array to maintain priority (Productivity first)
   const groupedCategories = useMemo(() => {
-    const groups: { parent: string; items: Category[] }[] = [];
+    const groups: Record<string, Category[]> = {};
     categories.forEach(cat => {
-      let group = groups.find(g => g.parent === cat.parent_category);
-      if (!group) {
-        group = { parent: cat.parent_category, items: [] };
-        groups.push(group);
-      }
-      group.items.push(cat);
+      if (!groups[cat.parent_category]) groups[cat.parent_category] = [];
+      groups[cat.parent_category].push(cat);
     });
     return groups;
   }, [categories]);
@@ -139,13 +132,13 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         <div className="w-24 h-24 bg-emerald-50 rounded-[3rem] flex items-center justify-center text-emerald-800 mx-auto mb-8 shadow-inner border border-emerald-100/50">
           <ShieldCheck className="w-12 h-12" />
         </div>
-        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Submitted for review.</h2>
+        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Your product is now under review.</h2>
         <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-lg mx-auto mb-10">
-          Your product has been submitted to the queue. It will appear on the discovery feed once approved by our community moderators.
+          It will appear on the feed once approved by community moderators. We appreciate your contribution to the Ummah tech landscape.
         </p>
         <div className="flex items-center justify-center gap-2 text-emerald-800 font-black uppercase tracking-widest text-[10px]">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Returning to home...
+          Returning to home feed...
         </div>
       </div>
     );
@@ -199,9 +192,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
                   <div className="relative">
                     <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-lg font-bold appearance-none cursor-pointer shadow-inner">
-                      {groupedCategories.map((group) => (
-                        <optgroup key={group.parent} label={group.parent} className="font-black uppercase tracking-widest text-[10px] bg-white text-emerald-800 py-2">
-                          {group.items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
+                      {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
+                        <optgroup key={group} label={group} className="font-black uppercase tracking-widest text-[10px] bg-white text-emerald-800 py-2">
+                          {items.map(cat => <option key={cat.id} value={cat.name} className="font-bold normal-case text-base text-gray-900">{cat.name}</option>)}
                         </optgroup>
                       ))}
                     </select>

@@ -46,8 +46,7 @@ export interface Product {
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
-  is_approved: boolean;
-  metadata?: any;
+  is_approved: boolean; // Moderation flag
 }
 
 export interface Category {
@@ -101,11 +100,12 @@ export interface User {
   twitter_url?: string;
   website_url?: string;
   headline?: string;
+  is_admin?: boolean; // Admin privilege flag
 }
 
 export enum View {
   HOME = 'home',
-  SUBMIT = 'submit', // legacy / simple
+  SUBMIT = 'submit', 
   DETAIL = 'detail',
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
@@ -118,6 +118,6 @@ export enum View {
   WELCOME = 'welcome',
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
-  SUBMISSION = 'submission', // /posts/new/submission
+  SUBMISSION = 'submission',
   ADMIN_PANEL = 'admin_panel'
 }
