@@ -140,6 +140,15 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-4">
           <button onClick={() => setShowMobileSearch(true)} className="lg:hidden p-2 text-gray-600 hover:text-emerald-900 transition-colors"><Search className="w-5 h-5" /></button>
           
+          {/* Subscribe Button (Desktop) */}
+          <button 
+            onClick={() => setView(View.NEWSLETTER)}
+            className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
+          >
+            <Mail className="w-4 h-4" />
+            <span>Subscribe</span>
+          </button>
+
           {!user && (
             <button onClick={onSignInClick} className="text-emerald-900 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm">Sign In</button>
           )}
