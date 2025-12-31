@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
@@ -34,7 +33,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     url: initialUrl,
     tagline: '',
     description: '',
-    category: categories[0]?.name || '',
+    category: '',
     launchDate: new Date().toISOString().split('T')[0],
     halal_status: HALAL_STATUSES[1],
     sadaqah_info: '',
@@ -53,6 +52,15 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
   useEffect(() => {
     if (initialUrl) setFormData(prev => ({ ...prev, url: initialUrl }));
   }, [initialUrl]);
+
+  // Ensure a default category is set once categories are loaded
+  useEffect(() => {
+    if (!formData.category && categories.length > 0) {
+      // Find Productivity or fallback to the first category
+      const defaultCat = categories.find(c => c.name === 'Productivity') || categories[0];
+      setFormData(prev => ({ ...prev, category: defaultCat.name }));
+    }
+  }, [categories, formData.category]);
 
   const handleGeminiOptimize = async () => {
     if (!formData.description) return;

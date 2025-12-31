@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { 
   ArrowLeft, Search, Sparkles, ChevronRight, Hash, Code, Palette, DollarSign, Megaphone, CheckSquare, BookOpen,
@@ -68,7 +67,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
             <div className="relative group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
               <input 
-                type="text" placeholder="Search categories (e.g. crypto, wallet, travel)..." value={searchTerm}
+                type="text" placeholder="Search categories (e.g. crypto, wallet, travel, productivity)..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-md font-medium outline-none focus:bg-white focus:border-emerald-800 focus:ring-4 focus:ring-emerald-900/5 transition-all shadow-sm"
               />
