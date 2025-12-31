@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
 import ProductDetail from './components/ProductDetail.tsx';
-import SubmissionFlow from './components/SubmissionFlow.tsx';
+import SubmitForm from './components/SubmitForm.tsx';
 import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
@@ -23,8 +23,7 @@ import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus,
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
-// Admin Identity Definition
-const ADMIN_EMAIL = 'admin@muslimhunt.com';
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -68,83 +67,79 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
-  const isAdmin = user?.email === ADMIN_EMAIL;
-  
-  return (
-    <aside className="hidden xl:block w-80 shrink-0">
-      <div className="sticky top-24 space-y-8">
-        {isAdmin && (
-          <section className="bg-emerald-900 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-emerald-800 animate-in fade-in slide-in-from-top-4">
-             <div className="flex items-center gap-2 mb-4 text-emerald-400">
-                <ShieldCheck className="w-5 h-5" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
-             </div>
-             <h3 className="text-xl font-bold mb-4">Admin Dashboard</h3>
-             <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
-               Open Admin Panel
-             </button>
-          </section>
-        )}
+export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => (
+  <aside className="hidden xl:block w-80 shrink-0">
+    <div className="sticky top-24 space-y-8">
+      {ADMIN_EMAILS.includes(user?.email || '') && (
+        <section className="bg-emerald-900 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-emerald-800">
+           <div className="flex items-center gap-2 mb-4 text-emerald-400">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
+           </div>
+           <h3 className="text-xl font-bold mb-4">Pending Approvals</h3>
+           <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
+             Open Admin Panel
+           </button>
+        </section>
+      )}
 
-        <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
-            <h3 
-              className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
-              onClick={() => setView(View.FORUM_HOME)}
-            >
-              Trending Forum Threads
-            </h3>
-            <TrendingUp className="w-4 h-4 text-emerald-800 opacity-50" />
-          </div>
-          
-          <div className="space-y-7">
-            {[
-              { tag: "p/producthunt", title: "What are your favorite Halal apps for 2025?", comments: 24, upvotes: 156, online: 8, icon: Layout },
-              { tag: "p/vibecoding", title: "Which tech stack is best for Halal e-commerce?", comments: 18, upvotes: 92, online: 12, icon: Hash },
-              { tag: "p/general", title: "Seeking Beta Testers for a new prayer app", comments: 42, upvotes: 310, online: 15, icon: Users }
-            ].map((thread, i) => (
-              <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-emerald-800 transition-colors">
-                    <thread.icon className="w-3 h-3 opacity-60" />
-                    <span>{thread.tag}</span>
+      <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
+          <h3 
+            className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
+            onClick={() => setView(View.FORUM_HOME)}
+          >
+            Trending Forum Threads
+          </h3>
+          <TrendingUp className="w-4 h-4 text-emerald-800 opacity-50" />
+        </div>
+        
+        <div className="space-y-7">
+          {[
+            { tag: "p/producthunt", title: "What are your favorite Halal apps for 2025?", comments: 24, upvotes: 156, online: 8, icon: Layout },
+            { tag: "p/vibecoding", title: "Which tech stack is best for Halal e-commerce?", comments: 18, upvotes: 92, online: 12, icon: Hash },
+            { tag: "p/general", title: "Seeking Beta Testers for a new prayer app", comments: 42, upvotes: 310, online: 15, icon: Users }
+          ].map((thread, i) => (
+            <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-emerald-800 transition-colors">
+                  <thread.icon className="w-3 h-3 opacity-60" />
+                  <span>{thread.tag}</span>
+                </div>
+                <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">{thread.title}</h4>
+                <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
+                  <div className="flex items-center gap-1">
+                    <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
+                    {thread.upvotes}
                   </div>
-                  <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">{thread.title}</h4>
-                  <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-                    <div className="flex items-center gap-1">
-                      <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
-                      {thread.upvotes}
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-2.5 h-2.5" />
-                      {thread.comments}
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1.5 text-emerald-600/70 font-black">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {thread.online} online
-                    </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="w-2.5 h-2.5" />
+                    {thread.comments}
+                  </div>
+                  <span>•</span>
+                  <div className="flex items-center gap-1.5 text-emerald-600/70 font-black">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {thread.online} online
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          <div className="mt-10 space-y-4 pt-8 border-t border-gray-50">
-            <button onClick={() => setView(View.FORUM_HOME)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 transition-colors uppercase tracking-[0.2em]">
-              View all discussions <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]">
-              <Plus className="w-4 h-4" /> Start new thread
-            </button>
-          </div>
-        </section>
-      </div>
-    </aside>
-  );
-};
+        <div className="mt-10 space-y-4 pt-8 border-t border-gray-50">
+          <button onClick={() => setView(View.FORUM_HOME)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 transition-colors uppercase tracking-[0.2em]">
+            View all discussions <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]">
+            <Plus className="w-4 h-4" /> Start new thread
+          </button>
+        </div>
+      </section>
+    </div>
+  </aside>
+);
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -166,14 +161,12 @@ const App: React.FC = () => {
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
 
-  const isAdmin = user?.email === ADMIN_EMAIL;
-
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) 
+        .eq('is_approved', true) // PUBLIC FEED ONLY SHOWS APPROVED
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -200,6 +193,8 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
+    // New products are pending approval, so they won't show in state immediately if fetchProducts is strict
+    // but for UX we can set a message or navigate home
     updateView(View.HOME, '/');
     fetchProducts(); 
   };
@@ -246,14 +241,7 @@ const App: React.FC = () => {
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
-        else if (path === '/admin') {
-          if (user?.email === ADMIN_EMAIL) {
-            setView(View.ADMIN_PANEL);
-          } else {
-            setView(View.HOME);
-            safeHistory.replace('/');
-          }
-        }
+        else if (path === '/admin') setView(View.ADMIN_PANEL);
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -274,16 +262,9 @@ const App: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
     handlePopState(); 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [categories, user]);
+  }, [categories]);
 
   const updateView = (newView: View, customPath?: string) => {
-    if (newView === View.ADMIN_PANEL && !isAdmin) {
-      console.warn('[Muslim Hunt] Unauthorized attempt to access admin panel.');
-      setView(View.HOME);
-      safeHistory.replace('/');
-      return;
-    }
-
     setView(newView);
     let path = customPath || '/';
     if (!customPath) {
@@ -434,7 +415,7 @@ const App: React.FC = () => {
           </div>
         )}
         {view === View.CATEGORIES && <Categories categories={categories} onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
-        {view === View.SUBMISSION && <SubmissionFlow initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
+        {view === View.SUBMISSION && <SubmitForm initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
         {view === View.CATEGORY_DETAIL && (
           <CategoryDetail 
             category={activeCategory} products={products} categories={categories}
