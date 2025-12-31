@@ -1,10 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
-  Calendar, Link as LinkIcon, User as UserIcon, Plus, 
-  CheckCircle2, DollarSign, Tag, Clock, Rocket, Sparkles, Image as ImageIcon,
-  Check, ChevronRight, Search, ChevronDown, MessageSquare, Ticket, AlertTriangle
+  X, Wand2, Loader2, ShieldCheck, ArrowRight, AlertCircle, 
+  Calendar, Link as LinkIcon, Rocket, Image as ImageIcon,
+  CheckCircle2, DollarSign, MessageSquare, Ticket, AlertTriangle, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
@@ -83,7 +82,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
 
   const handleSubmit = async () => {
     if (!user) { setError('You must be signed in to submit.'); return; }
-    if (!canLaunch) { setError('Please complete all required fields in the checklist.'); return; }
+    if (!canLaunch) { setError('Please complete all required fields.'); return; }
     
     setIsSubmitting(true);
     setError(null);
@@ -98,17 +97,15 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
         halal_status: formData.halal_status,
         logo_url: formData.logo_url,
         founder_id: user.id,
-        created_at: new Date(formData.scheduledDate).toISOString(),
-        is_approved: false,
+        scheduled_date: new Date(formData.scheduledDate).toISOString(),
+        is_approved: false, // Mandatory moderation queue
         upvotes_count: 0,
+        pricing_type: formData.pricing,
+        promo_code: formData.promoCode,
+        promo_offer: formData.promoOffer,
+        promo_expiry: formData.promoExpiry ? new Date(formData.promoExpiry).toISOString() : null,
         metadata: {
-          pricing: formData.pricing,
-          first_comment: formData.firstComment,
-          promo: {
-            offer: formData.promoOffer,
-            code: formData.promoCode,
-            expiry: formData.promoExpiry
-          }
+          first_comment: formData.firstComment
         }
       };
 
@@ -116,9 +113,9 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
       if (insertError) throw insertError;
       
       setIsDone(true);
-      setTimeout(() => onSuccess(data[0] as Product), 4000);
+      setTimeout(() => onSuccess(data[0] as Product), 4500);
     } catch (err: any) {
-      setError(err.message || 'Submission failed. Please check your inputs.');
+      setError(err.message || 'Submission failed.');
     } finally {
       setIsSubmitting(false);
     }
@@ -143,9 +140,9 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
         <div className="w-24 h-24 bg-emerald-50 rounded-[3rem] flex items-center justify-center text-emerald-800 mx-auto mb-8 shadow-inner border border-emerald-100/50">
           <ShieldCheck className="w-12 h-12" />
         </div>
-        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Submitted.</h2>
+        <h2 className="text-4xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">Bismillah! Your product is now under review.</h2>
         <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-lg mx-auto mb-10">
-          Your product is now under review by the Admin. You will see it on the feed once approved.
+          We appreciate your contribution to the Ummah. You will see your launch on the feed once approved by our community moderators.
         </p>
         <div className="flex items-center justify-center gap-2 text-emerald-800 font-black uppercase tracking-widest text-[10px]">
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -164,7 +161,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
           </div>
           <div>
             <h2 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight">Launch your product</h2>
-            <p className="text-gray-500 text-sm font-medium italic">Building for the global Muslim community.</p>
+            <p className="text-gray-500 text-sm font-medium italic">Share your work with the global community.</p>
           </div>
         </div>
         <button onClick={onCancel} className="p-3 hover:bg-gray-100 rounded-full transition-all active:scale-95">
@@ -173,7 +170,6 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
       </div>
 
       <div className="bg-white border border-gray-100 shadow-2xl rounded-[3.5rem] overflow-hidden flex flex-col md:flex-row min-h-[750px]">
-        {/* Sidebar Nav */}
         <aside className="w-full md:w-80 bg-gray-50/50 border-r border-gray-50 p-10 space-y-2">
           {Object.values(Step).map((step) => {
             const isActive = activeStep === step;
@@ -191,7 +187,6 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
           })}
         </aside>
 
-        {/* Content Area */}
         <main className="flex-1 p-10 md:p-16 overflow-y-auto">
           {error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl flex items-center gap-3">
@@ -204,7 +199,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Product Name</label>
+                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Name of launch</label>
                   <input 
                     value={formData.name}
                     onChange={e => setFormData({...formData, name: e.target.value})}
@@ -222,7 +217,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                       disabled={isOptimizing || !formData.description}
                       className="text-[10px] flex items-center gap-1.5 text-emerald-800 hover:text-emerald-900 disabled:opacity-50 font-black uppercase tracking-widest transition-all"
                     >
-                      {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} AI Assist
+                      {isOptimizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} AI Help
                     </button>
                   </div>
                   <input 
@@ -234,7 +229,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Links</label>
+                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">URL</label>
                   <div className="relative">
                     <LinkIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                     <input 
@@ -252,14 +247,14 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                     rows={4}
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
-                    placeholder="What does your product do and why did you build it?"
+                    placeholder="Explain what your product does..."
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-base font-medium shadow-inner"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Category</label>
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Launch Tags</label>
                     <div className="relative">
                       <select 
                         value={formData.category}
@@ -276,7 +271,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Launch Date</label>
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1">Scheduled Date</label>
                     <div className="relative">
                       <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
                       <input 
@@ -305,7 +300,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Upload product logo</h3>
-                  <p className="text-sm text-gray-400 font-medium">Recommended: 240x240 PNG or SVG.</p>
+                  <p className="text-sm text-gray-400 font-medium">PNG or SVG recommended.</p>
                 </div>
                 <button className="px-8 py-3 bg-white border border-gray-200 rounded-xl text-xs font-black text-gray-500 hover:text-emerald-800 transition-all">Select Image</button>
               </div>
@@ -325,13 +320,13 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                     onClick={() => setFormData({...formData, isMaker: true})}
                     className={`flex-1 py-6 px-8 rounded-2xl border-2 transition-all font-black uppercase text-sm ${formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}
                   >
-                    I'm the maker
+                    I worked on this
                   </button>
                   <button 
                     onClick={() => setFormData({...formData, isMaker: false})}
                     className={`flex-1 py-6 px-8 rounded-2xl border-2 transition-all font-black uppercase text-sm ${!formData.isMaker ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl' : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'}`}
                   >
-                    I'm just a fan
+                    Someone else built this
                   </button>
                 </div>
               </div>
@@ -347,7 +342,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
               <div className="space-y-8">
                 <div className="space-y-4">
                   <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-emerald-800" /> Pricing Structure
+                    <DollarSign className="w-4 h-4 text-emerald-800" /> Pricing
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {['Free', 'Paid', 'Paid (with trial)'].map(p => (
@@ -364,25 +359,34 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
 
                 <div className="p-8 bg-gray-50 rounded-[3rem] border border-gray-100 space-y-6">
                   <h4 className="flex items-center gap-3 text-gray-900 font-black uppercase tracking-widest text-xs">
-                    <Ticket className="w-5 h-5 text-emerald-800" /> Community Offer (Optional)
+                    <Ticket className="w-5 h-5 text-emerald-800" /> Promo Code
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Offer Title</label>
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Offer Description</label>
                       <input 
                         value={formData.promoOffer}
                         onChange={e => setFormData({...formData, promoOffer: e.target.value})}
-                        placeholder="e.g. 20% off forever"
+                        placeholder="e.g. 20% off for life"
                         className="w-full px-4 py-3 bg-white border border-gray-100 focus:border-emerald-800 rounded-xl outline-none font-bold text-sm"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Promo Code</label>
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Code</label>
                       <input 
                         value={formData.promoCode}
                         onChange={e => setFormData({...formData, promoCode: e.target.value})}
                         placeholder="MUSLIMHUNT20"
                         className="w-full px-4 py-3 bg-white border border-gray-100 focus:border-emerald-800 rounded-xl outline-none font-black text-sm uppercase"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Expiry</label>
+                      <input 
+                        type="date"
+                        value={formData.promoExpiry}
+                        onChange={e => setFormData({...formData, promoExpiry: e.target.value})}
+                        className="w-full px-4 py-3 bg-white border border-gray-100 focus:border-emerald-800 rounded-xl outline-none font-bold text-sm"
                       />
                     </div>
                   </div>
@@ -396,7 +400,7 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                     rows={3}
                     value={formData.firstComment}
                     onChange={e => setFormData({...formData, firstComment: e.target.value})}
-                    placeholder="Tell the community why you're launching this today..."
+                    placeholder="Tell the community about your journey..."
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-3xl outline-none transition-all resize-none text-base font-medium shadow-inner"
                   />
                 </div>
@@ -411,18 +415,18 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
           {activeStep === Step.CHECKLIST && (
             <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
               <div>
-                <h3 className="text-3xl font-serif font-bold text-emerald-900 mb-2">Final Review</h3>
-                <p className="text-gray-400 text-sm font-medium italic">Make sure everything is perfect before launching.</p>
+                <h3 className="text-3xl font-serif font-bold text-emerald-900 mb-2">Final Checklist</h3>
+                <p className="text-gray-400 text-sm font-medium italic">Bismillah! One last check before submission.</p>
               </div>
 
               <div className="space-y-4">
                 {[
                   { id: 'name', label: 'Product Name', status: checklistStatus.name },
                   { id: 'tagline', label: 'Catchy Tagline', status: checklistStatus.tagline },
-                  { id: 'description', label: 'Clear Description', status: checklistStatus.description },
-                  { id: 'url', label: 'Valid Product URL', status: checklistStatus.url },
-                  { id: 'category', label: 'Primary Category', status: checklistStatus.category },
-                  { id: 'thumbnail', label: 'Product Thumbnail', status: checklistStatus.thumbnail }
+                  { id: 'description', label: 'Detailed Description', status: checklistStatus.description },
+                  { id: 'url', label: 'Valid URL', status: checklistStatus.url },
+                  { id: 'category', label: 'Category Tag', status: checklistStatus.category },
+                  { id: 'thumbnail', label: 'Thumbnail Set', status: checklistStatus.thumbnail }
                 ].map(item => (
                   <div key={item.id} className="p-5 bg-gray-50 rounded-[1.5rem] border border-gray-100 flex items-center justify-between">
                     <span className="font-bold text-gray-700">{item.label}</span>
@@ -449,11 +453,6 @@ const SubmissionFlow: React.FC<SubmissionFlowProps> = ({ initialUrl = '', user, 
                     <><Rocket className="w-8 h-8" /> Confirm and Launch</>
                   )}
                 </button>
-                {!canLaunch && (
-                  <p className="mt-4 text-center text-red-500 text-xs font-bold uppercase tracking-widest">
-                    Complete all required fields to launch
-                  </p>
-                )}
               </div>
             </div>
           )}

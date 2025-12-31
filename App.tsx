@@ -18,12 +18,12 @@ import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
-import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Product, User, View, Notification, NavMenuItem, Category } from './types.ts';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ShieldCheck } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
-// Admin Identity Definition
+// Admin Identity Configuration
 const ADMIN_EMAIL = 'admin@muslimhunt.com';
 
 const safeHistory = {
@@ -173,7 +173,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) 
+        .eq('is_approved', true) // Filter for public feed
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -199,7 +199,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleNewProduct = (newProduct: Product) => {
+  const handleNewProduct = () => {
     updateView(View.HOME, '/');
     fetchProducts(); 
   };

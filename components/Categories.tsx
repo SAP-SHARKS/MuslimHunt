@@ -24,25 +24,32 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
     window.scrollTo(0, 0);
   }, []);
 
-  const groupedCategories = useMemo(() => {
+  // Compute grouped categories as an array to preserve display_order from categories prop
+  const orderedGroups = useMemo(() => {
     const filtered = categories.filter(c => 
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.parent_category.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const groups: Record<string, Category[]> = {};
+    const groups: { parent: string; items: Category[] }[] = [];
+    
     filtered.forEach(cat => {
-      if (!groups[cat.parent_category]) groups[cat.parent_category] = [];
-      groups[cat.parent_category].push(cat);
+      let group = groups.find(g => g.parent === cat.parent_category);
+      if (!group) {
+        group = { parent: cat.parent_category, items: [] };
+        groups.push(group);
+      }
+      group.items.push(cat);
     });
+
     return groups;
   }, [categories, searchTerm]);
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+      window.scrollTo({ top: el.offsetTop - 120, behavior: 'smooth' });
     }
   };
 
@@ -68,7 +75,7 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
             <div className="relative group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-800 transition-colors" />
               <input 
-                type="text" placeholder="Search categories (e.g. crypto, wallet, productivity, travel)..." value={searchTerm}
+                type="text" placeholder="Search categories..." value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-14 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-md font-medium outline-none focus:bg-white focus:border-emerald-800 focus:ring-4 focus:ring-emerald-900/5 transition-all shadow-sm"
               />
@@ -76,22 +83,22 @@ const Categories: React.FC<CategoriesProps> = ({ categories, onBack, onCategoryS
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {Object.keys(groupedCategories).map((group) => (
-              <button key={group} onClick={() => scrollToSection(group)} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-800 transition-all whitespace-nowrap">
-                {group}
+            {orderedGroups.map((group) => (
+              <button key={group.parent} onClick={() => scrollToSection(group.parent)} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-100 rounded-full text-xs font-black text-gray-500 uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-800 transition-all whitespace-nowrap">
+                {group.parent}
               </button>
             ))}
           </div>
         </div>
 
         <div className="space-y-32 pb-32">
-          {(Object.entries(groupedCategories) as [string, Category[]][]).map(([group, items]) => (
-            <section key={group} id={group} className="scroll-mt-20">
+          {orderedGroups.map((group) => (
+            <section key={group.parent} id={group.parent} className="scroll-mt-24">
               <div className="flex items-center gap-3 mb-10 border-b border-gray-100 pb-6">
-                <h2 className="text-3xl font-serif font-bold text-emerald-900">{group}</h2>
+                <h2 className="text-3xl font-serif font-bold text-emerald-900">{group.parent}</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {items.map((item) => {
+                {group.items.map((item) => {
                   const Icon = ICON_MAP[item.icon_name] || Hash;
                   return (
                     <button key={item.id} onClick={() => onCategorySelect(item.name)} className="flex flex-col p-6 bg-white border border-gray-100 rounded-2xl hover:border-emerald-200 hover:shadow-xl transition-all text-left group">

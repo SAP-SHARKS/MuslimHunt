@@ -27,7 +27,7 @@ export interface Badge {
   label: string;
   description: string;
   color: 'purple' | 'gold' | 'emerald' | 'blue' | 'yellow';
-  value?: string; // e.g., "1" for #1 Product of the Day
+  value?: string; 
 }
 
 export interface Product {
@@ -47,6 +47,12 @@ export interface Product {
   comments?: Comment[];
   badges?: Badge[];
   is_approved: boolean;
+  // New specific columns for Product Hunt fidelity
+  pricing_type?: string;
+  promo_code?: string;
+  promo_offer?: string;
+  promo_expiry?: string;
+  scheduled_date?: string;
   metadata?: any;
 }
 
@@ -56,6 +62,7 @@ export interface Category {
   description: string;
   icon_name: string;
   parent_category: string;
+  display_order: number;
 }
 
 export interface Notification {
@@ -105,7 +112,7 @@ export interface User {
 
 export enum View {
   HOME = 'home',
-  SUBMIT = 'submit', // legacy / simple
+  SUBMIT = 'submit', 
   DETAIL = 'detail',
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
@@ -118,6 +125,6 @@ export enum View {
   WELCOME = 'welcome',
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
-  SUBMISSION = 'submission', // /posts/new/submission
+  SUBMISSION = 'submission', 
   ADMIN_PANEL = 'admin_panel'
 }

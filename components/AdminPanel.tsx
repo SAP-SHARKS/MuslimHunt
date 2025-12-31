@@ -44,7 +44,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
       
       if (!error) {
         setPendingProducts(prev => prev.filter(p => p.id !== id));
-        onRefresh(); // Trigger global refresh
+        // Global refresh to update the public feed state in App.tsx
+        onRefresh(); 
       }
     } finally {
       setActioningId(null);
@@ -52,7 +53,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this pending submission?')) return;
+    if (!confirm('Are you sure you want to reject and delete this submission?')) return;
     setActioningId(id);
     try {
       const { error } = await supabase
@@ -84,7 +85,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
             <ShieldCheck className="w-5 h-5" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Queue</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold text-emerald-900 leading-none">Submission Review</h1>
+          <h1 className="text-4xl font-serif font-bold text-emerald-900 leading-none">Review Launches</h1>
         </div>
         <div className="text-right">
           <p className="text-3xl font-black text-emerald-800 leading-none">{pendingProducts.length}</p>
@@ -102,13 +103,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
           <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-800 opacity-30">
             <CheckCircle2 className="w-10 h-10" />
           </div>
-          <h2 className="text-2xl font-serif font-bold text-gray-300">All caught up!</h2>
-          <p className="text-gray-400 font-medium italic">No pending products to review at the moment.</p>
+          <h2 className="text-2xl font-serif font-bold text-gray-300">Moderation clear</h2>
+          <p className="text-gray-400 font-medium italic">No launches currently awaiting review.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {pendingProducts.map((p) => (
-            <div key={p.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col lg:row items-start lg:items-center gap-8 group hover:border-emerald-100 transition-all">
+            <div key={p.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col lg:flex-row items-start lg:items-center gap-8 group hover:border-emerald-100 transition-all">
               <div className="w-20 h-20 rounded-2xl overflow-hidden border border-emerald-50 bg-white shrink-0 shadow-sm">
                 <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
               </div>
@@ -116,7 +117,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md">{p.category}</span>
-                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">{new Date(p.created_at).toLocaleDateString()}</span>
+                  <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                    {p.scheduled_date ? `Scheduled: ${new Date(p.scheduled_date).toLocaleDateString()}` : `Submitted: ${new Date(p.created_at).toLocaleDateString()}`}
+                  </span>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">{p.name}</h3>
                 <p className="text-gray-500 font-medium mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
@@ -134,7 +137,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
                   href={p.url} target="_blank" rel="noopener noreferrer"
                   className="px-6 py-3 border border-gray-200 rounded-xl text-xs font-black text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                 >
-                  Inspect <ExternalLink className="w-3.5 h-3.5" />
+                  Review URL <ExternalLink className="w-3.5 h-3.5" />
                 </a>
                 <button 
                   onClick={() => handleReject(p.id)}
@@ -149,7 +152,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack, onRefresh }) => {
                   className="px-8 py-3 bg-emerald-800 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/20 flex items-center justify-center gap-2"
                 >
                   {actioningId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  Approve Launch
+                  Approve
                 </button>
               </div>
             </div>
