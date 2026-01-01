@@ -71,15 +71,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Instruction: Update fetchPending to only retrieve products where is_approved is false.
-  // Instruction: Fix relationship name using profiles:user_id and add console.error check.
+  // Updated fetchPending to fix visibility of unapproved items
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
-    console.log("[Admin] Fetching unapproved products...");
-    
     try {
-      // Corrected query using 'user_id' as the explicit foreign key mapping to profiles
       const { data, error } = await supabase
         .from('products')
         .select(`
@@ -89,21 +85,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             avatar_url
           )
         `)
-        .eq('is_approved', false)
+        .eq('is_approved', false) // Fetches only unapproved products
         .order('created_at', { ascending: true });
-
+      
       if (error) {
-        // Detailed error logging as requested
-        console.error("[Admin] Fetch error:", error.message);
-        console.error("[Admin] Full Supabase Error Details:", error);
+        console.error('[Admin] Fetch error:', error.message);
         throw error;
       }
-
-      // Verify state update: Ensure data set only if there is no error
       setPendingProducts(data || []);
-      console.log(`[Admin] Queue sync successful. Found ${data?.length || 0} pending items.`);
     } catch (err) {
-      console.error("[Admin] Queue sync failed:", err);
+      console.error('[Admin] Queue sync failed:', err);
     } finally {
       setLoading(false);
     }
@@ -124,6 +115,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
+  // Updated handleApprove with requested notification message and user_id logic
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
@@ -134,57 +126,53 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (updateError) throw updateError;
 
+      // Send success notification to the correct user_id
       await supabase.from('notifications').insert([{
-        user_id: product.user_id, // Explicit user_id check
+        user_id: product.user_id,
         type: 'approval',
-        message: `Mabrook! Your product "${product.name}" has been approved.`,
+        message: `Congratulations! Your product "${product.name}" has been approved and is now live.`,
         is_read: false,
-        avatar_url: 'https://muslimhunt.com/logo.png' 
+        avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
       
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-      onRefresh();
-      console.log(`[Admin] Product "${product.name}" approved.`);
+      onRefresh(); 
     } catch (err) {
-      console.error("[Admin] Approval Error:", err);
-      alert("Approval failed. Check console.");
+      alert('Approval failed. Check database permissions.');
     } finally {
       setProcessingId(null);
     }
   };
 
+  // Updated handleRejectConfirm with notification-first logic and custom note
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
-    const productId = rejectingProduct.id;
-    const userId = rejectingProduct.user_id; // Explicit user_id check
-    const productName = rejectingProduct.name;
-
-    setProcessingId(productId);
+    setProcessingId(rejectingProduct.id);
     try {
+      // 1. Notify the user BEFORE deleting the product record
       await supabase.from('notifications').insert([{
-        user_id: userId,
+        user_id: rejectingProduct.user_id,
         type: 'rejection',
-        message: `Your submission "${productName}" was removed. Reason: ${rejectionNote}`,
+        message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
         is_read: false,
         avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
 
+      // 2. Delete the product from the database
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
-        .eq('id', productId);
+        .eq('id', rejectingProduct.id);
       
       if (deleteError) throw deleteError;
 
-      setPendingProducts(prev => prev.filter(p => p.id !== productId));
+      setPendingProducts(prev => prev.filter(p => p.id !== rejectingProduct.id));
       setIsRejectModalOpen(false);
       setRejectionNote('');
       setRejectingProduct(null);
       onRefresh();
-      console.log(`[Admin] Product "${productName}" rejected.`);
     } catch (err) {
-      console.error("[Admin] Rejection Error:", err);
-      alert("Removal failed. Check console.");
+      alert("Removal failed.");
     } finally {
       setProcessingId(null);
     }
@@ -237,7 +225,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
-      {/* Premium green/emerald themed box */}
       <div className="max-w-7xl mx-auto bg-emerald-50/30 border-4 border-emerald-100/50 rounded-[4rem] p-8 md:p-14 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
@@ -326,7 +313,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full overflow-hidden border border-emerald-100">
-                            {/* Instruction: Identification uses user_id */}
                             <img 
                               src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
                               alt="Submitter" 
