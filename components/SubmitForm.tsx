@@ -86,7 +86,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     setError(null);
 
     try {
-      // Bundling extra info into the metadata JSONB object as required
+      // PGRST200 fix: payload aligned with DB schema (user_id instead of founder_id)
       const payload = {
         name: formData.name, 
         url: formData.url, 
@@ -96,7 +96,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         halal_status: formData.halal_status, 
         sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url, 
-        founder_id: user.id, 
+        user_id: user.id, // Changed from founder_id
         created_at: new Date(formData.launchDate).toISOString(),
         upvotes_count: 0,
         is_approved: false,
@@ -119,7 +119,6 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         .select();
 
       if (insertError) {
-        // Handling the specific 'PGRST002' Schema Cache error
         if (insertError.code === 'PGRST002') {
           setError({ 
             message: 'Schema Cache Error (PGRST002): The database schema has recently changed. Please try again in a few moments or refresh the page.',

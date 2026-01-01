@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Product, User } from '../types';
 import { 
   ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft, 
-  Trash2, ExternalLink, RefreshCw, Filter, CheckCircle2, 
+  Trash2, RefreshCw, Filter, CheckCircle2, 
   AlertCircle, Hash, LogOut, Lock, Mail, KeyRound,
   ShieldAlert, UserCheck, ArrowRight, Shield, MessageSquare, AlertTriangle
 } from 'lucide-react';
@@ -90,11 +90,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!isAuthorized) return;
     setLoading(true);
     try {
+      // PGRST200 fix: Use explicit relationship naming profiles:user_id
       const { data, error } = await supabase
         .from('products')
         .select(`
           *,
-          founder:founder_id (
+          profiles:user_id (
             username,
             avatar_url
           )
@@ -146,10 +147,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
-    const previousState = [...pendingProducts];
-    setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-
+    console.log('[Admin] Attempting to publish:', product.name);
+    
     try {
+      // 1. Update status to true to publish
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
@@ -157,22 +158,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (updateError) throw updateError;
 
-      // Notify the maker that the product is now live
-      await supabase
-        .from('notifications')
-        .insert([{
-          user_id: product.founder_id,
+      // 2. Notify the owner (Non-critical step)
+      try {
+        await supabase.from('notifications').insert([{
+          user_id: product.user_id, // Match schema column
           type: 'approval',
-          message: `Your product "${product.name}" is now live on Muslim Hunt!`,
-          is_read: false,
-          avatar_url: 'https://muslimhunt.com/logo.png' 
+          message: `Mabrook! Your product "${product.name}" is now live.`,
+          is_read: false
         }]);
+      } catch (nErr) {
+        console.warn('Notification failed, but product is live.', nErr);
+      }
       
+      // 3. Update local state and refresh global feed
+      setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
-    } catch (err) {
-      console.error('[Admin] Approval failed:', err);
-      setPendingProducts(previousState);
-      alert('Action failed. Please try again.');
+      
+      console.log(`[Admin] Product "${product.name}" successfully published.`);
+    } catch (err: any) {
+      console.error('[Admin] Approve failed:', err.message);
+      alert('Failed to publish. Ensure you have run the SQL Foreign Key fix.');
     } finally {
       setProcessingId(null);
     }
@@ -188,15 +193,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!productToReject) return;
     
     const productId = productToReject.id;
-    const founderId = productToReject.founder_id;
+    const userId = productToReject.user_id;
     const productName = productToReject.name;
 
     setProcessingId(productId);
     setIsRejectModalOpen(false);
     
-    const previousState = [...pendingProducts];
-    setPendingProducts(prev => prev.filter(p => p.id !== productId));
-
     try {
       const { error: deleteError } = await supabase
         .from('products')
@@ -206,20 +208,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       if (deleteError) throw deleteError;
 
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
-      await supabase
-        .from('notifications')
-        .insert([{
-          user_id: founderId,
-          type: 'rejection',
-          message: `Your submission "${productName}" was removed. Reason: ${reason}`,
-          is_read: false,
-          avatar_url: 'https://muslimhunt.com/logo.png'
-        }]);
+      try {
+        await supabase
+          .from('notifications')
+          .insert([{
+            user_id: userId,
+            type: 'rejection',
+            message: `Your submission "${productName}" was removed. Reason: ${reason}`,
+            is_read: false,
+            avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
+          }]);
+      } catch (e) {
+        console.warn('Rejection notification could not be sent.');
+      }
       
+      setPendingProducts(prev => prev.filter(p => p.id !== productId));
       onRefresh(); 
     } catch (err) {
       console.error('[Admin] Rejection failed:', err);
-      setPendingProducts(previousState);
       alert('Failed to process rejection. Check connection.');
     } finally {
       setProcessingId(null);
@@ -231,7 +237,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     const query = searchQuery.toLowerCase();
     return pendingProducts.filter(p => 
       p.name.toLowerCase().includes(query) ||
-      p.founder?.username?.toLowerCase().includes(query) ||
+      p.profiles?.username?.toLowerCase().includes(query) ||
       p.category.toLowerCase().includes(query)
     );
   }, [pendingProducts, searchQuery]);
@@ -484,11 +490,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       <td className="px-12 py-10">
                         <div className="flex items-center gap-4">
                           <img 
-                            src={p.founder?.avatar_url || `https://i.pravatar.cc/150?u=${p.founder_id}`} 
+                            src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
                             className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" 
                             alt="Maker"
                           />
-                          <span className="text-sm font-black text-gray-900 truncate">@{p.founder?.username}</span>
+                          <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
                         </div>
                       </td>
                       <td className="px-12 py-10">
@@ -504,7 +510,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       </td>
                       <td className="px-12 py-10 text-right">
                         <div className="flex items-center justify-end gap-4">
-                          {/* Moderation actions now visible by default with themed colors */}
                           <a 
                             href={p.url || p.website_url} 
                             target="_blank" 
@@ -521,7 +526,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                             <Trash2 className="w-6 h-6" />
                           </button>
                           <button 
-                            onClick={() => handleApprove(p)}
+                            onClick={() => handleApprove(p)} 
                             disabled={processingId === p.id}
                             className="pl-8 pr-6 py-4 bg-emerald-800/90 hover:bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
                           >

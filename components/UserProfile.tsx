@@ -25,7 +25,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onCommentClick,
   onUpvote
 }) => {
-  const makerHistory = products.filter(p => p.founder_id === profile.id);
+  // Aligned with user_id schema
+  const makerHistory = products.filter(p => p.user_id === profile.id);
   const totalKarma = makerHistory.reduce((acc, p) => acc + (p.upvotes_count || 0), 0);
   const isOwnProfile = currentUser?.id === profile.id;
 
