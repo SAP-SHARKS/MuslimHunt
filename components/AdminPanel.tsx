@@ -90,7 +90,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!isAuthorized) return;
     setLoading(true);
     try {
-      // PGRST200 fix: Use explicit relationship naming profiles:user_id
+      // PGRST200 fix: Use explicit relationship naming profiles:user_id as requested
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles:user_id(username, avatar_url)')
@@ -141,41 +141,36 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
-    console.log('[Admin] Attempting to publish:', product.name, 'with ID:', product.id);
-    
     try {
-      // 1. Explicit Update: Target the product's unique id and set is_approved: true
+      // 1. Update the product status to make it live
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
       if (updateError) {
-        // Detailed Error Handling for RLS/Permission debugging
-        console.error('Full Update Error:', updateError);
+        console.error('Full Error (Update Failed):', updateError);
         throw updateError;
       }
 
-      // 2. Success Callback & Notification: Try to notify owner (Isolated from main logic)
+      // 2. Try to notify owner (Isolated from main publish logic)
       try {
         await supabase.from('notifications').insert([{
-          user_id: product.user_id, // Match schema column (Correct Submitter ID)
+          user_id: product.user_id, // Match schema
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" is now live.`,
+          message: `Mabrook! Your product "${product.name}" has been approved.`,
           is_read: false
         }]);
-        console.log(`[Admin] Notification sent to user: ${product.user_id}`);
       } catch (nErr) {
-        console.warn('[Admin] Notification failed, but product is live.', nErr);
+        console.warn('Notification failed, but product is now live.', nErr);
       }
       
-      // 3. Remove from local queue and refresh feed
+      // 3. Clear from queue and refresh main feed
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       
-      console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
-      console.error('[Admin] Publish failed:', err.message);
+      console.error('[Admin] Approve failed:', err.message);
       alert('Failed to publish. Check console for "Full Error" to identify RLS or column issues.');
     } finally {
       setProcessingId(null);
