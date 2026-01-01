@@ -147,10 +147,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
-    console.log('[Admin] Attempting to publish:', product.name);
-    
     try {
-      // 1. Update status to true to publish
+      // 1. Update the product to make it live
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
@@ -158,26 +156,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (updateError) throw updateError;
 
-      // 2. Notify the owner (Non-critical step)
+      // 2. Try to notify the owner, but don't crash if this part fails
       try {
         await supabase.from('notifications').insert([{
           user_id: product.user_id, // Match schema column
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" is now live.`,
+          message: `Mabrook! Your product "${product.name}" has been approved.`,
           is_read: false
         }]);
-      } catch (nErr) {
-        console.warn('Notification failed, but product is live.', nErr);
+      } catch (notifyErr) {
+        console.warn('Notification failed, but product is now live.', notifyErr);
       }
       
       // 3. Update local state and refresh global feed
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       
-      console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
       console.error('[Admin] Approve failed:', err.message);
-      alert('Failed to publish. Ensure you have run the SQL Foreign Key fix.');
+      alert('Failed to publish. Did you run the SQL Foreign Key fix in Supabase?');
     } finally {
       setProcessingId(null);
     }
@@ -428,7 +425,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
+        <div className="bg-white border border-emerald-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
             <input 
@@ -442,11 +439,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </button>
         </div>
 
-        <div className="bg-white border-x border-b border-gray-100 rounded-b-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/5">
+        <div className="bg-white border-x border-b border-emerald-100 rounded-b-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/5">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
-                <tr className="bg-gray-50/50 border-y border-gray-100">
+                <tr className="bg-gray-50/50 border-y border-emerald-100">
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Product</th>
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Maker</th>
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
