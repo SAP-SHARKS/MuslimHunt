@@ -485,5 +485,3 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 };
 
 export default AdminPanel;
-
-
