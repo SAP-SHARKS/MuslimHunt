@@ -126,42 +126,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
+    console.log('[Admin] Attempting to publish:', product.name, 'with ID:', product.id);
+    
     try {
-      // 1. Update status to true to make it live
-      // Targets the correct product id and uses boolean is_approved
+      // 1. Update the product status to live
+      // Targets the correct ID and explicitly sets boolean to true
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
-      if (updateError) {
-        console.error('[Admin] Product Update Failed:', updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      // 2. Insert notification for the owner
-      // Wrapped in a separate try-catch so product still gets approved if notification fails
+      // 2. Try to notify the user, but don't stop the process if it fails
       try {
-        const { error: notifyError } = await supabase.from('notifications').insert([{
-          user_id: product.user_id, // Match schema column (user_id instead of founder_id)
+        await supabase.from('notifications').insert([{
+          user_id: product.user_id, // Match schema column
           type: 'approval',
           message: `Mabrook! Your product "${product.name}" is now live.`,
-          is_read: false,
-          avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
+          is_read: false
         }]);
-        if (notifyError) console.warn('[Admin] Notification entry failed:', notifyError.message);
-      } catch (notifErr: any) {
-        console.warn('[Admin] Isolated notification logic failure:', notifErr.message);
+      } catch (notifyErr) {
+        console.warn('[Admin] Notification failed, but product was approved.', notifyErr);
       }
       
-      // 3. Update local state and trigger global refresh
+      // 3. Update local UI and refresh main feed in App.tsx
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       
       console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
       console.error('[Admin] Approval Process Failed:', err.message);
-      alert(`Failed to publish: ${err.message}. Check browser console for RLS policy or column mismatches.`);
+      alert('Failed to publish. Ensure you have run the RLS update in Supabase SQL Editor.');
     } finally {
       setProcessingId(null);
     }
