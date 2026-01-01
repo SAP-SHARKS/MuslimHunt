@@ -1,5 +1,4 @@
 
-
 export interface Profile {
   id: string;
   username: string;
@@ -40,14 +39,38 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  user_id: string; // Changed from founder_id
+  user_id: string;
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
-  is_approved: boolean; // Moderation flag
+  is_approved: boolean;
+}
+
+export interface Forum {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon_name: string;
+  display_order: number;
+  thread_count?: number;
+}
+
+export interface Thread {
+  id: string;
+  forum_id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  upvotes_count: number;
+  comment_count: number;
+  is_pinned?: boolean;
+  forum?: Forum;
+  profiles?: Profile;
 }
 
 export interface Category {
@@ -67,29 +90,14 @@ export interface Notification {
   avatar_url?: string;
 }
 
-export interface NavSubItem {
-  label: string;
-  subtext: string;
-  icon: string;
-  bgClass: string;
-  colorClass: string;
-  view: View;
-}
-
 export interface NavMenuItem {
   id: string;
   label: string;
   view?: View;
   icon?: string;
-  sub_items?: NavSubItem[];
+  sub_items?: any[];
   display_order: number;
   is_active: boolean;
-}
-
-export interface Vote {
-  id: string;
-  user_id: string;
-  product_id: string;
 }
 
 export interface User {
@@ -101,7 +109,7 @@ export interface User {
   twitter_url?: string;
   website_url?: string;
   headline?: string;
-  is_admin?: boolean; // Admin privilege flag
+  is_admin?: boolean;
 }
 
 export enum View {
@@ -111,6 +119,7 @@ export enum View {
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
+  FORUM_DETAIL = 'forum_detail',
   RECENT_COMMENTS = 'recent_comments',
   SPONSOR = 'sponsor',
   NEWSLETTER = 'newsletter',
