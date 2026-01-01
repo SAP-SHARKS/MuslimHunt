@@ -71,32 +71,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Updated fetchPending: Explicitly fetch unapproved products with submitter details
+  // Updated fetchPending: specifically filter for unapproved products and correct foreign key join
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
-    console.log("[Admin] Fetching unapproved products...");
+    console.log("[Admin] Syncing moderation queue...");
     
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('is_approved', false) // Fetches only unapproved products
+        .select('*, profiles:user_id(username, avatar_url)') // Using user_id from schema
+        .eq('is_approved', false) // Only show pending items
         .order('created_at', { ascending: true });
       
       if (error) {
-        console.error('[Admin] Supabase error:', error.message);
+        console.error('[Admin] Supabase fetch error:', error.message);
         throw error;
       }
       setPendingProducts(data || []);
     } catch (err) {
-      console.error('[Admin] Fetch failed:', err);
+      console.error('[Admin] Critical sync failed:', err);
     } finally {
       setLoading(false);
     }
@@ -117,31 +111,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Approval Logic: Flipped is_approved to true and triggered onRefresh for public sync
+  /**
+   * Database Update: Set is_approved to true
+   * State Cleanup: Remove from local state and trigger global refresh
+   * Notification: Insert record for product user_id
+   */
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
+      // 1. Update the database to publish the product
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_approved: true })
+        .update({ is_approved: true }) // This makes it public
         .eq('id', product.id);
       
       if (updateError) throw updateError;
 
-      // Notify the maker (using user_id)
+      // 2. Send a notification to the owner
       await supabase.from('notifications').insert([{
         user_id: product.user_id,
         type: 'approval',
-        message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
+        message: `Your product "${product.name}" has been approved and published!`,
         is_read: false
       }]);
       
-      // Update local state and trigger parent re-fetch for public feed
+      // 3. Update the local Admin Panel UI
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
+      
+      // 4. Refresh the global product list in App.tsx
       onRefresh(); 
     } catch (err) {
       console.error('[Admin] Approval failed:', err);
-      alert('Approval failed. Check database permissions.');
+      alert('Failed to publish product.');
     } finally {
       setProcessingId(null);
     }
@@ -172,6 +173,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setIsRejectModalOpen(false);
       setRejectionNote('');
       setRejectingProduct(null);
+      
+      // Ensure state consistency
       onRefresh();
     } catch (err) {
       console.error('[Admin] Rejection failed:', err);
