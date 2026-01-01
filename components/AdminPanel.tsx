@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Product, User } from '../types';
@@ -90,7 +89,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!isAuthorized) return;
     setLoading(true);
     try {
-      // PGRST200 fix: Use explicit relationship naming profiles:user_id as requested
+      // PGRST200 fix: Use explicit relationship naming profiles:user_id
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles:user_id(username, avatar_url)')
@@ -142,36 +141,40 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update the product status to make it live
+      // Step 1: Make the product LIVE (Primary Objective)
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
       if (updateError) {
-        console.error('Full Error (Update Failed):', updateError);
-        throw updateError;
+        console.error('CRITICAL: Product update failed!', updateError.code, updateError.message);
+        throw updateError; // Stop here if we can't even update the product
       }
 
-      // 2. Try to notify owner (Isolated from main publish logic)
+      // Step 2: Try to notify the user (Non-Critical, Isolated)
       try {
-        await supabase.from('notifications').insert([{
-          user_id: product.user_id, // Match schema
+        const { error: notifyError } = await supabase.from('notifications').insert([{
+          user_id: product.user_id,
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" has been approved.`,
+          message: `Mabrook! Your product "${product.name}" is now live.`,
           is_read: false
         }]);
+        
+        if (notifyError) {
+          console.warn('Note: Notification failed (possible RLS), but product is approved.', notifyError.code, notifyError.message);
+        }
       } catch (nErr) {
-        console.warn('Notification failed, but product is now live.', nErr);
+        console.warn('Non-critical notification error:', nErr);
       }
       
-      // 3. Clear from queue and refresh main feed
+      // Step 3: Success Actions (Update local UI and global feed)
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-      onRefresh(); 
+      onRefresh(); // This makes it show up on the public home page immediately
       
     } catch (err: any) {
-      console.error('[Admin] Approve failed:', err.message);
-      alert('Failed to publish. Check console for "Full Error" to identify RLS or column issues.');
+      console.error('Full Error (Approval Failed):', err.code, err.message);
+      alert(`Failed to approve: ${err.message}. Ensure Admin has 'Update' permissions.`);
     } finally {
       setProcessingId(null);
     }
