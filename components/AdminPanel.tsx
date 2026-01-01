@@ -80,7 +80,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*, profiles:user_id(username, avatar_url)') // Using user_id from schema
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `) // Using user_id from schema
         .eq('is_approved', false) // Only show pending items
         .order('created_at', { ascending: true });
       
@@ -114,35 +120,44 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   /**
    * Database Update: Set is_approved to true
    * State Cleanup: Remove from local state and trigger global refresh
-   * Notification: Insert record for product user_id
+   * Notification: Insert record for product user_id with refined error logging
    */
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update the database to publish the product
+      // 1. Update the product status to live in Supabase
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_approved: true }) // This makes it public
+        .update({ is_approved: true })
         .eq('id', product.id);
       
       if (updateError) throw updateError;
 
-      // 2. Send a notification to the owner
-      await supabase.from('notifications').insert([{
-        user_id: product.user_id,
+      // 2. Attempt to notify the submitter
+      // Note: We use product.user_id as found in the schema
+      const { error: notifyError } = await supabase.from('notifications').insert([{
+        user_id: product.user_id, 
         type: 'approval',
-        message: `Your product "${product.name}" has been approved and published!`,
-        is_read: false
+        message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
+        is_read: false,
+        avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png' // System notification avatar
       }]);
+
+      if (notifyError) {
+        // Log the specific error message to help identify foreign key or column issues
+        console.warn('[Admin] Product approved, but notification failed:', notifyError.message);
+        // We don't throw here so the UI still updates for the admin since the product IS live
+      }
       
-      // 3. Update the local Admin Panel UI
+      // 3. Update local Admin Panel UI state
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       
-      // 4. Refresh the global product list in App.tsx
+      // 4. Refresh the global product list in App.tsx (Discovery Feed)
       onRefresh(); 
-    } catch (err) {
-      console.error('[Admin] Approval failed:', err);
-      alert('Failed to publish product.');
+      
+    } catch (err: any) {
+      console.error('[Admin] Approval Process Failed:', err.message);
+      alert('Failed to approve product. See browser console for details.');
     } finally {
       setProcessingId(null);
     }
@@ -154,14 +169,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setProcessingId(rejectingProduct.id);
     try {
       // 1. Notify the user BEFORE deleting the record to preserve user_id mapping
-      await supabase.from('notifications').insert([{
+      const { error: notifyError } = await supabase.from('notifications').insert([{
         user_id: rejectingProduct.user_id,
         type: 'rejection',
         message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
         is_read: false
       }]);
 
-      // 2. Remove the product record
+      if (notifyError) {
+        console.warn('[Admin] Rejection notification failed:', notifyError.message);
+      }
+
+      // 2. Remove the product record from the database
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -174,11 +193,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setRejectionNote('');
       setRejectingProduct(null);
       
-      // Ensure state consistency
+      // Ensure state consistency for the public feed (it shouldn't have unapproved items anyway)
       onRefresh();
-    } catch (err) {
-      console.error('[Admin] Rejection failed:', err);
-      alert("Removal failed.");
+    } catch (err: any) {
+      console.error('[Admin] Rejection failed:', err.message);
+      alert("Removal failed. Check console.");
     } finally {
       setProcessingId(null);
     }
