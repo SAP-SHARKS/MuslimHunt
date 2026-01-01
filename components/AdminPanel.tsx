@@ -6,7 +6,7 @@ import {
   ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft, 
   Trash2, ExternalLink, RefreshCw, Filter, CheckCircle2, 
   AlertCircle, Hash, LogOut, Lock, Mail, KeyRound,
-  ShieldAlert, UserCheck, ArrowRight, Shield
+  ShieldAlert, UserCheck, ArrowRight, Shield, MessageSquare, AlertTriangle
 } from 'lucide-react';
 import SafeImage from './SafeImage.tsx';
 
@@ -27,6 +27,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const [password, setPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  
+  // Rejection Modal State
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionNote, setRejectionNote] = useState('');
+  const [productToReject, setProductToReject] = useState<any | null>(null);
   
   // Strict Authorization Config
   const AUTHORIZED_ADMIN_EMAIL = 'zeirislam@gmail.com';
@@ -183,22 +188,54 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  const handleReject = async (id: string) => {
-    if (!confirm('Warning: This will permanently delete this submission. Proceed?')) return;
+  const initiateReject = (product: any) => {
+    setProductToReject(product);
+    setRejectionNote('');
+    setIsRejectModalOpen(true);
+  };
+
+  const confirmRejection = async () => {
+    if (!productToReject) return;
     
-    setProcessingId(id);
+    const productId = productToReject.id;
+    const founderId = productToReject.founder_id;
+    const productName = productToReject.name;
+
+    setProcessingId(productId);
+    setIsRejectModalOpen(false);
+    
     const previousState = [...pendingProducts];
-    setPendingProducts(prev => prev.filter(p => p.id !== id));
+    setPendingProducts(prev => prev.filter(p => p.id !== productId));
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
+      // 1. Delete from products table
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+      
+      if (deleteError) throw deleteError;
+
+      // 2. Insert notification with rejection reason
+      const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
+      await supabase
+        .from('notifications')
+        .insert([{
+          user_id: founderId,
+          type: 'rejection',
+          message: `Your submission "${productName}" was removed. Reason: ${reason}`,
+          is_read: false,
+          avatar_url: 'https://muslimhunt.com/logo.png'
+        }]);
+      
+      onRefresh();
     } catch (err) {
-      console.error('[Admin] Deletion failed:', err);
+      console.error('[Admin] Rejection failed:', err);
       setPendingProducts(previousState);
       alert('Failed to delete submission.');
     } finally {
       setProcessingId(null);
+      setProductToReject(null);
     }
   };
 
@@ -313,6 +350,54 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   // View State: Admin Dashboard
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-8 animate-in fade-in duration-500">
+      {/* Rejection Modal */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsRejectModalOpen(false)} />
+          <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-red-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 sm:p-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-inner">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-serif font-bold text-gray-900 leading-none mb-1">Reject Submission</h3>
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{productToReject?.name}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4 mb-8">
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5 text-red-600" /> Rejection Note
+                </label>
+                <textarea 
+                  value={rejectionNote}
+                  onChange={(e) => setRejectionNote(e.target.value)}
+                  placeholder="Explain to the maker why this submission is being removed..."
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-red-600 rounded-3xl outline-none transition-all resize-none text-base font-medium shadow-inner h-40"
+                />
+                <p className="text-[10px] text-gray-400 italic">This message will be sent to the submitter as a notification.</p>
+              </div>
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsRejectModalOpen(false)}
+                  className="flex-1 py-4 px-6 border border-gray-100 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmRejection}
+                  className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20"
+                >
+                  Confirm Removal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-emerald-800">
@@ -440,7 +525,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                           <Eye className="w-6 h-6" />
                         </a>
                         <button 
-                          onClick={() => handleReject(p.id)}
+                          onClick={() => initiateReject(p)}
                           disabled={processingId === p.id}
                           className="p-4 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100 active:scale-95"
                         >
