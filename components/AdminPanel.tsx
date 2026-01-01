@@ -517,29 +517,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       </div>
                     </td>
                     <td className="px-12 py-10 text-right">
-                      <div className="flex items-center justify-end gap-4 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                      <div className="flex items-center justify-end gap-4 opacity-100 lg:opacity-60 lg:group-hover:opacity-100 transition-all duration-300 transform translate-x-0">
                         <a 
                           href={p.url || p.website_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="p-4 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-transparent hover:border-emerald-100 active:scale-95"
+                          className="p-4 text-emerald-800/50 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100/30 active:scale-95"
                         >
                           <Eye className="w-6 h-6" />
                         </a>
                         <button 
                           onClick={() => initiateReject(p)}
                           disabled={processingId === p.id}
-                          className="p-4 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100 active:scale-95"
+                          className="p-4 text-red-300/70 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all border border-transparent active:scale-95"
                         >
                           <Trash2 className="w-6 h-6" />
                         </button>
                         <button 
                           onClick={() => handleApprove(p)}
                           disabled={processingId === p.id}
-                          className="pl-8 pr-6 py-4 bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-800 transition-all shadow-2xl active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
+                          className="pl-8 pr-6 py-4 bg-emerald-800/80 hover:bg-emerald-800 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700/50"
                         >
                           {processingId === p.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                          Authorize Live
+                          Approve
                         </button>
                       </div>
                     </td>
