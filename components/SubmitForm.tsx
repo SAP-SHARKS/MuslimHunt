@@ -98,7 +98,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         user_id: user.id, // Populating user_id correctly
         created_at: new Date(formData.launchDate).toISOString(),
         upvotes_count: 0,
-        is_approved: false, // Explicitly set to false for moderation workflow
+        is_approved: false, // Mandatory: is_approved false by default for moderation
         metadata: {
           first_comment: formData.firstComment,
           maker_twitter: formData.makerTwitter,

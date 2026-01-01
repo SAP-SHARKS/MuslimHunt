@@ -71,17 +71,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Updated fetchPending: specifically filter for unapproved products and correct foreign key join
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
     console.log("[Admin] Syncing moderation queue...");
     
     try {
+      // Specifically filter for unapproved products
       const { data, error } = await supabase
         .from('products')
-        .select('*, profiles:user_id(username, avatar_url)') // Using user_id from schema
-        .eq('is_approved', false) // Only show pending items
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('is_approved', false)
         .order('created_at', { ascending: true });
       
       if (error) {
@@ -114,62 +120,57 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update the product status to live
+      // 1. Update the product status in Supabase
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_approved: true })
+        .update({ is_approved: true }) // Set to true to publish
         .eq('id', product.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        // Explicit logging for debugging potential RLS issues
+        console.error('[Admin] Update Call Failed:', updateError);
+        throw updateError;
+      }
 
-      // 2. Attempt to notify the submitter
-      // Note: We use product.user_id as found in your schema
+      // 2. Notify the submitter using the correct user_id from schema
       const { error: notifyError } = await supabase.from('notifications').insert([{
         user_id: product.user_id, 
         type: 'approval',
         message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
         is_read: false,
-        avatar_url: 'https://muslimhunt.com/logo.png'
+        avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
       }]);
 
       if (notifyError) {
-        // Specifically logging the error message to identify if it is a 'foreign key violation' or 'missing column'
         console.warn('[Admin] Product approved, but notification failed:', notifyError.message);
-        // We don't throw here so the UI still updates for the admin
       }
       
-      // 3. Update local state and refresh global feed
+      // 3. Update local UI state
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       
-      // Ensure onRefresh is only called if product update was successful
+      // 4. Trigger global refresh for the public feed in App.tsx
       onRefresh(); 
       
     } catch (err: any) {
       console.error('[Admin] Approval Process Failed:', err.message);
-      alert('Failed to approve product. See console for details.');
+      alert('Failed to approve product. Check database permissions in console.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  // Rejection Logic: Send notification then remove product record
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
     try {
-      // 1. Notify the user BEFORE deleting the record to preserve user_id mapping
-      const { error: notifyError } = await supabase.from('notifications').insert([{
+      // Notify the user before removal
+      await supabase.from('notifications').insert([{
         user_id: rejectingProduct.user_id,
         type: 'rejection',
         message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
         is_read: false
       }]);
 
-      if (notifyError) {
-        console.warn('[Admin] Rejection notification failed:', notifyError.message);
-      }
-
-      // 2. Remove the product record
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -181,8 +182,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setIsRejectModalOpen(false);
       setRejectionNote('');
       setRejectingProduct(null);
-      
-      // Ensure state consistency
       onRefresh();
     } catch (err: any) {
       console.error('[Admin] Rejection failed:', err.message);
