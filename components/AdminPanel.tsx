@@ -71,27 +71,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Updated fetchPending: Explicitly fetch unapproved products with submitter details
+  // Updated fetchPending: Corrected join syntax and added verbose logging
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
+    console.log("[Admin] Fetching unapproved products...");
+
     try {
-      const { data, error } = await supabase
+      // Using explicit foreign key join 'profiles:user_id' as requested
+      const { data, error, count } = await supabase
         .from('products')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('is_approved', false) // Fetches only unapproved products
+        .select('*, profiles:user_id(username, avatar_url)', { count: 'exact' })
+        .eq('is_approved', false)
         .order('created_at', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('[Admin] Supabase error fetching pending:', error.message);
+        throw error;
+      }
+
+      console.log(`[Admin] Successfully retrieved ${data?.length || 0} pending products. (Total count: ${count})`);
       setPendingProducts(data || []);
     } catch (err) {
-      console.error('[Admin] Fetch error:', err);
+      console.error('[Admin] Critical fetch failure:', err);
     } finally {
       setLoading(false);
     }
@@ -112,9 +114,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Approval Logic: Flipped is_approved to true and triggered onRefresh for public sync
+  // Approval Logic: Flipped is_approved to true and triggered onRefresh for immediate public update
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
+    console.log(`[Admin] Approving product: ${product.name} (${product.id})`);
+    
     try {
       const { error: updateError } = await supabase
         .from('products')
@@ -132,35 +136,51 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       }]);
       
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
+      
+      // Notify parent to refresh the public feed
       onRefresh(); 
+      console.log(`[Admin] ${product.name} is now approved and live.`);
     } catch (err) {
+      console.error('[Admin] Approval failed:', err);
       alert('Approval failed. Check database permissions.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  // Rejection Logic: Send notification then remove product record
+  // Rejection Logic: Notify user then remove product record
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
+    console.log(`[Admin] Rejecting product: ${rejectingProduct.name}`);
+
     try {
       // 1. Notify the user BEFORE deleting the product record
       await supabase.from('notifications').insert([{
-        user_id: rejectingProduct.user_id, //
+        user_id: rejectingProduct.user_id,
         type: 'rejection',
         message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
         is_read: false
       }]);
 
       // 2. Delete the product from the database
-      const { error: deleteError } = await supabase.from('products').delete().eq('id', rejectingProduct.id);
+      const { error: deleteError } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', rejectingProduct.id);
+      
       if (deleteError) throw deleteError;
 
       setPendingProducts(prev => prev.filter(p => p.id !== rejectingProduct.id));
       setIsRejectModalOpen(false);
       setRejectionNote('');
+      setRejectingProduct(null);
+      
+      // Refresh feed in case of deletion
+      onRefresh();
+      console.log("[Admin] Product rejected and removed from database.");
     } catch (err) {
+      console.error('[Admin] Rejection failed:', err);
       alert("Removal failed.");
     } finally {
       setProcessingId(null);
