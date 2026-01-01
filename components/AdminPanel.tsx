@@ -121,42 +121,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update the product status in Supabase
+      // 1. Update status to true to make it live
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_approved: true }) // Set to true to publish
+        .update({ is_approved: true })
         .eq('id', product.id);
       
-      if (updateError) {
-        // Explicit logging for debugging potential RLS issues
-        console.error('[Admin] Update Call Failed:', updateError);
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      // 2. Notify the submitter using the correct user_id from schema
-      const { error: notifyError } = await supabase.from('notifications').insert([{
-        user_id: product.user_id, 
+      // 2. Insert notification for the owner
+      // Ensure we use user_id (not founder_id) as per the schema
+      await supabase.from('notifications').insert([{
+        user_id: product.user_id, // Match schema column
         type: 'approval',
-        message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
-        is_read: false,
-        avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
+        message: `Mabrook! Your product "${product.name}" is now live.`,
+        is_read: false
       }]);
-
-      if (notifyError) {
-        // Specifically logging the error message to identify if it is a 'foreign key violation' or 'missing column'
-        console.warn('[Admin] Product approved, but notification failed:', notifyError.message);
-        // We don't throw here so the UI still updates for the admin
-      }
       
-      // 3. Update local UI state
+      // 3. Update local state and trigger global refresh
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-      
-      // Ensure onRefresh is only called if product update was successful
       onRefresh(); 
       
+      console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
-      console.error('[Admin] Approval Process Failed:', err.message);
-      alert('Failed to approve product. See console for details.');
+      console.error('[Admin] Approval Failed:', err.message);
+      alert('Failed to publish. Check console for RLS errors.');
     } finally {
       setProcessingId(null);
     }
