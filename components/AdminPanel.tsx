@@ -129,35 +129,39 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     console.log('[Admin] Attempting to publish:', product.name, 'with ID:', product.id);
     
     try {
-      // 1. Update the product status to live
-      // Targets the correct ID and explicitly sets boolean to true
+      // 1. Explicit Update: Target the product's unique id and set is_approved: true
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        // Detailed Error Handling for RLS/Permission debugging
+        console.error('Full Update Error:', updateError);
+        throw updateError;
+      }
 
-      // 2. Try to notify the user, but don't stop the process if it fails
+      // 2. Success Callback & Notification: Try to notify the owner
       try {
         await supabase.from('notifications').insert([{
-          user_id: product.user_id, // Match schema column
+          user_id: product.user_id, // Match schema column (Correct Submitter ID)
           type: 'approval',
           message: `Mabrook! Your product "${product.name}" is now live.`,
           is_read: false
         }]);
+        console.log(`[Admin] Notification sent to user: ${product.user_id}`);
       } catch (notifyErr) {
         console.warn('[Admin] Notification failed, but product was approved.', notifyErr);
       }
       
-      // 3. Update local UI and refresh main feed in App.tsx
+      // 3. Syncing State: Remove from local queue and trigger re-fetch in App.tsx
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       
       console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
       console.error('[Admin] Approval Process Failed:', err.message);
-      alert('Failed to publish. Ensure you have run the RLS update in Supabase SQL Editor.');
+      alert('Failed to publish. Check console for "Full Error" to identify RLS or column issues.');
     } finally {
       setProcessingId(null);
     }
