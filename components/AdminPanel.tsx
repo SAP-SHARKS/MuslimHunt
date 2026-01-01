@@ -94,6 +94,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         console.error('[Admin] Supabase fetch error:', error.message);
         throw error;
       }
+      console.log('Fetched pending products (Admin Queue):', data);
       setPendingProducts(data || []);
     } catch (err) {
       console.error('[Admin] Critical sync failed:', err);
@@ -142,18 +143,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       }]);
 
       if (notifyError) {
+        // Specifically logging the error message to identify if it is a 'foreign key violation' or 'missing column'
         console.warn('[Admin] Product approved, but notification failed:', notifyError.message);
+        // We don't throw here so the UI still updates for the admin
       }
       
       // 3. Update local UI state
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       
-      // 4. Trigger global refresh for the public feed in App.tsx
+      // Ensure onRefresh is only called if product update was successful
       onRefresh(); 
       
     } catch (err: any) {
       console.error('[Admin] Approval Process Failed:', err.message);
-      alert('Failed to approve product. Check database permissions in console.');
+      alert('Failed to approve product. See console for details.');
     } finally {
       setProcessingId(null);
     }
@@ -163,14 +166,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
     try {
-      // Notify the user before removal
-      await supabase.from('notifications').insert([{
+      // 1. Notify the user BEFORE deleting the record to preserve user_id mapping
+      const { error: notifyError } = await supabase.from('notifications').insert([{
         user_id: rejectingProduct.user_id,
         type: 'rejection',
         message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
         is_read: false
       }]);
 
+      if (notifyError) {
+        console.warn('[Admin] Rejection notification failed:', notifyError.message);
+      }
+
+      // 2. Remove the product record
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -182,6 +190,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setIsRejectModalOpen(false);
       setRejectionNote('');
       setRejectingProduct(null);
+      
+      // Ensure state consistency
       onRefresh();
     } catch (err: any) {
       console.error('[Admin] Rejection failed:', err.message);
