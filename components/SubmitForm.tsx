@@ -86,6 +86,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     setError(null);
 
     try {
+      // Bundling extra info into the metadata JSONB object as required
       const payload = {
         name: formData.name, 
         url: formData.url, 
@@ -95,10 +96,10 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         halal_status: formData.halal_status, 
         sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url, 
-        user_id: user.id, // Populating user_id correctly
+        founder_id: user.id, 
         created_at: new Date(formData.launchDate).toISOString(),
         upvotes_count: 0,
-        is_approved: false, // Mandatory: is_approved false by default for moderation
+        is_approved: false,
         metadata: {
           first_comment: formData.firstComment,
           maker_twitter: formData.makerTwitter,
@@ -118,6 +119,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         .select();
 
       if (insertError) {
+        // Handling the specific 'PGRST002' Schema Cache error
         if (insertError.code === 'PGRST002') {
           setError({ 
             message: 'Schema Cache Error (PGRST002): The database schema has recently changed. Please try again in a few moments or refresh the page.',
@@ -321,7 +323,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
                   </select>
                 </div>
                 <div className="space-y-2"><label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1 flex items-center gap-1.5"><Heart className="w-4 h-4 text-red-500 fill-red-500" /> Sadaqah Component</label>
-                  <input value={formData.sadaqah_info} onChange={e => setFormData({...formData, sadaqah_info: e.target.value})} placeholder="e.g. 5% of profits to charity" className="w-full px-6 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base shadow-inner" />
+                  <input value={formData.sadaqah_info} onChange={e => setFormData({...formData, sadaqah_info: e.target.value})} placeholder="e.g. 5% of profits to charity" className="w-full px-6 py-4 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-base shadow-inner" />
                 </div>
               </div>
             </div>

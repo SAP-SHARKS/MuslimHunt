@@ -24,7 +24,7 @@ import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
 // Hardcoded admins for demo, in production this should be a DB role
-const ADMIN_EMAILS = ['zeirislam@gmail.com', 'admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -166,17 +166,15 @@ const App: React.FC = () => {
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
 
-  // Verified: Only approved products are fetched for the general feed
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) // Filter for public feed only
+        .eq('is_approved', true) // Filter for public feed
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      console.log('Fetched products (Public Feed):', data);
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
@@ -200,7 +198,7 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
-    // Only add to local state if approved (usually requires moderation first)
+    // Only add to local state if approved (unlikely for new submissions)
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     }
@@ -303,6 +301,11 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    setNotifications([
+      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
+      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
+    ]);
+
     supabase.auth.getSession().then(({ data }) => {
       const session = data?.session;
       if (session?.user) {
