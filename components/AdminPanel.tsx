@@ -71,28 +71,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Updated fetchPending with corrected relationship name and enhanced error logging
+  // Updated fetchPending: Explicitly fetch unapproved products with submitter details
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
-    console.log("[Admin] Initiating sync for pending queue...");
+    console.log("[Admin] Fetching unapproved products for review...");
     
     try {
-      // Corrected query using 'user_id' as the explicit foreign key to profiles
       const { data, error } = await supabase
         .from('products')
-        .select('*, profiles:user_id(username, avatar_url)')
-        .eq('is_approved', false)
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('is_approved', false) // Verified: Pending queue strictly filtered
         .order('created_at', { ascending: true });
       
       if (error) {
         console.error('[Admin] Supabase Fetch Error:', error.message);
-        console.error('[Admin] Error Details:', error.details);
-        console.error('[Admin] Error Hint:', error.hint);
         throw error;
       }
 
-      console.log(`[Admin] Queue sync successful. Found ${data?.length || 0} items.`);
+      console.log(`[Admin] Queue synced. Found ${data?.length || 0} pending submissions.`);
       setPendingProducts(data || []);
     } catch (err) {
       console.error('[Admin] Queue sync failed critically:', err);
@@ -116,18 +119,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Approval Logic: Setting is_approved: true and notifying user_id
+  // Approval Logic: Flipped is_approved to true and triggered onRefresh for public sync
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
       const { error: updateError } = await supabase
         .from('products')
-        .update({ is_approved: true })
+        .update({ is_approved: true }) // Verified: Moving to public feed
         .eq('id', product.id);
       
       if (updateError) throw updateError;
 
-      // Send success notification to the correct user_id
+      // Notify the maker (using user_id)
       await supabase.from('notifications').insert([{
         user_id: product.user_id,
         type: 'approval',
@@ -136,22 +139,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
       
+      // Update local state and trigger parent re-fetch for public feed
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-      onRefresh(); 
+      onRefresh(); // Critical: Updates the discover feed immediately
+      console.log(`[Admin] Product "${product.name}" is now live.`);
     } catch (err) {
       console.error('[Admin] Approval failed:', err);
-      alert('Approval failed. Check console for details.');
+      alert('Approval failed. Check database permissions.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  // Rejection Logic: Notify user_id before deleting the product record
+  // Rejection Logic: Send notification then remove product record
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
     try {
-      // 1. Notify the user BEFORE deleting the product record
+      // 1. Notify the user BEFORE deleting the record to preserve user_id mapping
       await supabase.from('notifications').insert([{
         user_id: rejectingProduct.user_id,
         type: 'rejection',
@@ -160,7 +165,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
 
-      // 2. Delete the product from the database
+      // 2. Remove the product record
       const { error: deleteError } = await supabase
         .from('products')
         .delete()

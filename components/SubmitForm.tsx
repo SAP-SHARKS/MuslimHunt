@@ -86,7 +86,6 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
     setError(null);
 
     try {
-      // payload using 'user_id' instead of 'founder_id'
       const payload = {
         name: formData.name, 
         url: formData.url, 
@@ -96,10 +95,10 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         halal_status: formData.halal_status, 
         sadaqah_info: formData.sadaqah_info,
         logo_url: formData.logo_url, 
-        user_id: user.id, // Match schema
+        user_id: user.id, // Populating user_id for identification
         created_at: new Date(formData.launchDate).toISOString(),
         upvotes_count: 0,
-        is_approved: false,
+        is_approved: false, // Explicitly hidden until Admin approval
         metadata: {
           first_comment: formData.firstComment,
           maker_twitter: formData.makerTwitter,
@@ -118,18 +117,10 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
         .insert([payload])
         .select();
 
-      if (insertError) {
-        if (insertError.code === 'PGRST002') {
-          setError({ 
-            message: 'Schema Cache Error (PGRST002): The database schema has recently changed. Please try again in a few moments or refresh the page.',
-            isSchemaError: true
-          });
-          return;
-        }
-        throw insertError;
-      }
+      if (insertError) throw insertError;
       
       setIsDone(true);
+      // Wait for animation, then pass back the new product object
       setTimeout(() => {
         if (data?.[0]) onSuccess(data[0] as Product);
       }, 4000);
