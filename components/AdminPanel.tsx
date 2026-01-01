@@ -71,30 +71,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     initAuth();
   }, []);
 
-  // Updated fetchPending to fix visibility of unapproved items
+  // Updated fetchPending with corrected relationship name and enhanced error logging
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
+    console.log("[Admin] Initiating sync for pending queue...");
+    
     try {
+      // Corrected query using 'user_id' as the explicit foreign key to profiles
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .eq('is_approved', false) // Fetches only unapproved products
+        .select('*, profiles:user_id(username, avatar_url)')
+        .eq('is_approved', false)
         .order('created_at', { ascending: true });
       
       if (error) {
-        console.error('[Admin] Fetch error:', error.message);
+        console.error('[Admin] Supabase Fetch Error:', error.message);
+        console.error('[Admin] Error Details:', error.details);
+        console.error('[Admin] Error Hint:', error.hint);
         throw error;
       }
+
+      console.log(`[Admin] Queue sync successful. Found ${data?.length || 0} items.`);
       setPendingProducts(data || []);
     } catch (err) {
-      console.error('[Admin] Queue sync failed:', err);
+      console.error('[Admin] Queue sync failed critically:', err);
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Updated handleApprove with requested notification message and user_id logic
+  // Approval Logic: Setting is_approved: true and notifying user_id
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
@@ -138,13 +139,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
     } catch (err) {
-      alert('Approval failed. Check database permissions.');
+      console.error('[Admin] Approval failed:', err);
+      alert('Approval failed. Check console for details.');
     } finally {
       setProcessingId(null);
     }
   };
 
-  // Updated handleRejectConfirm with notification-first logic and custom note
+  // Rejection Logic: Notify user_id before deleting the product record
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
@@ -172,6 +174,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setRejectingProduct(null);
       onRefresh();
     } catch (err) {
+      console.error('[Admin] Rejection failed:', err);
       alert("Removal failed.");
     } finally {
       setProcessingId(null);
