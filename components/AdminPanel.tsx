@@ -45,16 +45,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       return;
     }
     try {
-      if (currentUser.email !== AUTHORIZED_ADMIN_EMAIL) throw new Error("Unauthorized");
+      if (currentUser.email !== AUTHORIZED_ADMIN_EMAIL) throw new Error("Unauthorized Email");
+      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
         .eq('id', currentUser.id)
         .single();
 
-      if (error || !profile?.is_admin) throw new Error("No Privileges");
+      // DEBUG: Verify if admin status is being read correctly from profiles table
+      console.log('User Profile Data:', profile);
+      if (error) console.error('Profile fetch error:', error);
+
+      if (error || !profile?.is_admin) throw new Error("No Privileges in Profiles Table");
       setIsAuthorized(true);
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[Admin] Authorization check failed:', err.message);
       setIsAuthorized(false);
       await supabase.auth.signOut();
     } finally {
@@ -122,21 +128,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setProcessingId(product.id);
     try {
       // 1. Update status to true to make it live
+      // Targets the correct product id and uses boolean is_approved
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('[Admin] Product Update Failed:', updateError);
+        throw updateError;
+      }
 
       // 2. Insert notification for the owner
-      // Ensure we use user_id (not founder_id) as per the schema
-      await supabase.from('notifications').insert([{
-        user_id: product.user_id, // Match schema column
-        type: 'approval',
-        message: `Mabrook! Your product "${product.name}" is now live.`,
-        is_read: false
-      }]);
+      // Wrapped in a separate try-catch so product still gets approved if notification fails
+      try {
+        const { error: notifyError } = await supabase.from('notifications').insert([{
+          user_id: product.user_id, // Match schema column (user_id instead of founder_id)
+          type: 'approval',
+          message: `Mabrook! Your product "${product.name}" is now live.`,
+          is_read: false,
+          avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
+        }]);
+        if (notifyError) console.warn('[Admin] Notification entry failed:', notifyError.message);
+      } catch (notifErr: any) {
+        console.warn('[Admin] Isolated notification logic failure:', notifErr.message);
+      }
       
       // 3. Update local state and trigger global refresh
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
@@ -144,8 +160,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
-      console.error('[Admin] Approval Failed:', err.message);
-      alert('Failed to publish. Check console for RLS errors.');
+      console.error('[Admin] Approval Process Failed:', err.message);
+      alert(`Failed to publish: ${err.message}. Check browser console for RLS policy or column mismatches.`);
     } finally {
       setProcessingId(null);
     }
@@ -155,19 +171,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!rejectingProduct || !rejectionNote.trim()) return;
     setProcessingId(rejectingProduct.id);
     try {
-      // 1. Notify the user BEFORE deleting the record to preserve user_id mapping
-      const { error: notifyError } = await supabase.from('notifications').insert([{
-        user_id: rejectingProduct.user_id,
-        type: 'rejection',
-        message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
-        is_read: false
-      }]);
-
-      if (notifyError) {
-        console.warn('[Admin] Rejection notification failed:', notifyError.message);
+      // Notify the user BEFORE deleting the record to preserve user_id mapping
+      try {
+        await supabase.from('notifications').insert([{
+          user_id: rejectingProduct.user_id,
+          type: 'rejection',
+          message: `Your product "${rejectingProduct.name}" was rejected. Reason: ${rejectionNote}`,
+          is_read: false
+        }]);
+      } catch (e) {
+        console.warn('Rejection notification could not be sent.');
       }
 
-      // 2. Remove the product record
+      // Remove the product record
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
