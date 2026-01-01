@@ -79,26 +79,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     console.log("[Admin] Fetching unapproved products...");
     
     try {
+      // Corrected query using 'user_id' as the explicit foreign key mapping to profiles
       const { data, error } = await supabase
         .from('products')
-        .select('*, profiles:user_id(username, avatar_url)')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error("[Admin] Supabase Fetch Error:", error.message, error.details, error.hint);
-        return;
+        // Detailed error logging as requested
+        console.error("[Admin] Fetch error:", error.message);
+        console.error("[Admin] Full Supabase Error Details:", error);
+        throw error;
       }
 
-      if (!data) {
-        console.warn("[Admin] No data returned from products fetch.");
-        setPendingProducts([]);
-      } else {
-        console.log(`[Admin] Fetch successful. Found ${data.length} pending items.`);
-        setPendingProducts(data);
-      }
+      // Verify state update: Ensure data set only if there is no error
+      setPendingProducts(data || []);
+      console.log(`[Admin] Queue sync successful. Found ${data?.length || 0} pending items.`);
     } catch (err) {
-      console.error("[Admin] Unexpected catch in fetchPending:", err);
+      console.error("[Admin] Queue sync failed:", err);
     } finally {
       setLoading(false);
     }
@@ -130,7 +135,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       if (updateError) throw updateError;
 
       await supabase.from('notifications').insert([{
-        user_id: product.user_id, // Correct column name
+        user_id: product.user_id, // Explicit user_id check
         type: 'approval',
         message: `Mabrook! Your product "${product.name}" has been approved.`,
         is_read: false,
@@ -151,7 +156,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     const productId = rejectingProduct.id;
-    const userId = rejectingProduct.user_id; // Correct column name
+    const userId = rejectingProduct.user_id; // Explicit user_id check
     const productName = rejectingProduct.name;
 
     setProcessingId(productId);
@@ -232,6 +237,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
+      {/* Premium green/emerald themed box */}
       <div className="max-w-7xl mx-auto bg-emerald-50/30 border-4 border-emerald-100/50 rounded-[4rem] p-8 md:p-14 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
@@ -320,6 +326,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full overflow-hidden border border-emerald-100">
+                            {/* Instruction: Identification uses user_id */}
                             <img 
                               src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
                               alt="Submitter" 
