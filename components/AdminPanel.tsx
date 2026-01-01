@@ -91,7 +91,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setLoading(true);
     try {
       console.log('[Admin] Fetching pending queue...');
-      // Updated select query to join profiles via user_id
+      // Use user_id for profiles relationship mapping
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles:user_id(username, avatar_url)')
@@ -148,7 +148,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setProcessingId(product.id);
     
     try {
-      // 1. Update product status using the correct 'id' column
+      // 1. Update product status
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
@@ -159,13 +159,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         throw updateError;
       }
 
-      // 2. Insert notification using the correct 'user_id' from the product record
+      // 2. Insert notification using correct 'user_id' from the record
       const { error: notifError } = await supabase
         .from('notifications')
         .insert([{
           user_id: product.user_id, // Match schema column
           type: 'approval',
-          message: `Your product "${product.name}" is now live on Muslim Hunt!`,
+          message: `Mabrook! Your product "${product.name}" is now live on Muslim Hunt!`,
           is_read: false,
           avatar_url: 'https://muslimhunt.com/logo.png' 
         }]);
@@ -174,7 +174,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         console.warn('[Admin] Notification insert failed but product was approved:', notifError);
       }
 
-      // 3. Update local state and trigger feed refresh
+      // 3. Update local state and trigger global feed refresh
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       console.log('[Admin] Approval workflow complete.');
@@ -204,7 +204,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setIsRejectModalOpen(false);
     
     try {
-      // 1. Send rejection notification FIRST (while the product record still exists)
+      // 1. Send rejection notification FIRST (while the record still exists)
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
       console.log('[Admin] Sending rejection notification...');
       const { error: notifError } = await supabase
@@ -233,7 +233,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         throw deleteError;
       }
 
-      // 3. Update UI
+      // 3. Update UI state
       setPendingProducts(prev => prev.filter(p => p.id !== productId));
       onRefresh(); 
       console.log('[Admin] Rejection workflow complete.');
@@ -255,6 +255,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }, [pendingProducts, searchQuery]);
 
+  // Loading state
   if (verifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -267,6 +268,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
+  // Denied state
   if (isAuthorized === false) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-white animate-in fade-in duration-500">
@@ -289,6 +291,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
+  // Login Screen
   if (isAuthorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#042119] bg-[radial-gradient(circle_at_top_left,rgba(6,78,59,0.4),transparent)]">
@@ -351,9 +354,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
+  // Dashboard View
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8 animate-in fade-in duration-500">
-      {/* Rejection Note Modal */}
+    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
+      {/* Rejection Modal */}
       {isRejectModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsRejectModalOpen(false)} />
@@ -376,45 +380,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                 <textarea 
                   value={rejectionNote}
                   onChange={(e) => setRejectionNote(e.target.value)}
-                  placeholder="Explain to the maker why this submission is being removed..."
+                  placeholder="Explain why this submission is being removed..."
                   className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-red-600 rounded-3xl outline-none transition-all resize-none text-base font-medium shadow-inner h-40"
                 />
-                <p className="text-[10px] text-gray-400 italic">This feedback helps the community maintain our quality standards.</p>
               </div>
 
               <div className="flex gap-4">
-                <button 
-                  onClick={() => setIsRejectModalOpen(false)}
-                  className="flex-1 py-4 px-6 border border-gray-100 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmRejection}
-                  disabled={processingId !== null}
-                  className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50"
-                >
-                  Confirm Removal
-                </button>
+                <button onClick={() => setIsRejectModalOpen(false)} className="flex-1 py-4 px-6 border border-gray-100 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all">Cancel</button>
+                <button onClick={confirmRejection} disabled={processingId !== null} className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50">Confirm Removal</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Premium Green Box Dashboard Container */}
-      <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)]">
+      {/* Main Premium Container: Emerald Box */}
+      <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
         
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-emerald-800">
               <div className="bg-emerald-100 p-2 rounded-xl">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Authorized Session • {AUTHORIZED_ADMIN_EMAIL}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+                Authorized Session • {AUTHORIZED_ADMIN_EMAIL}
+              </span>
             </div>
-            <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">Submission Review</h1>
-            <p className="text-gray-400 font-medium italic">Vetting community uploads for quality and compliance.</p>
+            <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-400 font-medium italic">Managing community submissions with integrity.</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -441,127 +438,130 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
-            <input 
-              type="text" placeholder="Search pending products..."
-              value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-16 pr-8 py-5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none transition-all font-bold text-gray-900 shadow-inner"
-            />
+        {/* Search & Moderation Table */}
+        <div className="space-y-6">
+          <div className="bg-white border border-gray-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <input 
+                type="text" placeholder="Search pending products..."
+                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-16 pr-8 py-5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none transition-all font-bold text-gray-900 shadow-inner"
+              />
+            </div>
+            <button className="h-[72px] px-10 bg-gray-50 text-gray-500 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
+              <Filter className="w-4 h-4" /> Filter Options
+            </button>
           </div>
-          <button className="h-[72px] px-10 bg-gray-50 text-gray-500 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-gray-100 transition-all border border-transparent hover:border-gray-200">
-            <Filter className="w-4 h-4" /> Filter Options
-          </button>
-        </div>
 
-        <div className="bg-white border-x border-b border-gray-100 rounded-b-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/5">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[1000px]">
-              <thead>
-                <tr className="bg-gray-50/50 border-y border-gray-100">
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Product</th>
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Maker</th>
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Moderation</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {loading && pendingProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-12 py-48 text-center">
-                      <Loader2 className="w-12 h-12 text-emerald-800 animate-spin mx-auto mb-6" />
-                      <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">Accessing Database...</p>
-                    </td>
+          <div className="bg-white border-x border-b border-gray-100 rounded-b-[3rem] overflow-hidden shadow-2xl shadow-emerald-900/5">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
+                <thead>
+                  <tr className="bg-gray-50/50 border-y border-gray-100">
+                    <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Product</th>
+                    <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Maker</th>
+                    <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
+                    <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
+                    <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Moderation</th>
                   </tr>
-                ) : filteredQueue.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-12 py-48 text-center">
-                      <UserCheck className="w-16 h-16 text-emerald-50 opacity-50 mx-auto mb-6" />
-                      <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 tracking-tight">Queue All Clear</h2>
-                      <p className="text-gray-400 font-medium italic">All pending submissions have been processed.</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredQueue.map((p) => (
-                    <tr key={p.id} className="group hover:bg-emerald-50/10 transition-colors">
-                      <td className="px-12 py-10">
-                        <div className="flex items-center gap-6">
-                          <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 shadow-md shrink-0 bg-white group-hover:scale-105 transition-transform duration-500">
-                            <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-lg font-black text-gray-900 leading-none mb-2 truncate group-hover:text-emerald-800 transition-colors">{p.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-400 font-bold truncate max-w-[280px]">
-                              <Hash className="w-3.5 h-3.5 text-emerald-800 opacity-30" />
-                              {p.tagline}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-12 py-10">
-                        <div className="flex items-center gap-4">
-                          <img 
-                            src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
-                            className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" 
-                            alt="Maker"
-                          />
-                          <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
-                        </div>
-                      </td>
-                      <td className="px-12 py-10">
-                        <span className="px-4 py-2 bg-emerald-50 text-emerald-800 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100/50">
-                          {p.category}
-                        </span>
-                      </td>
-                      <td className="px-12 py-10">
-                        <div className="flex items-center gap-3 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100/50 w-fit">
-                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Reviewing</span>
-                        </div>
-                      </td>
-                      <td className="px-12 py-10 text-right">
-                        <div className="flex items-center justify-end gap-4">
-                          <a 
-                            href={p.url || p.website_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="p-4 text-emerald-700/60 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100/50 active:scale-95"
-                          >
-                            <Eye className="w-6 h-6" />
-                          </a>
-                          <button 
-                            onClick={() => initiateReject(p)}
-                            disabled={processingId === p.id}
-                            className="p-4 text-red-400/60 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-95"
-                          >
-                            <Trash2 className="w-6 h-6" />
-                          </button>
-                          <button 
-                            onClick={() => handleApprove(p)}
-                            disabled={processingId === p.id}
-                            className="pl-8 pr-6 py-4 bg-emerald-800/90 hover:bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
-                          >
-                            {processingId === p.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                            Approve Launch
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading && pendingProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-12 py-48 text-center">
+                        <Loader2 className="w-12 h-12 text-emerald-800 animate-spin mx-auto mb-6" />
+                        <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">Accessing Database...</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : filteredQueue.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-12 py-48 text-center">
+                        <UserCheck className="w-16 h-16 text-emerald-50 opacity-50 mx-auto mb-6" />
+                        <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 tracking-tight">Queue All Clear</h2>
+                        <p className="text-gray-400 font-medium italic">All pending submissions have been processed.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredQueue.map((p) => (
+                      <tr key={p.id} className="group hover:bg-emerald-50/10 transition-colors">
+                        <td className="px-12 py-10">
+                          <div className="flex items-center gap-6">
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 shadow-md shrink-0 bg-white group-hover:scale-105 transition-transform duration-500">
+                              <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-lg font-black text-gray-900 leading-none mb-2 truncate group-hover:text-emerald-800 transition-colors">{p.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-gray-400 font-bold truncate max-w-[280px]">
+                                <Hash className="w-3.5 h-3.5 text-emerald-800 opacity-30" />
+                                {p.tagline}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-12 py-10">
+                          <div className="flex items-center gap-4">
+                            <img 
+                              src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
+                              className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" 
+                              alt="Maker"
+                            />
+                            <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
+                          </div>
+                        </td>
+                        <td className="px-12 py-10">
+                          <span className="px-4 py-2 bg-emerald-50 text-emerald-800 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100/50">
+                            {p.category}
+                          </span>
+                        </td>
+                        <td className="px-12 py-10">
+                          <div className="flex items-center gap-3 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100/50 w-fit">
+                            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Reviewing</span>
+                          </div>
+                        </td>
+                        <td className="px-12 py-10 text-right">
+                          <div className="flex items-center justify-end gap-4">
+                            <a 
+                              href={p.url || p.website_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="p-4 text-emerald-700/60 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100/50 active:scale-95"
+                            >
+                              <Eye className="w-6 h-6" />
+                            </a>
+                            <button 
+                              onClick={() => initiateReject(p)}
+                              disabled={processingId === p.id}
+                              className="p-4 text-red-400/60 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-95"
+                            >
+                              <Trash2 className="w-6 h-6" />
+                            </button>
+                            <button 
+                              onClick={() => handleApprove(p)}
+                              disabled={processingId === p.id}
+                              className="pl-8 pr-6 py-4 bg-emerald-800/90 hover:bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
+                            >
+                              {processingId === p.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                              Approve Launch
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-12 text-center">
-        <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mx-auto group">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to feed
-        </button>
+      {/* Footer Actions outside the box */}
+      <div className="mt-10 text-center">
+         <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mx-auto">
+            <ArrowLeft className="w-4 h-4" /> Back to feed
+         </button>
       </div>
     </div>
   );
