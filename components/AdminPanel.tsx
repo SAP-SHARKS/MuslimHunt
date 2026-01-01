@@ -91,15 +91,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setLoading(true);
     try {
       console.log('[Admin] Fetching pending queue...');
+      // Updated select query to join profiles via user_id
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          founder:founder_id (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*, profiles:user_id(username, avatar_url)')
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
       
@@ -152,29 +147,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     console.log(`[Admin] Initiating approval for: ${product.name} (ID: ${product.id})`);
     setProcessingId(product.id);
     
-    // Optimistic UI update
-    const previousState = [...pendingProducts];
-    setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-
     try {
-      // 1. Update product status
-      const { data: updateData, error: updateError } = await supabase
+      // 1. Update product status using the correct 'id' column
+      const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
-        .eq('id', product.id)
-        .select();
+        .eq('id', product.id);
       
       if (updateError) {
         console.error('[Admin] Supabase update error:', updateError);
         throw updateError;
       }
-      console.log('[Admin] Product approved in database:', updateData);
 
-      // 2. Insert notification for user
+      // 2. Insert notification using the correct 'user_id' from the product record
       const { error: notifError } = await supabase
         .from('notifications')
         .insert([{
-          user_id: product.founder_id,
+          user_id: product.user_id, // Match schema column
           type: 'approval',
           message: `Your product "${product.name}" is now live on Muslim Hunt!`,
           is_read: false,
@@ -182,19 +171,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         }]);
       
       if (notifError) {
-        console.warn('[Admin] Notification insert failed (product approved anyway):', notifError);
+        console.warn('[Admin] Notification insert failed but product was approved:', notifError);
       }
 
-      console.log('[Admin] Approval workflow complete.');
-      
-      // Notify parent to refresh the main public feed
+      // 3. Update local state and trigger feed refresh
+      setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
-      // Refresh local admin queue to stay in sync
-      await fetchQueue();
+      console.log('[Admin] Approval workflow complete.');
     } catch (err: any) {
-      console.error('[Admin] Full approval logic failure:', err);
-      // Revert optimistic update
-      setPendingProducts(previousState);
+      console.error('[Admin] Approval logic failure:', err);
       alert(`Approval failed: ${err.message || 'Check console for details.'}`);
     } finally {
       setProcessingId(null);
@@ -211,25 +196,21 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     if (!productToReject) return;
     
     const productId = productToReject.id;
-    const founderId = productToReject.founder_id;
+    const userId = productToReject.user_id; // Using user_id from schema
     const productName = productToReject.name;
 
     console.log(`[Admin] Initiating rejection for: ${productName} (ID: ${productId})`);
     setProcessingId(productId);
     setIsRejectModalOpen(false);
     
-    // Optimistic UI update
-    const previousState = [...pendingProducts];
-    setPendingProducts(prev => prev.filter(p => p.id !== productId));
-
     try {
-      // 1. Send personalized rejection notification FIRST (while record exists)
+      // 1. Send rejection notification FIRST (while the product record still exists)
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
       console.log('[Admin] Sending rejection notification...');
       const { error: notifError } = await supabase
         .from('notifications')
         .insert([{
-          user_id: founderId,
+          user_id: userId,
           type: 'rejection',
           message: `Your submission "${productName}" was removed. Reason: ${reason}`,
           is_read: false,
@@ -252,16 +233,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         throw deleteError;
       }
 
-      console.log('[Admin] Rejection workflow complete.');
-      
-      // Refresh local admin queue
-      await fetchQueue();
-      // Notify parent (unlikely to affect public feed since it wasn't approved, but good for state)
+      // 3. Update UI
+      setPendingProducts(prev => prev.filter(p => p.id !== productId));
       onRefresh(); 
+      console.log('[Admin] Rejection workflow complete.');
     } catch (err: any) {
-      console.error('[Admin] Full rejection logic failure:', err);
-      // Revert optimistic update
-      setPendingProducts(previousState);
+      console.error('[Admin] Rejection logic failure:', err);
       alert(`Rejection failed: ${err.message || 'Check console for details.'}`);
     } finally {
       setProcessingId(null);
@@ -273,7 +250,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     const query = searchQuery.toLowerCase();
     return pendingProducts.filter(p => 
       p.name.toLowerCase().includes(query) ||
-      p.founder?.username?.toLowerCase().includes(query) ||
+      p.profiles?.username?.toLowerCase().includes(query) ||
       p.category.toLowerCase().includes(query)
     );
   }, [pendingProducts, searchQuery]);
@@ -526,11 +503,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       <td className="px-12 py-10">
                         <div className="flex items-center gap-4">
                           <img 
-                            src={p.founder?.avatar_url || `https://i.pravatar.cc/150?u=${p.founder_id}`} 
+                            src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
                             className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" 
                             alt="Maker"
                           />
-                          <span className="text-sm font-black text-gray-900 truncate">@{p.founder?.username}</span>
+                          <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
                         </div>
                       </td>
                       <td className="px-12 py-10">

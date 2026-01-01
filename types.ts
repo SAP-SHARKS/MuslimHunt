@@ -39,7 +39,7 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  founder_id: string;
+  user_id: string; // Changed from founder_id
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
@@ -59,7 +59,7 @@ export interface Category {
 
 export interface Notification {
   id: string;
-  type: 'upvote' | 'comment';
+  type: 'upvote' | 'comment' | 'approval' | 'rejection';
   message: string;
   created_at: string;
   is_read: boolean;
