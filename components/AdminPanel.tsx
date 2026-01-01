@@ -86,20 +86,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     checkCurrentSession();
   }, []);
 
-  const fetchQueue = async () => {
+  const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
     try {
       // PGRST200 fix: Use explicit relationship naming profiles:user_id
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*, profiles:user_id(username, avatar_url)')
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
       
@@ -114,7 +108,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   useEffect(() => {
     if (isAuthorized) {
-      fetchQueue();
+      fetchPending();
     }
   }, [isAuthorized]);
 
@@ -147,34 +141,42 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
+    console.log('[Admin] Attempting to publish:', product.name, 'with ID:', product.id);
+    
     try {
-      // 1. Update the product to make it live
+      // 1. Explicit Update: Target the product's unique id and set is_approved: true
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        // Detailed Error Handling for RLS/Permission debugging
+        console.error('Full Update Error:', updateError);
+        throw updateError;
+      }
 
-      // 2. Try to notify the owner, but don't crash if this part fails
+      // 2. Success Callback & Notification: Try to notify owner (Isolated from main logic)
       try {
         await supabase.from('notifications').insert([{
-          user_id: product.user_id, // Match schema column
+          user_id: product.user_id, // Match schema column (Correct Submitter ID)
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" has been approved.`,
+          message: `Mabrook! Your product "${product.name}" is now live.`,
           is_read: false
         }]);
-      } catch (notifyErr) {
-        console.warn('Notification failed, but product is now live.', notifyErr);
+        console.log(`[Admin] Notification sent to user: ${product.user_id}`);
+      } catch (nErr) {
+        console.warn('[Admin] Notification failed, but product is live.', nErr);
       }
       
-      // 3. Update local state and refresh global feed
+      // 3. Remove from local queue and refresh feed
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); 
       
+      console.log(`[Admin] Product "${product.name}" successfully published.`);
     } catch (err: any) {
-      console.error('[Admin] Approve failed:', err.message);
-      alert('Failed to publish. Did you run the SQL Foreign Key fix in Supabase?');
+      console.error('[Admin] Publish failed:', err.message);
+      alert('Failed to publish. Check console for "Full Error" to identify RLS or column issues.');
     } finally {
       setProcessingId(null);
     }
@@ -408,7 +410,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             </div>
             <div className="flex flex-col gap-2">
               <button 
-                onClick={fetchQueue}
+                onClick={fetchPending}
                 className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm active:scale-90 group"
                 title="Refresh Sync"
               >
