@@ -80,13 +80,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `) // Using user_id from schema
+        .select('*, profiles:user_id(username, avatar_url)') // Using user_id from schema
         .eq('is_approved', false) // Only show pending items
         .order('created_at', { ascending: true });
       
@@ -117,15 +111,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  /**
-   * Database Update: Set is_approved to true
-   * State Cleanup: Remove from local state and trigger global refresh
-   * Notification: Insert record for product user_id with refined error logging
-   */
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update the product status to live in Supabase
+      // 1. Update the product status to live
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
@@ -134,30 +123,30 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       if (updateError) throw updateError;
 
       // 2. Attempt to notify the submitter
-      // Note: We use product.user_id as found in the schema
+      // Note: We use product.user_id as found in your schema
       const { error: notifyError } = await supabase.from('notifications').insert([{
         user_id: product.user_id, 
         type: 'approval',
         message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
         is_read: false,
-        avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png' // System notification avatar
+        avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
 
       if (notifyError) {
-        // Log the specific error message to help identify foreign key or column issues
+        // Specifically logging the error message to identify if it is a 'foreign key violation' or 'missing column'
         console.warn('[Admin] Product approved, but notification failed:', notifyError.message);
-        // We don't throw here so the UI still updates for the admin since the product IS live
+        // We don't throw here so the UI still updates for the admin
       }
       
-      // 3. Update local Admin Panel UI state
+      // 3. Update local state and refresh global feed
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       
-      // 4. Refresh the global product list in App.tsx (Discovery Feed)
+      // Ensure onRefresh is only called if product update was successful
       onRefresh(); 
       
     } catch (err: any) {
       console.error('[Admin] Approval Process Failed:', err.message);
-      alert('Failed to approve product. See browser console for details.');
+      alert('Failed to approve product. See console for details.');
     } finally {
       setProcessingId(null);
     }
@@ -180,7 +169,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         console.warn('[Admin] Rejection notification failed:', notifyError.message);
       }
 
-      // 2. Remove the product record from the database
+      // 2. Remove the product record
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -193,11 +182,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       setRejectionNote('');
       setRejectingProduct(null);
       
-      // Ensure state consistency for the public feed (it shouldn't have unapproved items anyway)
+      // Ensure state consistency
       onRefresh();
     } catch (err: any) {
       console.error('[Admin] Rejection failed:', err.message);
-      alert("Removal failed. Check console.");
+      alert("Removal failed.");
     } finally {
       setProcessingId(null);
     }
