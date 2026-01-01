@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Product, User } from '../types';
 import { 
   ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft, 
-  Trash2, ExternalLink, RefreshCw, Filter, CheckCircle2, 
+  Trash2, RefreshCw, Filter, CheckCircle2, 
   AlertCircle, Hash, LogOut, Lock, Mail, KeyRound,
   ShieldAlert, UserCheck, ArrowRight, Shield, MessageSquare, AlertTriangle
 } from 'lucide-react';
@@ -86,16 +86,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     checkCurrentSession();
   }, []);
 
-  const fetchQueue = async () => {
+  // Instruction: Data Fetching only retrieves products where is_approved is false.
+  const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
     try {
       console.log('[Admin] Fetching pending queue...');
-      // Use user_id for profiles relationship mapping
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles:user_id(username, avatar_url)')
-        .eq('is_approved', false)
+        .eq('is_approved', false) // Only get unapproved products
         .order('created_at', { ascending: true });
       
       if (error) {
@@ -112,7 +112,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   useEffect(() => {
     if (isAuthorized) {
-      fetchQueue();
+      fetchPending();
     }
   }, [isAuthorized]);
 
@@ -143,44 +143,41 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     onBack();
   };
 
+  // Instruction: handleApprove Fix
   const handleApprove = async (product: any) => {
-    console.log(`[Admin] Initiating approval for: ${product.name} (ID: ${product.id})`);
+    console.log(`[Admin] Approving: ${product.name}`);
     setProcessingId(product.id);
     
     try {
-      // 1. Update product status
+      // 1. Update product status setting is_approved: true
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
       
       if (updateError) {
-        console.error('[Admin] Supabase update error:', updateError);
+        console.error('[Admin] Approval error:', updateError);
         throw updateError;
       }
 
-      // 2. Insert notification using correct 'user_id' from the record
-      const { error: notifError } = await supabase
+      // 2. Insert notification for user_id with specific message
+      await supabase
         .from('notifications')
         .insert([{
-          user_id: product.user_id, // Match schema column
+          user_id: product.user_id,
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" is now live on Muslim Hunt!`,
+          message: `Mabrook! Your product "${product.name}" has been approved.`,
           is_read: false,
           avatar_url: 'https://muslimhunt.com/logo.png' 
         }]);
       
-      if (notifError) {
-        console.warn('[Admin] Notification insert failed but product was approved:', notifError);
-      }
-
-      // 3. Update local state and trigger global feed refresh
+      // 3. Update local state immediately
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
-      onRefresh(); 
-      console.log('[Admin] Approval workflow complete.');
+      onRefresh(); // Trigger global refresh for public feed
+      console.log('[Admin] Approved successfully.');
     } catch (err: any) {
-      console.error('[Admin] Approval logic failure:', err);
-      alert(`Approval failed: ${err.message || 'Check console for details.'}`);
+      console.error('[Admin] Approval logic failed:', err);
+      alert(`Approval failed. Check console.`);
     } finally {
       setProcessingId(null);
     }
@@ -192,22 +189,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setIsRejectModalOpen(true);
   };
 
-  const confirmRejection = async () => {
+  // Instruction: handleRejectConfirm Logic
+  const handleRejectConfirm = async () => {
     if (!productToReject) return;
     
     const productId = productToReject.id;
-    const userId = productToReject.user_id; // Using user_id from schema
+    const userId = productToReject.user_id;
     const productName = productToReject.name;
 
-    console.log(`[Admin] Initiating rejection for: ${productName} (ID: ${productId})`);
+    console.log(`[Admin] Rejecting: ${productName}`);
     setProcessingId(productId);
     setIsRejectModalOpen(false);
     
     try {
-      // 1. Send rejection notification FIRST (while the record still exists)
+      // 1. Insert notification FIRST (while the record still exists to reference user_id)
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
       console.log('[Admin] Sending rejection notification...');
-      const { error: notifError } = await supabase
+      await supabase
         .from('notifications')
         .insert([{
           user_id: userId,
@@ -217,29 +215,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           avatar_url: 'https://muslimhunt.com/logo.png'
         }]);
       
-      if (notifError) {
-        console.warn('[Admin] Notification failed but proceeding with deletion:', notifError);
-      }
-
-      // 2. Delete the product submission
-      console.log('[Admin] Deleting product record...');
+      // 2. Delete product record from table
+      console.log('[Admin] Deleting record...');
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
         .eq('id', productId);
       
       if (deleteError) {
-        console.error('[Admin] Supabase delete error:', deleteError);
+        console.error('[Admin] Deletion error:', deleteError);
         throw deleteError;
       }
 
-      // 3. Update UI state
+      // 3. Update local state
       setPendingProducts(prev => prev.filter(p => p.id !== productId));
       onRefresh(); 
-      console.log('[Admin] Rejection workflow complete.');
+      console.log('[Admin] Rejected successfully.');
     } catch (err: any) {
-      console.error('[Admin] Rejection logic failure:', err);
-      alert(`Rejection failed: ${err.message || 'Check console for details.'}`);
+      console.error('[Admin] Rejection logic failed:', err);
+      alert(`Rejection failed. Check console.`);
     } finally {
       setProcessingId(null);
       setProductToReject(null);
@@ -255,7 +249,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }, [pendingProducts, searchQuery]);
 
-  // Loading state
   if (verifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -268,7 +261,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // Denied state
   if (isAuthorized === false) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-white animate-in fade-in duration-500">
@@ -278,7 +270,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </div>
           <h2 className="text-4xl font-serif font-bold text-gray-900 mb-4 tracking-tight">Access Restricted</h2>
           <p className="text-gray-500 font-medium mb-10 leading-relaxed">
-            {loginError || "Strictly for Admins only. Unauthorized access attempts are monitored."}
+            {loginError || "Strictly for Admins only."}
           </p>
           <button 
             onClick={() => setIsAuthorized(null)} 
@@ -291,7 +283,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // Login Screen
   if (isAuthorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#042119] bg-[radial-gradient(circle_at_top_left,rgba(6,78,59,0.4),transparent)]">
@@ -354,7 +345,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // Dashboard View
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
       {/* Rejection Modal */}
@@ -375,7 +365,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               
               <div className="space-y-4 mb-8">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
-                  <MessageSquare className="w-3.5 h-3.5 text-red-600" /> Rejection Note
+                  <MessageSquare className="w-3.5 h-3.5 text-red-600" /> Reason for Rejection
                 </label>
                 <textarea 
                   value={rejectionNote}
@@ -387,31 +377,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
               <div className="flex gap-4">
                 <button onClick={() => setIsRejectModalOpen(false)} className="flex-1 py-4 px-6 border border-gray-100 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all">Cancel</button>
-                <button onClick={confirmRejection} disabled={processingId !== null} className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50">Confirm Removal</button>
+                <button 
+                  onClick={handleRejectConfirm} 
+                  disabled={processingId !== null || !rejectionNote.trim()} 
+                  className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50"
+                >
+                  Confirm Removal
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Premium Container: Emerald Box */}
-      <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Large Emerald-bordered green box */}
+      <div className="max-w-7xl mx-auto bg-emerald-50/30 border-4 border-emerald-100 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
         
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-emerald-800">
               <div className="bg-emerald-100 p-2 rounded-xl">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">
-                Authorized Session • {AUTHORIZED_ADMIN_EMAIL}
-              </span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Authorized Session • {AUTHORIZED_ADMIN_EMAIL}</span>
             </div>
-            <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">
-              Admin Dashboard
-            </h1>
-            <p className="text-gray-400 font-medium italic">Managing community submissions with integrity.</p>
+            <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">Admin Panel</h1>
+            <p className="text-emerald-800/60 font-medium italic">Moderate community submissions.</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -421,7 +412,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             </div>
             <div className="flex flex-col gap-2">
               <button 
-                onClick={fetchQueue}
+                onClick={fetchPending}
                 className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm active:scale-90 group"
                 title="Refresh Sync"
               >
@@ -438,7 +429,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </div>
         </div>
 
-        {/* Search & Moderation Table */}
         <div className="space-y-6">
           <div className="bg-white border border-gray-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
             <div className="relative flex-1 w-full">
@@ -526,14 +516,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                               href={p.url || p.website_url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="p-4 text-emerald-700/60 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100/50 active:scale-95"
+                              className="p-4 text-emerald-800/70 hover:text-emerald-900 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95"
                             >
                               <Eye className="w-6 h-6" />
                             </a>
                             <button 
                               onClick={() => initiateReject(p)}
                               disabled={processingId === p.id}
-                              className="p-4 text-red-400/60 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-95"
+                              className="p-4 text-red-600/70 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-95"
                             >
                               <Trash2 className="w-6 h-6" />
                             </button>
@@ -557,7 +547,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         </div>
       </div>
 
-      {/* Footer Actions outside the box */}
       <div className="mt-10 text-center">
          <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mx-auto">
             <ArrowLeft className="w-4 h-4" /> Back to feed
