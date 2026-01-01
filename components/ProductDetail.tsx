@@ -309,7 +309,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <h4 className="font-bold text-gray-900 mb-4 uppercase tracking-widest text-xs">The Maker</h4>
             <button 
               className="flex items-center gap-4 cursor-pointer group w-full text-left active:scale-[0.98] transition-transform"
-              onClick={() => onViewProfile(product.user_id)}
+              onClick={() => onViewProfile(product.user_id)} // Changed founder_id to user_id
             >
               <div className="w-12 h-12 rounded-full overflow-hidden border border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
                 <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />

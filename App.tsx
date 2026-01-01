@@ -24,7 +24,7 @@ import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
 // Hardcoded admins for demo, in production this should be a DB role
-const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['zeirislam@gmail.com', 'admin@muslimhunt.com', 'moderator@muslimhunt.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -172,7 +172,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) // Security Check: Non-approved products never reach public state
+        .eq('is_approved', true) // Filter for public feed only
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -199,12 +199,12 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
-    // Verified: Immediate state update only happens if the submission is pre-approved (admins)
+    // Only add to local state if approved (usually requires moderation first)
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     }
     updateView(View.HOME, '/');
-    fetchProducts(); // Sync feed with database
+    fetchProducts(); 
   };
 
   const fetchNavigation = async () => {

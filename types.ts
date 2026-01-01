@@ -39,7 +39,7 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  user_id: string; // Changed from founder_id
+  user_id: string; // Changed from founder_id to user_id
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
