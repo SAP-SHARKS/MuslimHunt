@@ -40,12 +40,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const [verifying, setVerifying] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  /**
-   * Verification Logic:
-   * 1. Checks if the user is authenticated.
-   * 2. Checks if the email matches the primary admin address.
-   * 3. Checks the 'profiles' table for the 'is_admin' flag.
-   */
   const verifyAdminAccess = async (currentUser: any) => {
     if (!currentUser) {
       setIsAuthorized(null);
@@ -55,12 +49,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
     setVerifying(true);
     try {
-      // Identity Check
       if (currentUser.email !== AUTHORIZED_ADMIN_EMAIL) {
         throw new Error("Strictly for Admins only.");
       }
 
-      // Role Check
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
@@ -76,14 +68,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       console.warn('[Admin] Access Denied:', err.message);
       setIsAuthorized(false);
       setLoginError(err.message);
-      // Auto-logout unauthorized sessions
       await supabase.auth.signOut();
     } finally {
       setVerifying(false);
     }
   };
 
-  // Persist Session: Check for existing admin session on mount
   useEffect(() => {
     const checkCurrentSession = async () => {
       const { data: { user: sessionUser } } = await supabase.auth.getUser();
@@ -167,7 +157,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (updateError) throw updateError;
 
-      // Notify the maker of approval with refined messaging
+      // Notify the maker that the product is now live
       await supabase
         .from('notifications')
         .insert([{
@@ -208,7 +198,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     setPendingProducts(prev => prev.filter(p => p.id !== productId));
 
     try {
-      // 1. Delete the product submission
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -216,7 +205,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (deleteError) throw deleteError;
 
-      // 2. Send personalized rejection notification
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
       await supabase
         .from('notifications')
@@ -248,7 +236,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }, [pendingProducts, searchQuery]);
 
-  // View State: Verifying Authorization
   if (verifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -261,7 +248,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // View State: Access Denied
   if (isAuthorized === false) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-white animate-in fade-in duration-500">
@@ -284,7 +270,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // View State: Login Screen
   if (isAuthorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#042119] bg-[radial-gradient(circle_at_top_left,rgba(6,78,59,0.4),transparent)]">
@@ -347,9 +332,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     );
   }
 
-  // View State: Admin Dashboard
   return (
-    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
+    <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8 animate-in fade-in duration-500">
       {/* Rejection Note Modal */}
       {isRejectModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -399,8 +383,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         </div>
       )}
 
-      {/* The Main Stylish Green Box Container */}
-      <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Premium Green Box Dashboard Container */}
+      <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)]">
         
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-3">
@@ -519,7 +503,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                         </div>
                       </td>
                       <td className="px-12 py-10 text-right">
-                        <div className="flex items-center justify-end gap-4 opacity-100 lg:opacity-70 lg:group-hover:opacity-100 transition-all duration-300 transform translate-x-0">
+                        <div className="flex items-center justify-end gap-4">
+                          {/* Moderation actions now visible by default with themed colors */}
                           <a 
                             href={p.url || p.website_url} 
                             target="_blank" 
@@ -552,24 +537,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             </table>
           </div>
         </div>
-
       </div>
 
-      <div className="mt-12 flex flex-col sm:row items-center justify-between gap-6 px-4">
-        <div className="flex items-center gap-3 text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">
-          <ShieldCheck className="w-4 h-4 text-emerald-800" />
-          Verified Secure Staff Portal Active
-        </div>
-        <div className="flex items-center gap-6">
-          <button onClick={handleAdminLogout} className="text-red-400 hover:text-red-600 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-2 group">
-            <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            Sign Out
-          </button>
-          <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-2 group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to feed
-          </button>
-        </div>
+      <div className="mt-12 text-center">
+        <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2 mx-auto group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to feed
+        </button>
       </div>
     </div>
   );
