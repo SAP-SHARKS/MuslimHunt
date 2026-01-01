@@ -6,7 +6,7 @@ import {
   ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft, 
   Trash2, ExternalLink, RefreshCw, Filter, CheckCircle2, 
   AlertCircle, Hash, LogOut, Lock, Mail, KeyRound,
-  ShieldAlert, UserCheck, ArrowRight
+  ShieldAlert, UserCheck, ArrowRight, Shield
 } from 'lucide-react';
 import SafeImage from './SafeImage.tsx';
 
@@ -16,7 +16,7 @@ interface AdminPanelProps {
   onRefresh: () => void;
 }
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRefresh }) => {
   const [pendingProducts, setPendingProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,55 +28,64 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   
-  // Role Verification State
+  // Specific Admin Email Requirement
+  const AUTHORIZED_ADMIN_EMAIL = 'zeirislam@gmail.com';
+
+  // Authorization State
   const [verifying, setVerifying] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Hardcoded target admin (requested by user for setup)
-  const TARGET_ADMIN_EMAIL = 'zeirislam@gmail.com';
-
   /**
-   * Core Security Check: 
-   * Verifies if the authenticated user has is_admin: true in the 'profiles' table.
+   * Security Verification: 
+   * Checks if user is zeirislam@gmail.com AND has is_admin: true in DB
    */
-  const checkAuthorization = async (sessionUser: any) => {
-    if (!sessionUser) {
+  const verifyAdminClearance = async (currentUser: any) => {
+    if (!currentUser) {
       setIsAuthorized(null);
       setVerifying(false);
       return;
     }
-    
+
     setVerifying(true);
     try {
-      const { data, error } = await supabase
+      // 1. Strict Email Check
+      if (currentUser.email !== AUTHORIZED_ADMIN_EMAIL) {
+        throw new Error("Unauthorized identity.");
+      }
+
+      // 2. Database Privilege Check
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('is_admin')
-        .eq('id', sessionUser.id)
+        .eq('id', currentUser.id)
         .single();
-      
-      if (error) throw error;
-      
-      // Secondary check: verify email matches requested admin OR generic admin flag
-      if (data?.is_admin === true) {
-        setIsAuthorized(true);
-      } else {
-        setIsAuthorized(false);
-        // Force logout if they try to stay in admin panel without permission
-        await supabase.auth.signOut();
+
+      if (error || !profile?.is_admin) {
+        throw new Error("Missing admin privileges in profile.");
       }
+
+      setIsAuthorized(true);
     } catch (err) {
-      console.error('[Admin] Authorization check failed:', err);
+      console.warn('[Admin] Clearance denied:', err);
       setIsAuthorized(false);
+      // Auto-logout unauthorized attempts
+      await supabase.auth.signOut();
     } finally {
       setVerifying(false);
     }
   };
 
-  // Initial session check
+  // Check session on mount
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user: sessionUser } }) => {
-      checkAuthorization(sessionUser);
-    });
+    const initAuth = async () => {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser();
+      if (sessionUser) {
+        await verifyAdminClearance(sessionUser);
+      } else {
+        setVerifying(false);
+      }
+    };
+    initAuth();
   }, []);
 
   const fetchPending = async () => {
@@ -98,7 +107,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
       if (error) throw error;
       setPendingProducts(data || []);
     } catch (err) {
-      console.error('[Admin] Moderation fetch error:', err);
+      console.error('[Admin] Queue sync failed:', err);
     } finally {
       setLoading(false);
     }
@@ -116,28 +125,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
     setLoginError(null);
     
     try {
-      // Step 1: Standard Authenticate
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
       if (error) throw error;
 
-      // Step 2: Immediate check if it's the target account or an admin
       if (data.user) {
-        await checkAuthorization(data.user);
+        await verifyAdminClearance(data.user);
       }
     } catch (err: any) {
-      setLoginError(err.message || 'Strictly for Admins only. Bismillah, check your credentials.');
+      setLoginError(err.message || 'Strictly for Admins only. Check credentials.');
     } finally {
       setLoginLoading(false);
     }
   };
 
   const handleAdminLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAuthorized(null);
-    setEmail('');
-    setPassword('');
-    onBack();
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setIsAuthorized(null);
+      setEmail('');
+      setPassword('');
+      onBack();
+    }
   };
 
   const handleApprove = async (product: any) => {
@@ -153,13 +161,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
       
       if (updateError) throw updateError;
 
-      // Notify the maker of approval
+      // Notify the maker
       await supabase
         .from('notifications')
         .insert([{
           user_id: product.founder_id,
           type: 'approval',
-          message: `Mabrook! Your product "${product.name}" has been approved and is now live.`,
+          message: `Mabrook! Your product "${product.name}" has been approved.`,
           is_read: false,
           avatar_url: 'https://muslimhunt.com/logo.png' 
         }]);
@@ -168,14 +176,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
     } catch (err) {
       console.error('[Admin] Approval failed:', err);
       setPendingProducts(previousState);
-      alert('Failed to approve product. Check your connection.');
+      alert('Failed to approve. Check network.');
     } finally {
       setProcessingId(null);
     }
   };
 
   const handleReject = async (id: string) => {
-    if (!confirm('Warning: This will permanently delete the submission. Are you sure?')) return;
+    if (!confirm('This will permanently delete the submission. Continue?')) return;
     
     setProcessingId(id);
     const previousState = [...pendingProducts];
@@ -202,22 +210,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
     );
   }, [pendingProducts, searchQuery]);
 
-  // View 1: Loading/Authorizing State
+  // View: Loading Clearance
   if (verifying) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="relative">
+        <div className="relative mb-6">
           <Loader2 className="w-12 h-12 text-emerald-800 animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Lock className="w-4 h-4 text-emerald-800" />
-          </div>
+          <Shield className="absolute inset-0 m-auto w-5 h-5 text-emerald-800" />
         </div>
-        <p className="mt-6 text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">Verifying Clearance...</p>
+        <p className="text-gray-400 font-black uppercase tracking-[0.3em] text-[10px]">Validating Session...</p>
       </div>
     );
   }
 
-  // View 2: Unauthorized (Denial Screen)
+  // View: Access Denied
   if (isAuthorized === false) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-white animate-in fade-in duration-500">
@@ -225,47 +231,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
           <div className="w-24 h-24 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 text-red-600 border border-red-100 shadow-inner">
             <ShieldAlert className="w-12 h-12" />
           </div>
-          <h2 className="text-4xl font-serif font-bold text-gray-900 mb-4 tracking-tight leading-none">Access Rejected</h2>
+          <h2 className="text-4xl font-serif font-bold text-gray-900 mb-4 tracking-tight">Clearance Denied</h2>
           <p className="text-gray-500 font-medium mb-10 leading-relaxed">
-            Strictly for Admins only. Your account does not have the required permissions to access this area.
+            Strictly for Admins only. Your identity does not match the required clearance levels.
           </p>
           <button 
             onClick={handleAdminLogout} 
             className="w-full px-10 py-5 bg-emerald-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-800 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
           >
-            <LogOut className="w-4 h-4" /> Sign out and exit
+            <LogOut className="w-4 h-4" /> Exit Portal
           </button>
         </div>
       </div>
     );
   }
 
-  // View 3: Login Portal (If not authorized and not verifying)
+  // View: Login Portal
   if (isAuthorized === null) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#042119] bg-[radial-gradient(circle_at_top_left,rgba(6,78,59,0.4),transparent)]">
-        <div className="w-full max-w-md bg-white rounded-[3.5rem] p-10 sm:p-14 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border border-emerald-900/10 animate-in fade-in zoom-in-95 duration-700 relative overflow-hidden">
+        <div className="w-full max-w-md bg-white rounded-[3rem] p-10 sm:p-14 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border border-emerald-900/10 animate-in fade-in zoom-in-95 duration-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-50 rounded-full -mr-20 -mt-20 opacity-40 blur-3xl" />
           
           <div className="flex flex-col items-center mb-12 text-center relative z-10">
-            <div className="w-24 h-24 bg-emerald-900 rounded-[2.5rem] flex items-center justify-center text-white mb-8 shadow-2xl shadow-emerald-900/40 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+            <div className="w-24 h-24 bg-emerald-900 rounded-[2.5rem] flex items-center justify-center text-white mb-8 shadow-2xl shadow-emerald-900/40">
               <KeyRound className="w-12 h-12" />
             </div>
-            <h1 className="text-3xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">Admin Login</h1>
-            <p className="text-gray-400 font-medium text-sm leading-relaxed">Secure portal for Muslim Hunt community moderators.</p>
+            <h1 className="text-3xl font-serif font-bold text-emerald-900 mb-2">Admin Login</h1>
+            <p className="text-gray-400 font-medium text-sm">Authorized personnel only.</p>
           </div>
 
           <form onSubmit={handleAdminLogin} className="space-y-5 relative z-10">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.2em] px-1">Identity</label>
+              <label className="text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.2em] px-1">Admin Email</label>
               <div className="relative group">
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-800/30 group-focus-within:text-emerald-800 transition-colors" />
                 <input 
-                  type="email" 
-                  placeholder="zeirislam@gmail.com" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required
+                  type="email" placeholder="zeirislam@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} required
                   className="w-full pl-12 pr-6 py-4 bg-emerald-50/30 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner placeholder:text-gray-300"
                 />
               </div>
@@ -276,11 +278,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
               <div className="relative group">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-800/30 group-focus-within:text-emerald-800 transition-colors" />
                 <input 
-                  type="password" 
-                  placeholder="admin123" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required
+                  type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required
                   className="w-full pl-12 pr-6 py-4 bg-emerald-50/30 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner placeholder:text-gray-300"
                 />
               </div>
@@ -294,25 +292,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
             )}
 
             <button 
-              type="submit" 
-              disabled={loginLoading}
+              type="submit" disabled={loginLoading}
               className="w-full bg-emerald-900 hover:bg-emerald-800 text-white font-black py-5 rounded-[1.5rem] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 mt-4 group shadow-xl shadow-emerald-900/20"
             >
               {loginLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                <>Enter Moderation Dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+                <>Enter Dashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
               )}
             </button>
           </form>
 
           <button onClick={onBack} className="w-full mt-10 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 uppercase tracking-[0.3em] transition-colors flex items-center justify-center gap-2 group">
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" /> Exit to Feed
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" /> Back to Feed
           </button>
         </div>
       </div>
     );
   }
 
-  // View 4: Main Admin Dashboard (Authenticated & Authorized)
+  // View: Main Dashboard
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
@@ -321,10 +318,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
             <div className="bg-emerald-50 p-2 rounded-lg">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Authorized Session • {user?.email || TARGET_ADMIN_EMAIL}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Authorized Session • {AUTHORIZED_ADMIN_EMAIL}</span>
           </div>
-          <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">Moderator Queue</h1>
-          <p className="text-gray-400 font-medium italic">Vetting community submissions for the Halal digital ecosystem.</p>
+          <h1 className="text-5xl font-serif font-bold text-emerald-900 tracking-tight leading-none">Admin Dashboard</h1>
+          <p className="text-gray-400 font-medium italic">Maintaining the quality of the Muslim Hunt ecosystem.</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -335,15 +332,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
           <div className="flex flex-col gap-2">
             <button 
               onClick={fetchPending}
-              className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-800 hover:border-emerald-200 transition-all shadow-sm active:scale-90 group"
-              title="Sync Database"
+              className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm active:scale-90"
+              title="Sync Records"
             >
-              <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin text-emerald-800' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+              <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin text-emerald-800' : ''}`} />
             </button>
             <button 
               onClick={handleAdminLogout}
-              className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-300 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-90 group"
-              title="End Session"
+              className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-300 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-90 group"
+              title="Sign Out"
             >
               <LogOut className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -355,7 +352,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
         <div className="relative flex-1 w-full">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
           <input 
-            type="text" placeholder="Filter queue by name, maker, or tag..."
+            type="text" placeholder="Search by name, maker, or tag..."
             value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-16 pr-8 py-5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none transition-all font-bold text-gray-900 shadow-inner"
           />
@@ -371,8 +368,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
             <thead>
               <tr className="bg-gray-50/50 border-y border-gray-100">
                 <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Product Info</th>
-                <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Submitter</th>
-                <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
+                <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Maker</th>
+                <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Tag</th>
                 <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Moderation</th>
               </tr>
@@ -389,8 +386,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
                 <tr>
                   <td colSpan={5} className="px-12 py-48 text-center">
                     <UserCheck className="w-16 h-16 text-emerald-50 opacity-50 mx-auto mb-6" />
-                    <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 tracking-tight">Queue All Clear</h2>
-                    <p className="text-gray-400 font-medium italic">Mabrook! All pending submissions have been processed.</p>
+                    <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 tracking-tight">Queue is empty</h2>
+                    <p className="text-gray-400 font-medium italic">Mabrook! All submissions have been processed.</p>
                   </td>
                 </tr>
               ) : (
@@ -402,7 +399,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
                           <SafeImage src={p.logo_url} alt={p.name} seed={p.name} className="w-full h-full" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-lg font-black text-gray-900 leading-none mb-2 truncate group-hover:text-emerald-800 transition-colors">{p.name}</p>
+                          <p className="text-lg font-black text-gray-900 leading-none mb-2 truncate">{p.name}</p>
                           <div className="flex items-center gap-2 text-xs text-gray-400 font-bold truncate max-w-[280px]">
                             <Hash className="w-3.5 h-3.5 text-emerald-800 opacity-30" />
                             {p.tagline}
@@ -454,7 +451,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
                           className="pl-8 pr-6 py-4 bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-800 transition-all shadow-2xl active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
                         >
                           {processingId === p.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                          Authorize Live
+                          Approve
                         </button>
                       </div>
                     </td>
@@ -469,23 +466,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, onBack, onRefresh }) => {
       <div className="mt-12 flex flex-col sm:row items-center justify-between gap-6 px-4">
         <div className="flex items-center gap-3 text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">
           <ShieldCheck className="w-4 h-4 text-emerald-800" />
-          Secure Moderator Session • Encrypted Access
+          Verified Secure Staff Portal Active
         </div>
-        <div className="flex items-center gap-8">
-          <button 
-            onClick={handleAdminLogout}
-            className="flex items-center gap-2 text-red-400 hover:text-red-600 transition-colors font-black uppercase tracking-[0.2em] text-[10px] active:scale-95"
-          >
-            <LogOut className="w-4 h-4" /> Sign Out Admin
-          </button>
-          <button 
-            onClick={onBack} 
-            className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-2 group active:scale-95"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Public View
-          </button>
-        </div>
+        <button onClick={onBack} className="text-gray-400 hover:text-emerald-800 transition-colors font-black uppercase tracking-[0.2em] text-[10px] flex items-center gap-2 group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to feed
+        </button>
       </div>
     </div>
   );
