@@ -72,19 +72,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   }, []);
 
   // Instruction: Update fetchPending to only retrieve products where is_approved is false.
+  // Instruction: Fix relationship name using profiles:user_id and add console.error check.
   const fetchPending = async () => {
     if (!isAuthorized) return;
     setLoading(true);
+    console.log("[Admin] Fetching unapproved products...");
+    
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(`*, profiles:user_id(username, avatar_url)`)
+        .select('*, profiles:user_id(username, avatar_url)')
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
-      if (!error) setPendingProducts(data || []);
-      else console.error("[Admin] Fetch error:", error);
+
+      if (error) {
+        console.error("[Admin] Supabase Fetch Error:", error.message, error.details, error.hint);
+        return;
+      }
+
+      if (!data) {
+        console.warn("[Admin] No data returned from products fetch.");
+        setPendingProducts([]);
+      } else {
+        console.log(`[Admin] Fetch successful. Found ${data.length} pending items.`);
+        setPendingProducts(data);
+      }
     } catch (err) {
-      console.error("[Admin] Fetch catch:", err);
+      console.error("[Admin] Unexpected catch in fetchPending:", err);
     } finally {
       setLoading(false);
     }
@@ -105,11 +119,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Instruction: Approval Logic
   const handleApprove = async (product: any) => {
     setProcessingId(product.id);
     try {
-      // 1. Update product status setting is_approved: true
       const { error: updateError } = await supabase
         .from('products')
         .update({ is_approved: true })
@@ -117,16 +129,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (updateError) throw updateError;
 
-      // 2. Insert notification for user_id
       await supabase.from('notifications').insert([{
-        user_id: product.user_id,
+        user_id: product.user_id, // Correct column name
         type: 'approval',
         message: `Mabrook! Your product "${product.name}" has been approved.`,
         is_read: false,
         avatar_url: 'https://muslimhunt.com/logo.png' 
       }]);
       
-      // 3. Update local state
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh();
       console.log(`[Admin] Product "${product.name}" approved.`);
@@ -138,16 +148,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     }
   };
 
-  // Instruction: Processing Rejection
   const handleRejectConfirm = async () => {
     if (!rejectingProduct || !rejectionNote.trim()) return;
     const productId = rejectingProduct.id;
-    const userId = rejectingProduct.user_id;
+    const userId = rejectingProduct.user_id; // Correct column name
     const productName = rejectingProduct.name;
 
     setProcessingId(productId);
     try {
-      // 1. First, insert notification with custom reason
       await supabase.from('notifications').insert([{
         user_id: userId,
         type: 'rejection',
@@ -156,7 +164,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         avatar_url: 'https://muslimhunt.com/logo.png'
       }]);
 
-      // 2. Second, delete from products table
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
@@ -164,7 +171,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       
       if (deleteError) throw deleteError;
 
-      // 3. Update UI
       setPendingProducts(prev => prev.filter(p => p.id !== productId));
       setIsRejectModalOpen(false);
       setRejectionNote('');
@@ -182,7 +188,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const filteredProducts = useMemo(() => {
     return pendingProducts.filter(p => 
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.profiles?.username || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [pendingProducts, searchQuery]);
 
@@ -225,7 +232,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-12 px-4 sm:px-8">
-      {/* Instruction: Dashboard wrapped in a green/emerald themed box */}
       <div className="max-w-7xl mx-auto bg-emerald-50/30 border-4 border-emerald-100/50 rounded-[4rem] p-8 md:p-14 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)] animate-in fade-in slide-in-from-bottom-4 duration-700">
         
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-12">
@@ -259,7 +265,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             <div className="relative">
               <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
               <input 
-                type="text" placeholder="Search by name or category..." 
+                type="text" placeholder="Search by name, category, or maker..." 
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-16 pr-8 py-5 bg-emerald-50/30 border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none transition-all font-bold text-emerald-900"
               />
@@ -267,10 +273,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-[1000px]">
               <thead>
                 <tr className="bg-emerald-50/50">
                   <th className="px-10 py-6 text-xs font-black uppercase text-emerald-800/40 tracking-[0.2em]">Submission</th>
+                  <th className="px-10 py-6 text-xs font-black uppercase text-emerald-800/40 tracking-[0.2em]">Maker</th>
                   <th className="px-10 py-6 text-xs font-black uppercase text-emerald-800/40 tracking-[0.2em]">Category</th>
                   <th className="px-10 py-6 text-xs font-black uppercase text-emerald-800/40 tracking-[0.2em] text-right">Moderation</th>
                 </tr>
@@ -278,19 +285,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               <tbody className="divide-y divide-emerald-50">
                 {loading && pendingProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-10 py-32 text-center">
+                    <td colSpan={4} className="px-10 py-32 text-center">
                       <Loader2 className="w-12 h-12 animate-spin text-emerald-800 mx-auto mb-4" />
                       <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Accessing Database...</p>
                     </td>
                   </tr>
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-10 py-32 text-center">
+                    <td colSpan={4} className="px-10 py-32 text-center">
                       <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-300">
                         <CheckCircle2 className="w-8 h-8" />
                       </div>
                       <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2">Queue All Clear</h2>
-                      <p className="text-gray-400 font-medium italic">All pending submissions have been processed.</p>
+                      <p className="text-gray-400 font-medium italic">No pending submissions matching your search.</p>
                     </td>
                   </tr>
                 ) : (
@@ -303,10 +310,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                           </div>
                           <div className="min-w-0">
                             <p className="text-lg font-black text-emerald-900 leading-none mb-1.5">{p.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-400 font-bold truncate max-w-[300px]">
+                            <div className="flex items-center gap-2 text-xs text-gray-400 font-bold truncate max-w-[200px]">
                               <Hash className="w-3.5 h-3.5 text-emerald-800 opacity-30" />
                               {p.tagline}
                             </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full overflow-hidden border border-emerald-100">
+                            <img 
+                              src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
+                              alt="Submitter" 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-bold text-gray-900 leading-none">@{p.profiles?.username || 'user'}</p>
+                            <p className="text-[10px] font-black text-gray-400 uppercase mt-1">Submitter</p>
                           </div>
                         </div>
                       </td>
@@ -325,7 +347,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                           >
                             <Eye size={22}/>
                           </a>
-                          {/* Instruction: 'Reject' is clicked */}
                           <button 
                             onClick={() => { setRejectingProduct(p); setIsRejectModalOpen(true); }} 
                             className="p-3 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all active:scale-95"
@@ -351,7 +372,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         </div>
       </div>
 
-      {/* Instruction: Rejection Pop-up (Modal) */}
       {isRejectModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-[3.5rem] w-full max-w-lg p-10 sm:p-12 shadow-2xl border border-emerald-50 overflow-hidden animate-in zoom-in-95 duration-300">
