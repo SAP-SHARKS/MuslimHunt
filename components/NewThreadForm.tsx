@@ -1,38 +1,57 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, 
-  Quote, AtSign, Image as ImageIcon, BarChart2, Home, 
-  MessageSquare, Hash, Info, Search, ChevronDown, Check, PlusSquare
+  Quote, Hash, Info, Search, ChevronDown, Check, Loader2, Sparkles, MessageSquare, Rocket, Compass, Flame, Calendar, Mail, FileText, Menu, Star, Zap, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Trophy, Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby, BookOpen
 } from 'lucide-react';
-import { View } from '../types';
+import { View, Forum, User } from '../types';
+import { supabase } from '../lib/supabase';
+
+const ICON_MAP: Record<string, any> = {
+  Rocket, Compass, MessageSquare, Flame, Calendar, Mail, BookOpen, FileText, Menu, X, Star, Zap, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy, Hash,
+  Activity, Wind, Brain, Moon, Dumbbell, Hotel, Map, Chrome, Figma, Slack, Wallet, ShoppingBag, CreditCard, Baby
+};
 
 interface NewThreadFormProps {
   onCancel: () => void;
   onSubmit: (data: any) => void;
   setView: (view: View) => void;
+  user: User | null;
 }
 
-const FORUM_OPTIONS = [
-  { id: 'p/general', label: 'General' },
-  { id: 'p/vibecoding', label: 'Vibecoding' },
-  { id: 'p/intro', label: 'Introduce yourself' },
-  { id: 'p/promo', label: 'Self-Promotion' }
-];
-
-const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView }) => {
+const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView, user }) => {
+  const [forums, setForums] = useState<Forum[]>([]);
+  const [loadingForums, setLoadingForums] = useState(true);
   const [formData, setFormData] = useState({
-    forumId: 'p/general',
+    forumId: '',
     title: '',
-    body: '' // Stores HTML string
+    body: ''
   });
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [forumSearch, setForumSearch] = useState('');
-  const [showTitleError, setShowTitleError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Sync editor content to state
+  useEffect(() => {
+    const fetchForums = async () => {
+      try {
+        const { data, error } = await supabase.from('forums').select('*').order('display_order');
+        if (error) throw error;
+        setForums(data || []);
+        if (data && data.length > 0) {
+          setFormData(prev => ({ ...prev, forumId: data[0].id }));
+        }
+      } catch (err) {
+        console.error('[NewThread] Failed to fetch forums:', err);
+      } finally {
+        setLoadingForums(false);
+      }
+    };
+    fetchForums();
+  }, []);
+
   const handleEditorInput = () => {
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
@@ -40,23 +59,6 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
     }
   };
 
-  // Keyboard shortcuts (Cmd/Ctrl + B, I)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-        e.preventDefault();
-        handleFormat('bold');
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
-        e.preventDefault();
-        handleFormat('italic');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -67,26 +69,55 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectedForum = FORUM_OPTIONS.find(f => f.id === formData.forumId) || FORUM_OPTIONS[0];
+  const selectedForum = forums.find(f => f.id === formData.forumId);
+  const SelectedIcon = selectedForum ? (ICON_MAP[selectedForum.icon_name] || Hash) : Hash;
 
-  const filteredForums = FORUM_OPTIONS.filter(f => 
-    f.label.toLowerCase().includes(forumSearch.toLowerCase())
+  const filteredForums = forums.filter(f => 
+    f.name.toLowerCase().includes(forumSearch.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const bodyContent = editorRef.current?.innerHTML || '';
-    
-    if (!formData.title.trim()) {
-      setShowTitleError(true);
-      return;
-    }
+    if (!user) return;
+    if (!formData.title.trim() || !formData.forumId) return;
 
-    onSubmit({
-      ...formData,
-      body: bodyContent,
-      forum: selectedForum.id
-    });
+    setIsSubmitting(true);
+    try {
+      const { data: thread, error: threadError } = await supabase
+        .from('threads')
+        .insert([{
+          forum_id: formData.forumId,
+          user_id: user.id,
+          title: formData.title,
+          body: formData.body,
+          upvotes_count: 0,
+          comment_count: 0
+        }])
+        .select()
+        .single();
+
+      if (threadError) throw threadError;
+
+      // Non-critical notification logic as per guidelines
+      try {
+        const { error: notifyError } = await supabase.from('notifications').insert([{
+          user_id: user.id,
+          type: 'comment', // Using generic for thread creation
+          message: `Your thread "${formData.title}" is now live on Muslim Hunt.`,
+          is_read: false
+        }]);
+        if (notifyError) console.warn('Note: Notification failed due to RLS, but thread is posted.', notifyError.code);
+      } catch (nErr) {
+        console.warn('Non-critical notification error:', nErr);
+      }
+
+      onSubmit(thread);
+    } catch (err: any) {
+      console.error('CRITICAL: Thread submission failed!', err.code, err.message);
+      alert(`Failed to post: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFormat = (command: string, value?: string) => {
@@ -95,145 +126,144 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
     handleEditorInput();
   };
 
-  const ToolbarButton = ({ icon: Icon, label, tooltip, onClick }: { icon: any, label: string, tooltip: string, onClick: () => void }) => (
-    <div className="relative group flex items-center justify-center">
-      <button 
-        type="button" 
-        onClick={(e) => {
-          e.preventDefault();
-          onClick();
-        }}
-        aria-label={label}
-        className="p-1.5 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded transition-colors"
-      >
-        <Icon className="w-4 h-4" />
-      </button>
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-[11px] font-bold rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
-        {tooltip}
-      </div>
-    </div>
+  const ToolbarButton = ({ icon: Icon, tooltip, onClick }: any) => (
+    <button 
+      type="button" 
+      onClick={onClick}
+      title={tooltip}
+      className="p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all"
+    >
+      <Icon className="w-4 h-4" />
+    </button>
   );
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
+    <div className="max-w-4xl mx-auto py-12 px-4 animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-serif font-bold text-emerald-900">Start a new discussion</h2>
-        <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <div>
+          <h2 className="text-3xl font-serif font-bold text-emerald-900">New Discussion</h2>
+          <p className="text-gray-400 font-medium text-sm">Share insights or ask questions to the Muslim tech community.</p>
+        </div>
+        <button onClick={onCancel} className="p-3 hover:bg-gray-100 rounded-full transition-colors active:scale-90">
           <X className="w-6 h-6 text-gray-400" />
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="relative" ref={dropdownRef}>
-          <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Select Forum</label>
+          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Select Forum</label>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all"
+            disabled={loadingForums}
+            className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all focus:border-emerald-800 outline-none"
           >
-            <div className="flex items-center gap-2">
-              <Hash className="w-4 h-4 text-emerald-800" />
-              {selectedForum.label}
+            <div className="flex items-center gap-3">
+              {loadingForums ? <Loader2 className="w-4 h-4 animate-spin" /> : <SelectedIcon className="w-4 h-4 text-emerald-800" />}
+              {loadingForums ? 'Loading forums...' : (selectedForum?.name || 'Choose a topic...')}
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="p-2 border-b border-gray-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="p-3 border-b border-gray-50">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search forums..."
+                    placeholder="Filter forums..."
                     value={forumSearch}
                     onChange={(e) => setForumSearch(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2 bg-gray-50 rounded-lg text-xs outline-none focus:bg-white focus:ring-1 focus:ring-emerald-800 transition-all"
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 rounded-xl text-sm outline-none focus:bg-white focus:ring-1 focus:ring-emerald-800 transition-all font-medium"
                   />
                 </div>
               </div>
-              <div className="max-h-60 overflow-y-auto">
-                {filteredForums.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => {
-                      setFormData({ ...formData, forumId: f.id });
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-emerald-50 text-left transition-colors"
-                  >
-                    <span className={`text-sm ${formData.forumId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>
-                      {f.label}
-                    </span>
-                    {formData.forumId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
-                  </button>
-                ))}
+              <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                {filteredForums.map((f) => {
+                  const Icon = ICON_MAP[f.icon_name] || Hash;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, forumId: f.id });
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-5 py-4 hover:bg-emerald-50 text-left transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${formData.forumId === f.id ? 'text-emerald-800' : 'text-gray-400'}`} />
+                        <div>
+                          <p className={`text-sm ${formData.forumId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700 font-medium'}`}>{f.name}</p>
+                          <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">p/{f.slug}</p>
+                        </div>
+                      </div>
+                      {formData.forumId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Discussion Title</label>
+          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Discussion Title</label>
           <input
             required
             value={formData.title}
-            onChange={(e) => {
-              setFormData({ ...formData, title: e.target.value });
-              setShowTitleError(false);
-            }}
-            placeholder="What would you like to discuss?"
-            className={`w-full px-4 py-4 bg-white border ${showTitleError ? 'border-red-300 ring-4 ring-red-50' : 'border-gray-100'} rounded-2xl text-xl font-bold text-gray-900 outline-none focus:border-emerald-800 transition-all placeholder:text-gray-200`}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="Give your discussion a clear, descriptive title..."
+            className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl text-xl font-bold text-gray-900 outline-none focus:border-emerald-800 transition-all shadow-sm placeholder:text-gray-200"
           />
-          {showTitleError && <p className="text-red-500 text-xs font-bold mt-1">Title is required</p>}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">Body</label>
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden focus-within:border-emerald-800 transition-all">
+          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Message Body</label>
+          <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden focus-within:border-emerald-800 transition-all shadow-sm">
             <div className="flex items-center gap-1 p-2 border-b border-gray-50 bg-gray-50/50">
-              <ToolbarButton icon={Bold} label="Bold" tooltip="Bold (Ctrl+B)" onClick={() => handleFormat('bold')} />
-              <ToolbarButton icon={Italic} label="Italic" tooltip="Italic (Ctrl+I)" onClick={() => handleFormat('italic')} />
-              <div className="w-px h-4 bg-gray-200 mx-1" />
-              <ToolbarButton icon={List} label="Bullet List" tooltip="Bullet List" onClick={() => handleFormat('insertUnorderedList')} />
-              <ToolbarButton icon={ListOrdered} label="Ordered List" tooltip="Ordered List" onClick={() => handleFormat('insertOrderedList')} />
-              <div className="w-px h-4 bg-gray-200 mx-1" />
-              <ToolbarButton icon={LinkIcon} label="Link" tooltip="Link" onClick={() => {
+              <ToolbarButton icon={Bold} tooltip="Bold" onClick={() => handleFormat('bold')} />
+              <ToolbarButton icon={Italic} tooltip="Italic" onClick={() => handleFormat('italic')} />
+              <div className="w-px h-4 bg-gray-200 mx-2" />
+              <ToolbarButton icon={List} tooltip="Bullet List" onClick={() => handleFormat('insertUnorderedList')} />
+              <ToolbarButton icon={ListOrdered} tooltip="Ordered List" onClick={() => handleFormat('insertOrderedList')} />
+              <div className="w-px h-4 bg-gray-200 mx-2" />
+              <ToolbarButton icon={LinkIcon} tooltip="Add Link" onClick={() => {
                 const url = prompt('Enter the URL:');
                 if (url) handleFormat('createLink', url);
               }} />
-              <ToolbarButton icon={Quote} label="Quote" tooltip="Quote" onClick={() => handleFormat('formatBlock', 'blockquote')} />
-              <ToolbarButton icon={Code} label="Code" tooltip="Code" onClick={() => handleFormat('formatBlock', 'pre')} />
+              <ToolbarButton icon={Quote} tooltip="Quote" onClick={() => handleFormat('formatBlock', 'blockquote')} />
             </div>
             <div
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
-              className="w-full min-h-[300px] p-6 outline-none prose prose-emerald max-w-none text-gray-700"
-              placeholder="Write your discussion here..."
+              className="w-full min-h-[350px] p-8 outline-none prose prose-emerald max-w-none text-gray-800 font-medium"
+              placeholder="Start typing your discussion here..."
             />
           </div>
         </div>
 
-        <div className="pt-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Info className="w-4 h-4" />
-            <p className="text-[10px] font-bold uppercase tracking-widest">Be respectful and helpful to others.</p>
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-gray-50">
+          <div className="flex items-center gap-3 text-gray-400">
+            <Info className="w-5 h-5" />
+            <p className="text-[11px] font-black uppercase tracking-widest">Share knowledge and remain respectful.</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
             <button
               type="button"
               onClick={onCancel}
-              className="px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
+              className="flex-1 sm:flex-none px-10 py-4 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-8 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg active:scale-95"
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none px-12 py-4 bg-emerald-800 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-emerald-900/10"
             >
-              Post Thread
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post Discussion'}
             </button>
           </div>
         </div>
