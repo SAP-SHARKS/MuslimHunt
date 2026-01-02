@@ -20,7 +20,6 @@ interface NewThreadFormProps {
 }
 
 const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView, user }) => {
-  // 1. Dynamic Data Fetching & 2. State Management
   const [forums, setForums] = useState<Forum[]>([]);
   const [loadingForums, setLoadingForums] = useState(true);
   const [formData, setFormData] = useState({
@@ -38,23 +37,14 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   useEffect(() => {
     const fetchForums = async () => {
       try {
-        setLoadingForums(true);
-        // Fetching all forums from Supabase 'forums' table
-        const { data, error } = await supabase
-          .from('forums')
-          .select('id, name, slug, description, icon_name')
-          .order('display_order', { ascending: true });
-        
+        const { data, error } = await supabase.from('forums').select('*').order('display_order');
         if (error) throw error;
-        
         setForums(data || []);
-        
-        // 3. Dropdown Logic: Set default forumId to the first item once data is available
         if (data && data.length > 0) {
           setFormData(prev => ({ ...prev, forumId: data[0].id }));
         }
       } catch (err) {
-        console.error('[Muslim Hunt] Failed to fetch forums:', err);
+        console.error('[NewThread] Failed to fetch forums:', err);
       } finally {
         setLoadingForums(false);
       }
@@ -82,7 +72,6 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   const selectedForum = forums.find(f => f.id === formData.forumId);
   const SelectedIcon = selectedForum ? (ICON_MAP[selectedForum.icon_name] || Hash) : Hash;
 
-  // 3. Dropdown Logic: Ensure search filter works against the fetched 'name' column
   const filteredForums = forums.filter(f => 
     f.name.toLowerCase().includes(forumSearch.toLowerCase())
   );
@@ -90,18 +79,14 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!formData.title.trim() || !formData.forumId) {
-      alert("Please ensure you've selected a forum and entered a title.");
-      return;
-    }
+    if (!formData.title.trim() || !formData.forumId) return;
 
     setIsSubmitting(true);
     try {
-      // 4. Data Integrity: Ensure the selected 'id' from the forums table is used
       const { data: thread, error: threadError } = await supabase
         .from('threads')
         .insert([{
-          forum_id: formData.forumId, // Selected ID from database
+          forum_id: formData.forumId,
           user_id: user.id,
           title: formData.title,
           body: formData.body,
@@ -113,22 +98,23 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
 
       if (threadError) throw threadError;
 
-      // Handle notification for the user (non-critical)
+      // Non-critical notification logic as per guidelines
       try {
-        await supabase.from('notifications').insert([{
+        const { error: notifyError } = await supabase.from('notifications').insert([{
           user_id: user.id,
-          type: 'comment',
-          message: `Your thread "${formData.title}" is now live in p/${selectedForum?.slug}.`,
+          type: 'comment', // Using generic for thread creation
+          message: `Your thread "${formData.title}" is now live on Muslim Hunt.`,
           is_read: false
         }]);
+        if (notifyError) console.warn('Note: Notification failed due to RLS, but thread is posted.', notifyError.code);
       } catch (nErr) {
-        console.warn('Notification insert failed, continuing...', nErr);
+        console.warn('Non-critical notification error:', nErr);
       }
 
       onSubmit(thread);
     } catch (err: any) {
-      console.error('CRITICAL: Thread submission failed!', err);
-      alert(`Submission failed: ${err.message || 'Check your connection.'}`);
+      console.error('CRITICAL: Thread submission failed!', err.code, err.message);
+      alert(`Failed to post: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +150,6 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Forum Selection Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Select Forum</label>
           <button
@@ -174,12 +159,8 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
             className="w-full flex items-center justify-between px-5 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all focus:border-emerald-800 outline-none"
           >
             <div className="flex items-center gap-3">
-              {loadingForums ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <SelectedIcon className="w-4 h-4 text-emerald-800" />
-              )}
-              {loadingForums ? 'Fetching forums...' : (selectedForum?.name || 'Choose a forum...')}
+              {loadingForums ? <Loader2 className="w-4 h-4 animate-spin" /> : <SelectedIcon className="w-4 h-4 text-emerald-800" />}
+              {loadingForums ? 'Loading forums...' : (selectedForum?.name || 'Choose a topic...')}
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -199,53 +180,45 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
                 </div>
               </div>
               <div className="max-h-64 overflow-y-auto custom-scrollbar">
-                {filteredForums.length > 0 ? (
-                  filteredForums.map((f) => {
-                    // 3. Dropdown Logic: Map the icon_name from database to Lucide React icons
-                    const Icon = ICON_MAP[f.icon_name] || Hash;
-                    return (
-                      <button
-                        key={f.id}
-                        type="button"
-                        onClick={() => {
-                          setFormData({ ...formData, forumId: f.id });
-                          setIsDropdownOpen(false);
-                          setForumSearch('');
-                        }}
-                        className="w-full flex items-center justify-between px-5 py-4 hover:bg-emerald-50 text-left transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-4 h-4 ${formData.forumId === f.id ? 'text-emerald-800' : 'text-gray-400'}`} />
-                          <div>
-                            <p className={`text-sm ${formData.forumId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700 font-medium'}`}>{f.name}</p>
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">p/{f.slug}</p>
-                          </div>
+                {filteredForums.map((f) => {
+                  const Icon = ICON_MAP[f.icon_name] || Hash;
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, forumId: f.id });
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-5 py-4 hover:bg-emerald-50 text-left transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${formData.forumId === f.id ? 'text-emerald-800' : 'text-gray-400'}`} />
+                        <div>
+                          <p className={`text-sm ${formData.forumId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700 font-medium'}`}>{f.name}</p>
+                          <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">p/{f.slug}</p>
                         </div>
-                        {formData.forumId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="px-5 py-4 text-xs text-gray-400 italic">No forums match your search.</div>
-                )}
+                      </div>
+                      {formData.forumId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
 
-        {/* Title Input */}
         <div className="space-y-2">
           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Discussion Title</label>
           <input
             required
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="What's on your mind? Be descriptive..."
+            placeholder="Give your discussion a clear, descriptive title..."
             className="w-full px-6 py-5 bg-white border border-gray-100 rounded-2xl text-xl font-bold text-gray-900 outline-none focus:border-emerald-800 transition-all shadow-sm placeholder:text-gray-200"
           />
         </div>
 
-        {/* Rich Text Body */}
         <div className="space-y-2">
           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Message Body</label>
           <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden focus-within:border-emerald-800 transition-all shadow-sm">
@@ -266,17 +239,16 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
-              className="w-full min-h-[300px] p-8 outline-none prose prose-emerald max-w-none text-gray-800 font-medium"
+              className="w-full min-h-[350px] p-8 outline-none prose prose-emerald max-w-none text-gray-800 font-medium"
               placeholder="Start typing your discussion here..."
             />
           </div>
         </div>
 
-        {/* Actions */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-6 border-t border-gray-50">
           <div className="flex items-center gap-3 text-gray-400">
             <Info className="w-5 h-5" />
-            <p className="text-[11px] font-black uppercase tracking-widest">Post helpful content and be respectful of the community.</p>
+            <p className="text-[11px] font-black uppercase tracking-widest">Share knowledge and remain respectful.</p>
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <button
@@ -288,10 +260,10 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || loadingForums}
+              disabled={isSubmitting}
               className="flex-1 sm:flex-none px-12 py-4 bg-emerald-800 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-emerald-900/10"
             >
-              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post Thread'}
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post Discussion'}
             </button>
           </div>
         </div>
