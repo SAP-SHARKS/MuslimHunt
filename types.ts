@@ -1,4 +1,5 @@
 
+
 export interface Profile {
   id: string;
   username: string;
@@ -39,36 +40,14 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  user_id: string;
+  user_id: string; // Changed from founder_id
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
-  is_approved: boolean;
-}
-
-export interface Forum {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  icon_name: string;
-  display_order: number;
-}
-
-export interface Thread {
-  id: string;
-  forum_id: string;
-  user_id: string;
-  title: string;
-  body: string;
-  created_at: string;
-  upvotes_count: number;
-  comment_count: number;
-  forum?: Forum;
-  profiles?: Profile;
+  is_approved: boolean; // Moderation flag
 }
 
 export interface Category {
@@ -122,7 +101,7 @@ export interface User {
   twitter_url?: string;
   website_url?: string;
   headline?: string;
-  is_admin?: boolean;
+  is_admin?: boolean; // Admin privilege flag
 }
 
 export enum View {
@@ -132,7 +111,6 @@ export enum View {
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
-  FORUM_DETAIL = 'forum_detail',
   RECENT_COMMENTS = 'recent_comments',
   SPONSOR = 'sponsor',
   NEWSLETTER = 'newsletter',
