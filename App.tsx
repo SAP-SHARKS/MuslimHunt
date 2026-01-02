@@ -10,6 +10,7 @@ import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
+import ForumSidebar from './components/ForumSidebar.tsx';
 import RecentComments from './components/RecentComments.tsx';
 import NotificationsPage from './components/NotificationsPage.tsx';
 import Sponsor from './components/Sponsor.tsx';
@@ -389,8 +390,10 @@ const App: React.FC = () => {
     return grouped;
   }, [filteredProducts]);
 
+  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
+
   return (
-    <div className="min-h-screen bg-[#fdfcf0]/30 selection:bg-emerald-100 selection:text-emerald-900">
+    <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
         <Navbar 
           user={user} 
@@ -455,6 +458,23 @@ const App: React.FC = () => {
             <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
           </div>
         )}
+
+        {isForumView && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
+            <ForumSidebar 
+              currentView={view} 
+              setView={updateView} 
+              user={user} 
+              onSignIn={() => setIsAuthModalOpen(true)} 
+            />
+            <div className="flex-1 min-w-0">
+              {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
+              {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
+              {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleCreateThread} setView={updateView} />}
+            </div>
+          </div>
+        )}
+
         {view === View.CATEGORIES && <Categories categories={categories} onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
         {view === View.SUBMISSION && <SubmitForm initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
         {view === View.CATEGORY_DETAIL && (
@@ -475,9 +495,6 @@ const App: React.FC = () => {
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
-        {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
-        {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
-        {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleCreateThread} setView={updateView} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
