@@ -1,36 +1,56 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Bold, Italic, List, ListOrdered, Link as LinkIcon, Code, 
-  Quote, AtSign, Image as ImageIcon, BarChart2, Home, 
-  MessageSquare, Hash, Info, Search, ChevronDown, Check, PlusSquare
+  Quote, Info, Search, ChevronDown, Check, Hash
 } from 'lucide-react';
-import { View } from '../types';
+import { View, ForumCategory } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface NewThreadFormProps {
   onCancel: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: { category_id: number; title: string; body: string }) => void;
   setView: (view: View) => void;
 }
 
-const FORUM_OPTIONS = [
-  { id: 'p/general', label: 'General' },
-  { id: 'p/vibecoding', label: 'Vibecoding' },
-  { id: 'p/intro', label: 'Introduce yourself' },
-  { id: 'p/promo', label: 'Self-Promotion' }
-];
-
 const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setView }) => {
   const [formData, setFormData] = useState({
-    forumId: 'p/general',
+    forumCategoryId: null as number | null,
     title: '',
     body: '' // Stores HTML string
   });
 
+  const [categories, setCategories] = useState<ForumCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [forumSearch, setForumSearch] = useState('');
   const [showTitleError, setShowTitleError] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
+
+  // Fetch Forum Categories from Supabase
+  useEffect(() => {
+    const fetchForumCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('forum_categories')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        setCategories(data || []);
+        if (data && data.length > 0) {
+          setFormData(prev => ({ ...prev, forumCategoryId: data[0].id }));
+        }
+      } catch (err) {
+        console.error('Error fetching forum categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchForumCategories();
+  }, []);
 
   // Sync editor content to state
   const handleEditorInput = () => {
@@ -67,10 +87,10 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const selectedForum = FORUM_OPTIONS.find(f => f.id === formData.forumId) || FORUM_OPTIONS[0];
+  const selectedForum = categories.find(f => f.id === formData.forumCategoryId);
 
-  const filteredForums = FORUM_OPTIONS.filter(f => 
-    f.label.toLowerCase().includes(forumSearch.toLowerCase())
+  const filteredForums = categories.filter(f => 
+    f.name.toLowerCase().includes(forumSearch.toLowerCase())
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,10 +102,12 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
       return;
     }
 
+    if (formData.forumCategoryId === null) return;
+
     onSubmit({
-      ...formData,
+      title: formData.title,
       body: bodyContent,
-      forum: selectedForum.id
+      category_id: formData.forumCategoryId
     });
   };
 
@@ -117,7 +139,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-serif font-bold text-emerald-900">Start a new discussion</h2>
+        <h2 className="text-3xl font-serif font-bold text-emerald-900">Start new thread</h2>
         <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
           <X className="w-6 h-6 text-gray-400" />
         </button>
@@ -129,11 +151,12 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all"
+            disabled={loading}
+            className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all disabled:opacity-50"
           >
             <div className="flex items-center gap-2">
               <Hash className="w-4 h-4 text-emerald-800" />
-              {selectedForum.label}
+              {loading ? 'Loading forums...' : (selectedForum?.name || 'Select Forum')}
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -158,15 +181,15 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
                     key={f.id}
                     type="button"
                     onClick={() => {
-                      setFormData({ ...formData, forumId: f.id });
+                      setFormData({ ...formData, forumCategoryId: f.id });
                       setIsDropdownOpen(false);
                     }}
                     className="w-full flex items-center justify-between px-4 py-3 hover:bg-emerald-50 text-left transition-colors"
                   >
-                    <span className={`text-sm ${formData.forumId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>
-                      {f.label}
+                    <span className={`text-sm ${formData.forumCategoryId === f.id ? 'font-bold text-emerald-800' : 'text-gray-700'}`}>
+                      {f.name}
                     </span>
-                    {formData.forumId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
+                    {formData.forumCategoryId === f.id && <Check className="w-4 h-4 text-emerald-800" />}
                   </button>
                 ))}
               </div>

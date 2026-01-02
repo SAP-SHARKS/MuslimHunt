@@ -300,6 +300,26 @@ const App: React.FC = () => {
     updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
   };
 
+  const handleCreateThread = async (threadData: { category_id: number; title: string; body: string }) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('threads')
+        .insert([{
+          title: threadData.title,
+          body: threadData.body,
+          category_id: threadData.category_id,
+          author_id: user.id
+        }]);
+
+      if (error) throw error;
+      updateView(View.FORUM_HOME);
+    } catch (err) {
+      console.error('Error creating thread:', err);
+      alert('Bismillah, there was an error posting your thread. Please try again.');
+    }
+  };
+
   useEffect(() => {
     setNotifications([
       { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
@@ -457,7 +477,7 @@ const App: React.FC = () => {
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
         {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
-        {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={() => updateView(View.FORUM_HOME)} setView={updateView} />}
+        {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleCreateThread} setView={updateView} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>

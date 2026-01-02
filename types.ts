@@ -1,5 +1,4 @@
 
-
 export interface Profile {
   id: string;
   username: string;
@@ -56,6 +55,12 @@ export interface Category {
   description: string;
   icon_name: string;
   parent_category: string;
+}
+
+export interface ForumCategory {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 export interface Notification {
