@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Edit3, Share2, MoreHorizontal, Users, Bookmark, Layers, Star } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Edit3, Share2, MoreHorizontal, Users } from 'lucide-react';
 import { Product, Profile, User, View } from '../types';
 import ProductCard from './ProductCard';
 
@@ -37,65 +37,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
     { id: 'about', label: 'About' },
     { id: 'forums', label: 'Forums' },
     { id: 'activity', label: 'Activity' },
-    { id: 'upvotes', label: 'Upvotes' },
-    { id: 'collections', label: 'Collections' },
-    { id: 'stacks', label: 'Stacks' },
-    { id: 'reviews', label: 'Reviews' }
+    { id: 'upvotes', label: 'Upvotes' }
   ];
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'about':
-        return (
-          <div className="space-y-12">
-            <section>
-              <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-emerald-800 opacity-30" /> About
-              </h2>
-              <div className="bg-white border border-gray-50 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
-                <p className="text-gray-600 leading-relaxed font-medium text-lg whitespace-pre-wrap">
-                  {profile.bio || "This user hasn't added a bio yet. Bismillah, it's never too late to share your story!"}
-                </p>
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
-                <Award className="w-5 h-5 text-emerald-800 opacity-30" /> Maker Activity
-              </h2>
-              <div className="space-y-4">
-                {makerHistory.length > 0 ? (
-                  makerHistory.map(p => (
-                    <ProductCard 
-                      key={p.id} 
-                      product={p} 
-                      onUpvote={onUpvote} 
-                      hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
-                      onClick={onProductClick}
-                      onCommentClick={onCommentClick}
-                    />
-                  ))
-                ) : (
-                  <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-[2rem] p-16 text-center">
-                    <p className="text-gray-400 font-medium italic">No products launched yet.</p>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-        );
-      default:
-        return (
-          <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-[2.5rem] p-24 text-center">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <MessageSquare className="w-8 h-8 text-gray-200" />
-            </div>
-            <h3 className="text-xl font-serif font-bold text-gray-400 mb-2">No {activeTab} yet</h3>
-            <p className="text-gray-400 font-medium italic">Content will appear here as the user interacts with the community.</p>
-          </div>
-        );
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
@@ -107,7 +50,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
         Back
       </button>
 
-      {/* Profile Header Card */}
       <div className="bg-white border border-gray-100 rounded-[3rem] p-8 sm:p-12 shadow-sm mb-8">
         <div className="flex flex-col lg:flex-row items-center lg:items-start gap-10">
           <div className="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-emerald-50 shrink-0 shadow-md">
@@ -117,9 +59,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
           <div className="flex-1 text-center lg:text-left">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
               <div>
-                <h1 className="text-4xl font-serif font-bold text-emerald-900 mb-2">@{profile.username}</h1>
+                <h1 className="text-4xl font-serif font-bold text-emerald-900 mb-2">{profile.username}</h1>
                 <p className="text-gray-500 text-lg font-medium leading-relaxed max-w-2xl">
-                  {profile.headline || 'Halal-conscious Tech Enthusiast'}
+                  {profile.headline || 'Community Member'}
                 </p>
               </div>
               
@@ -163,14 +105,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center justify-center border-b border-gray-100 mb-12 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-8 sm:gap-10 px-4 min-w-max">
+      {/* Centered Tabs */}
+      <div className="flex items-center justify-center border-b border-gray-100 mb-12">
+        <div className="flex gap-10">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-[11px] sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${
+              className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${
                 activeTab === tab.id ? 'text-emerald-900' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -185,10 +127,56 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
         <div className="lg:col-span-3">
-          {renderTabContent()}
+          {activeTab === 'about' && (
+            <div className="space-y-12">
+              <section>
+                <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-emerald-800 opacity-30" /> About
+                </h2>
+                <div className="bg-white border border-gray-50 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
+                  <p className="text-gray-600 leading-relaxed font-medium text-lg whitespace-pre-wrap">
+                    {profile.bio || "No bio available."}
+                  </p>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
+                  <Award className="w-5 h-5 text-emerald-800 opacity-30" /> Maker Activity
+                </h2>
+                <div className="space-y-4">
+                  {makerHistory.length > 0 ? (
+                    makerHistory.map(p => (
+                      <ProductCard 
+                        key={p.id} 
+                        product={p} 
+                        onUpvote={onUpvote} 
+                        hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
+                        onClick={onProductClick}
+                        onCommentClick={onCommentClick}
+                      />
+                    ))
+                  ) : (
+                    <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-[2rem] p-16 text-center">
+                      <p className="text-gray-400 font-medium italic">No products launched yet.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
+          
+          {activeTab !== 'about' && (
+            <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-[2.5rem] p-24 text-center">
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <MessageSquare className="w-8 h-8 text-gray-200" />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-gray-400 mb-2">No activity yet</h3>
+              <p className="text-gray-400 font-medium italic">Content will appear here as the user interacts with the community.</p>
+            </div>
+          )}
         </div>
 
-        {/* Sidebar Info */}
         <aside className="space-y-8">
           <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
             <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Social</h3>
@@ -210,12 +198,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </div>
           
           <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Community Badges</h3>
+            <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-50 pb-4">Badges</h3>
             <div className="flex flex-wrap gap-3">
-              <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-800 border border-emerald-100" title="Founding Member">
+              <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-800" title="Founding Member">
                 <Sparkles className="w-5 h-5" />
               </div>
-              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 border border-amber-100" title="Top Contributor">
+              <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600" title="Top Contributor">
                 <Award className="w-5 h-5" />
               </div>
             </div>

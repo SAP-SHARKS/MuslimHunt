@@ -236,11 +236,10 @@ const App: React.FC = () => {
 
   const fetchProfileByUsername = async (username: string) => {
     try {
-      const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', cleanUsername)
+        .eq('username', username)
         .single();
       
       if (!error && data) {
@@ -591,12 +590,7 @@ const App: React.FC = () => {
           <EditProfile 
             user={user} 
             onSave={(updated) => { setUser(prev => prev ? {...prev, ...updated} : null); updateView(View.PROFILE); }} 
-            onCancel={() => updateView(View.PROFILE)}
-            onViewProfile={() => {
-              if (user) {
-                fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
-              }
-            }}
+            onCancel={() => updateView(View.PROFILE)} 
           />
         )}
       </main>
