@@ -26,7 +26,7 @@ import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
 // Hardcoded admins for demo, in production this should be a DB role
-const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -70,8 +70,8 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
-  const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+  const isAdmin = user?.is_admin || (user?.email && ADMIN_EMAILS.includes(user.email));
   
   return (
     <aside className="hidden xl:block w-80 shrink-0">

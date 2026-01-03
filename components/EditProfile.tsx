@@ -1,6 +1,10 @@
 
 import React, { useState } from 'react';
-import { User as UserIcon, Settings, ShieldCheck, CheckCircle2, Loader2, Camera, X, ArrowRight, Eye } from 'lucide-react';
+import { 
+  User as UserIcon, Settings, ShieldCheck, CheckCircle2, 
+  Loader2, Camera, X, ArrowRight, Eye, Bell, 
+  CreditCard, ShieldAlert, Key, Smartphone
+} from 'lucide-react';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -20,13 +24,17 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
     twitter_url: user.twitter_url || ''
   });
   const [loading, setLoading] = useState(false);
+  const [activeSidebarTab, setActiveSidebarTab] = useState('details');
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const sidebarTabs = [
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'details', label: 'My details', icon: UserIcon },
     { id: 'followed', label: 'Followed products', icon: CheckCircle2 },
-    { id: 'verification', label: 'Verification', icon: ShieldCheck }
+    { id: 'verification', label: 'Verification', icon: ShieldCheck },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'security', label: 'Security', icon: ShieldAlert }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +66,6 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
   };
 
   const handleAvatarUpload = () => {
-    // Placeholder for Supabase Storage implementation
     alert('Bismillah! This feature is coming soon. Avatar storage integration is in progress.');
   };
 
@@ -86,13 +93,14 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
             {sidebarTabs.map(tab => (
               <button
                 key={tab.id}
+                onClick={() => setActiveSidebarTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-[13px] uppercase tracking-widest transition-all ${
-                  tab.id === 'details' 
+                  activeSidebarTab === tab.id 
                     ? 'bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-sm' 
                     : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
                 }`}
               >
-                <tab.icon className="w-4 h-4" />
+                <tab.icon className={`w-4 h-4 ${activeSidebarTab === tab.id ? 'text-emerald-800' : 'text-gray-300'}`} />
                 {tab.label}
               </button>
             ))}
@@ -105,105 +113,117 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
           </div>
         </aside>
 
-        {/* Main Form */}
-        <main className="flex-1 bg-white border border-gray-100 rounded-[3rem] p-8 sm:p-14 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.05)]">
-          <div className="flex flex-col items-center mb-12">
-            <div className="relative group">
-              <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-emerald-50 shadow-lg group-hover:ring-4 group-hover:ring-emerald-100 transition-all">
-                <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+        {/* Main Content Area */}
+        <main className="flex-1">
+          {activeSidebarTab === 'details' ? (
+            <div className="bg-white border border-gray-100 rounded-[3rem] p-8 sm:p-14 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.05)]">
+              <div className="flex flex-col items-center mb-12">
+                <div className="relative group">
+                  <div className="w-28 h-28 rounded-[2.5rem] overflow-hidden border-4 border-emerald-50 shadow-lg group-hover:ring-4 group-hover:ring-emerald-100 transition-all">
+                    <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
+                  </div>
+                  <button 
+                    onClick={handleAvatarUpload}
+                    className="absolute bottom-0 right-0 w-10 h-10 bg-emerald-800 text-white rounded-xl flex items-center justify-center shadow-2xl hover:bg-emerald-900 transition-all border-2 border-white active:scale-90"
+                  >
+                    <Camera className="w-5 h-5" />
+                  </button>
+                </div>
+                <p className="mt-6 text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.3em]">Profile Photo</p>
               </div>
-              <button 
-                onClick={handleAvatarUpload}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-emerald-800 text-white rounded-xl flex items-center justify-center shadow-2xl hover:bg-emerald-900 transition-all border-2 border-white active:scale-90"
-              >
-                <Camera className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="mt-6 text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.3em]">Profile Photo</p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Display Username</label>
-                <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 font-bold">@</span>
-                  <input
-                    type="text"
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Display Username</label>
+                    <div className="relative">
+                      <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-300 font-bold">@</span>
+                      <input
+                        type="text"
+                        required
+                        value={formData.username}
+                        onChange={e => setFormData({ ...formData, username: e.target.value })}
+                        className="w-full pl-10 pr-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Short Headline</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.headline}
+                      onChange={e => setFormData({ ...formData, headline: e.target.value })}
+                      placeholder="e.g. Building Halal SaaS tools"
+                      className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">About (Bio)</label>
+                  <textarea
+                    rows={5}
                     required
-                    value={formData.username}
-                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full pl-10 pr-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
+                    value={formData.bio}
+                    onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                    placeholder="Tell the community about your journey as a Muslim builder..."
+                    className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none font-medium text-lg resize-none shadow-inner transition-all leading-relaxed"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Short Headline</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.headline}
-                  onChange={e => setFormData({ ...formData, headline: e.target.value })}
-                  placeholder="e.g. Building Halal SaaS tools"
-                  className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">About (Bio)</label>
-              <textarea
-                rows={5}
-                required
-                value={formData.bio}
-                onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                placeholder="Tell the community about your journey as a Muslim builder..."
-                className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none font-medium text-lg resize-none shadow-inner transition-all leading-relaxed"
-              />
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Personal Website</label>
+                    <input
+                      type="url"
+                      value={formData.website_url}
+                      onChange={e => setFormData({ ...formData, website_url: e.target.value })}
+                      placeholder="https://yourwebsite.com"
+                      className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">X / Twitter URL</label>
+                    <input
+                      type="url"
+                      value={formData.twitter_url}
+                      onChange={e => setFormData({ ...formData, twitter_url: e.target.value })}
+                      placeholder="https://x.com/username"
+                      className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">Personal Website</label>
-                <input
-                  type="url"
-                  value={formData.website_url}
-                  onChange={e => setFormData({ ...formData, website_url: e.target.value })}
-                  placeholder="https://yourwebsite.com"
-                  className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-1">X / Twitter URL</label>
-                <input
-                  type="url"
-                  value={formData.twitter_url}
-                  onChange={e => setFormData({ ...formData, twitter_url: e.target.value })}
-                  placeholder="https://x.com/username"
-                  className="w-full px-6 py-5 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none font-bold text-lg shadow-inner transition-all"
-                />
-              </div>
-            </div>
+                {message && (
+                  <div className={`p-6 rounded-[1.5rem] text-center text-sm font-bold animate-in slide-in-from-top-2 duration-300 ${
+                    message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-sm' : 'bg-red-50 text-red-800 border border-red-100'
+                  }`}>
+                    {message.text}
+                  </div>
+                )}
 
-            {message && (
-              <div className={`p-6 rounded-[1.5rem] text-center text-sm font-bold animate-in slide-in-from-top-2 duration-300 ${
-                message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100 shadow-sm' : 'bg-red-50 text-red-800 border border-red-100'
-              }`}>
-                {message.text}
-              </div>
-            )}
-
-            <div className="pt-10 flex items-center justify-end gap-6 border-t border-gray-50">
-              <button type="button" onClick={onCancel} className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] hover:text-gray-900 transition-colors">Discard changes</button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-14 py-5 bg-emerald-800 text-white rounded-[1.5rem] font-black text-lg uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-2xl shadow-emerald-900/10 active:scale-95 flex items-center gap-3 disabled:opacity-70"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Profile'}
-              </button>
+                <div className="pt-10 flex items-center justify-end gap-6 border-t border-gray-50">
+                  <button type="button" onClick={onCancel} className="text-sm font-black text-gray-400 uppercase tracking-[0.2em] hover:text-gray-900 transition-colors">Discard changes</button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-14 py-5 bg-emerald-800 text-white rounded-[1.5rem] font-black text-lg uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-2xl shadow-emerald-900/10 active:scale-95 flex items-center gap-3 disabled:opacity-70"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Profile'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
+          ) : (
+            <div className="bg-white border border-gray-100 rounded-[3rem] p-24 text-center shadow-sm">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Settings className="w-8 h-8 text-gray-200" />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-gray-400 mb-2">{sidebarTabs.find(t => t.id === activeSidebarTab)?.label} coming soon</h3>
+              <p className="text-gray-400 font-medium italic">This section of the account settings is under construction.</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

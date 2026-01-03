@@ -1,6 +1,10 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Edit3, Share2, MoreHorizontal, Users, Bookmark, Layers, Star } from 'lucide-react';
+import { 
+  ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, 
+  Heart, Sparkles, Edit3, Share2, MoreHorizontal, Users, Bookmark, 
+  Layers, Star, ThumbsUp, Package, Layout, User as UserIcon
+} from 'lucide-react';
 import { Product, Profile, User, View } from '../types';
 import ProductCard from './ProductCard';
 
@@ -34,13 +38,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const isOwnProfile = currentUser?.id === profile.id;
 
   const tabs = [
-    { id: 'about', label: 'About' },
-    { id: 'forums', label: 'Forums' },
-    { id: 'activity', label: 'Activity' },
-    { id: 'upvotes', label: 'Upvotes' },
-    { id: 'collections', label: 'Collections' },
-    { id: 'stacks', label: 'Stacks' },
-    { id: 'reviews', label: 'Reviews' }
+    // Fix: Use UserIcon from lucide-react instead of User interface type
+    { id: 'about', label: 'About', icon: UserIcon },
+    { id: 'forums', label: 'Forums', icon: MessageSquare },
+    { id: 'activity', label: 'Activity', icon: TrendingUp },
+    { id: 'upvotes', label: 'Upvotes', icon: ThumbsUp },
+    { id: 'collections', label: 'Collections', icon: Package },
+    { id: 'stacks', label: 'Stacks', icon: Layers },
+    { id: 'reviews', label: 'Reviews', icon: Star }
   ];
 
   const renderTabContent = () => {
@@ -52,7 +57,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
                 <Sparkles className="w-5 h-5 text-emerald-800 opacity-30" /> About
               </h2>
-              <div className="bg-white border border-gray-50 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
+              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
                 <p className="text-gray-600 leading-relaxed font-medium text-lg whitespace-pre-wrap">
                   {profile.bio || "This user hasn't added a bio yet. Bismillah, it's never too late to share your story!"}
                 </p>
@@ -84,6 +89,29 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </section>
           </div>
         );
+      case 'upvotes':
+        return (
+          <div className="space-y-12">
+            <section>
+              <h2 className="text-xl font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
+                <ThumbsUp className="w-5 h-5 text-emerald-800 opacity-30" /> Recently Upvoted
+              </h2>
+              <div className="space-y-4">
+                {/* Mocking upvoted products from global list for visual consistency */}
+                {products.slice(0, 3).map(p => (
+                   <ProductCard 
+                      key={p.id} 
+                      product={p} 
+                      onUpvote={onUpvote} 
+                      hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
+                      onClick={onProductClick}
+                      onCommentClick={onCommentClick}
+                    />
+                ))}
+              </div>
+            </section>
+          </div>
+        );
       default:
         return (
           <div className="bg-gray-50/50 border border-dashed border-gray-200 rounded-[2.5rem] p-24 text-center">
@@ -98,7 +126,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
+    <div className="max-w-6xl mx-auto py-8 px-4 animate-in fade-in duration-500">
       <button 
         onClick={onBack}
         className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-[10px]"
@@ -170,10 +198,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-[11px] sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${
+              className={`pb-4 text-[11px] sm:text-sm font-black uppercase tracking-widest transition-all relative whitespace-nowrap flex items-center gap-2 ${
                 activeTab === tab.id ? 'text-emerald-900' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
+              <tab.icon className={`w-3.5 h-3.5 ${activeTab === tab.id ? 'text-emerald-800' : 'text-gray-300'}`} />
               {tab.label}
               {activeTab === tab.id && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-900 rounded-full" />
