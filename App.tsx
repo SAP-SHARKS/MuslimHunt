@@ -67,7 +67,6 @@ const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-')
 const unslugify = (slug: string, categories: Category[]) => {
   const match = categories.find(c => slugify(c.name) === slug);
   if (match) return match.name;
-  // Fix: typo corrected from slug.split('-map(...)).join(' ') to a proper split-map-join chain
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
@@ -172,7 +171,6 @@ const App: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      // Relational join: Fetch products along with creator profiles
       const { data, error } = await supabase
         .from('products')
         .select('*, profiles:user_id(username, avatar_url)')
@@ -248,7 +246,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // These calls work for both anonymous and authenticated visitors
     fetchProducts();
     fetchCategories();
     fetchNavigation();
@@ -307,7 +304,6 @@ const App: React.FC = () => {
           const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
             const catName = unslugify(slug, categories);
-            // Fix: Cast catName to string to resolve TypeScript's 'string | string[]' inference issue
             setActiveCategory(catName as string);
             setView(View.CATEGORY_DETAIL);
           } else setView(View.CATEGORIES);
@@ -375,11 +371,6 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
-
     const initUser = async () => {
       const { data } = await supabase.auth.getSession();
       const session = data?.session;
@@ -402,6 +393,8 @@ const App: React.FC = () => {
           headline: profile?.headline,
           website_url: profile?.website_url,
           twitter_url: profile?.twitter_url,
+          linkedin_url: profile?.linkedin_url,
+          full_name: profile?.full_name,
           is_admin: isAdmin || profile?.is_admin
         };
         setUser(finalUser);
@@ -433,6 +426,8 @@ const App: React.FC = () => {
           headline: profile?.headline,
           website_url: profile?.website_url,
           twitter_url: profile?.twitter_url,
+          linkedin_url: profile?.linkedin_url,
+          full_name: profile?.full_name,
           is_admin: isAdmin || profile?.is_admin
         };
         setUser(finalUser);
@@ -466,40 +461,48 @@ const App: React.FC = () => {
   };
 
   const handleWelcomeComplete = async (onboardingData: any) => {
-    if (!user) return;
-    
+    // 1. Get user (Requirement: using supabase.auth.getUser())
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      alert("Session expired. Please sign in again.");
+      return;
+    }
+
     try {
+      // 2. Data Cleaning (Requirement: username without '@')
       const cleanUsername = onboardingData.username.replace(/^@/, '').trim();
       
+      // 3. Map fields (Requirement: full_name, username, headline, linkedin_url, twitter_url, newsletter_preferences)
+      const dataToUpdate = {
+        full_name: onboardingData.fullName,
+        username: cleanUsername,
+        headline: onboardingData.headline,
+        linkedin_url: onboardingData.linkedinUrl,
+        twitter_url: onboardingData.twitterUrl,
+        newsletter_preferences: onboardingData.preferences,
+        updated_at: new Date().toISOString()
+      };
+
+      // 4. Persistence (Requirement: use update().eq())
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          username: cleanUsername,
-          full_name: onboardingData.fullName,
-          headline: onboardingData.headline,
-          linkedin_url: onboardingData.linkedinUrl,
-          twitter_url: onboardingData.twitterUrl,
-          newsletter_preferences: onboardingData.preferences,
-          updated_at: new Date().toISOString()
-        });
+        .update(dataToUpdate)
+        .eq('id', authUser.id);
 
       if (error) throw error;
 
-      // Update local user state to reflect onboarding changes
+      // 5. Update local state
       setUser(prev => prev ? { 
         ...prev, 
-        username: cleanUsername,
-        full_name: onboardingData.fullName,
-        headline: onboardingData.headline,
-        linkedin_url: onboardingData.linkedinUrl,
-        twitter_url: onboardingData.twitterUrl
+        ...dataToUpdate
       } : null);
 
+      // 6. Navigation (Requirement: only after success)
       updateView(View.HOME);
     } catch (err: any) {
       console.error('Error saving onboarding data:', err);
-      alert(`Bismillah, there was an error saving your profile: ${err.message}. Please try again.`);
+      // Requirement: show an alert with the specific database error
+      alert(`Bismillah, there was an error saving your profile: ${err.message || 'Unknown error'}. Please try again.`);
     }
   };
 
@@ -596,27 +599,12 @@ const App: React.FC = () => {
               </div>
               <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
             </div>
-
-            <div className="block lg:hidden px-4 mb-10">
-              <button 
-                onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
-                className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
-              >
-                <Plus className="w-5 h-5 text-gray-400" />
-                Start new thread
-              </button>
-            </div>
           </>
         )}
 
         {isForumView && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <ForumSidebar 
-              currentView={view} 
-              setView={updateView} 
-              user={user} 
-              onSignIn={() => setIsAuthModalOpen(true)} 
-            />
+            <ForumSidebar currentView={view} setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
