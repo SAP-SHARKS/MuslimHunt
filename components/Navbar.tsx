@@ -3,8 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Mail, Plus, Bell, User as UserIcon, Settings, Layout,
-  Triangle, Menu, Hash, ShieldCheck, Calendar, Trophy
+  Rocket, Mail, Plus, Bell, User as UserIcon,
+  Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
@@ -100,12 +100,15 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) setShowUserDropdown(false);
       if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) setShowNotificationDropdown(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -133,8 +136,9 @@ const Navbar: React.FC<NavbarProps> = ({
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8 h-16 flex items-center">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           
-          {/* Mobile Header Layout (< 1024px) */}
+          {/* Mobile Header Layout (< 1024px) - Product Hunt Clone */}
           <div className="lg:hidden flex items-center justify-between w-full bg-white">
+            {/* Left Group: Hamburger + Logo */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsDrawerOpen(true)} 
@@ -144,6 +148,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <Menu className="w-6 h-6" />
               </button>
               
+              {/* Clickable Logo for Mobile Redirection to Home */}
               <button 
                 className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform" 
                 onClick={() => handleNavigate(View.HOME)}
@@ -156,6 +161,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
+            {/* Right Group: Subscribe + (Sign In / Avatar) */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => handleNavigate(View.NEWSLETTER)}
@@ -172,16 +178,17 @@ const Navbar: React.FC<NavbarProps> = ({
                   Sign In
                 </button>
               ) : (
-                <button 
-                  onClick={onViewProfile}
-                  className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer active:scale-95 transition-all" 
+                <div 
+                  className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer" 
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
                 >
                   <img src={user.avatar_url} className="w-full h-full object-cover rounded-full" alt="User profile" />
-                </button>
+                </div>
               )}
             </div>
           </div>
 
+          {/* Desktop Logo (> 1024px) */}
           <div className="hidden lg:flex items-center gap-4">
             <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setView(View.HOME)}>
               <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md"><span className="font-serif text-xl font-bold">M</span></div>
@@ -189,6 +196,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
+          {/* Desktop Nav Links - Includes specific lg:ml-12 gap */}
           <div className="hidden lg:flex items-center lg:ml-12 gap-7 h-full">
             {mainNavItems.map((menu) => (
               <React.Fragment key={menu.id}>
@@ -208,6 +216,7 @@ const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
 
+          {/* Desktop Search Bar */}
           <div className="hidden lg:block flex-1 max-w-sm mx-8">
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => onSearchChange(e.target.value)}
@@ -215,7 +224,8 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-4 h-full">
+          {/* Desktop Right Actions */}
+          <div className="hidden lg:flex items-center gap-4">
             <button 
               onClick={() => setView(View.NEWSLETTER)}
               className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
@@ -229,7 +239,7 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {user && (
-              <div className="flex items-center gap-4 h-full">
+              <div className="flex items-center gap-4">
                 <div className="relative flex items-center" ref={notificationDropdownRef}>
                   <NotificationBell userId={user.id} isOpen={showNotificationDropdown} onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} />
                   {showNotificationDropdown && (
@@ -260,33 +270,22 @@ const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                <div className="relative group flex items-center h-full">
-                  <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-emerald-200 transition-all">
-                    <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
-                  </div>
-                  
-                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-[110] animate-in fade-in slide-in-from-top-2">
-                    <div className="w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 overflow-hidden">
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-                        <UserIcon className="w-4 h-4 text-gray-400" /> Profile
-                      </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-                        <Rocket className="w-4 h-4 text-gray-400" /> My products
-                      </button>
-                      <button onClick={() => setView(View.EDIT_PROFILE)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-                        <Settings className="w-4 h-4 text-gray-400" /> Settings
-                      </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-                        <Layout className="w-4 h-4 text-gray-400" /> API dashboard
-                      </button>
-                      
-                      <div className="h-px bg-gray-100 my-1 mx-4" />
-                      
-                      <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 transition-colors">
-                        <LogOut className="w-4 h-4" /> Logout
-                      </button>
+                <div className="relative flex items-center" ref={userDropdownRef}>
+                  <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
+                  {showUserDropdown && (
+                    <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                      <div className="px-4 py-2 mb-1 border-b border-gray-50">
+                        <p className="text-[10px] font-black text-emerald-800 uppercase tracking-tighter truncate">{user.username}</p>
+                      </div>
+                      {user.is_admin && (
+                        <button onClick={() => { setView(View.ADMIN_PANEL); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-sm font-bold text-emerald-900">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" /> Admin Panel
+                        </button>
+                      )}
+                      <button onClick={() => { onViewProfile(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
+                      <button onClick={() => { onLogout(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 border-t border-gray-50"><LogOut className="w-4 h-4" /> Logout</button>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -294,12 +293,16 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer (Overlay) - Hidden on desktop via lg:hidden */}
       <div className={`fixed inset-0 z-[200] lg:hidden transition-all duration-300 ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        {/* Backdrop */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeDrawer} />
         
+        {/* Drawer Content Container */}
         <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          {/* Drawer Top Header */}
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
+            {/* Clickable Logo in Drawer */}
             <button 
               className="flex items-center gap-2 active:scale-95 transition-transform"
               onClick={() => handleNavigate(View.HOME)}
@@ -315,6 +318,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
+            {/* Mobile Search inside Drawer */}
             <div className="relative mb-4">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input 
@@ -327,62 +331,102 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="space-y-1">
+              {/* Accordion: Best Products */}
               <div>
-                <button onClick={() => toggleAccordion('best_products')} className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'best_products' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
-                  <div className="flex items-center gap-3"><Star className={`w-5 h-5 ${expandedAccordion === 'best_products' ? 'text-emerald-800' : 'text-gray-400'}`} />Best Products</div>
+                <button 
+                  onClick={() => toggleAccordion('best_products')}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'best_products' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Star className={`w-5 h-5 ${expandedAccordion === 'best_products' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    Best Products
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'best_products' ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedAccordion === 'best_products' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {BEST_PRODUCTS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left"><item.icon className="w-4 h-4 opacity-50" />{item.label}</button>
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left">
+                        <item.icon className="w-4 h-4 opacity-50" />
+                        {item.label}
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Accordion: Launches */}
               <div>
-                <button onClick={() => toggleAccordion('launches')} className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
-                  <div className="flex items-center gap-3"><Rocket className={`w-5 h-5 ${expandedAccordion === 'launches' ? 'text-emerald-800' : 'text-gray-400'}`} />Launches</div>
+                <button 
+                  onClick={() => toggleAccordion('launches')}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Rocket className={`w-5 h-5 ${expandedAccordion === 'launches' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    Launches
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'launches' ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedAccordion === 'launches' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {LAUNCHES_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left">{item.label}</button>
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left">
+                        {item.label}
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Accordion: News */}
               <div>
-                <button onClick={() => toggleAccordion('news')} className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'news' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
-                  <div className="flex items-center gap-3"><Mail className={`w-5 h-5 ${expandedAccordion === 'news' ? 'text-emerald-800' : 'text-gray-400'}`} />News</div>
+                <button 
+                  onClick={() => toggleAccordion('news')}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'news' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Mail className={`w-5 h-5 ${expandedAccordion === 'news' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    News
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'news' ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedAccordion === 'news' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {NEWS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left"><p className="text-[14px] font-bold text-gray-900">{item.label}</p><p className="text-[11px] text-gray-500 font-medium">{item.sub}</p></button>
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left">
+                        <p className="text-[14px] font-bold text-gray-900">{item.label}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{item.sub}</p>
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Accordion: Forums */}
               <div>
-                <button onClick={() => toggleAccordion('forums')} className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'forums' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
-                  <div className="flex items-center gap-3"><MessageSquare className={`w-5 h-5 ${expandedAccordion === 'forums' ? 'text-emerald-800' : 'text-gray-400'}`} />Forums</div>
+                <button 
+                  onClick={() => toggleAccordion('forums')}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'forums' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className={`w-5 h-5 ${expandedAccordion === 'forums' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    Forums
+                  </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'forums' ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedAccordion === 'forums' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {FORUMS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left"><p className="text-[14px] font-bold text-gray-900">{item.label}</p><p className="text-[11px] text-gray-500 font-medium">{item.sub}</p></button>
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left">
+                        <p className="text-[14px] font-bold text-gray-900">{item.label}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{item.sub}</p>
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
 
+              {/* Standard Links */}
               <button onClick={() => handleNavigate(View.SPONSOR)} className={`w-full flex items-center gap-3 p-4 rounded-xl font-bold text-[16px] transition-all ${currentView === View.SPONSOR ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
                 <Megaphone className={`w-5 h-5 ${currentView === View.SPONSOR ? 'text-emerald-800' : 'text-gray-400'}`} />
                 Advertise
@@ -390,13 +434,19 @@ const Navbar: React.FC<NavbarProps> = ({
 
               <div className="pt-4 border-t border-gray-100 mt-4">
                 {user ? (
-                  <button onClick={onViewProfile} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
-                    <div className="flex items-center gap-3"><UserIcon className="w-5 h-5 text-gray-400" />My Profile</div>
+                  <button onClick={() => handleNavigate(View.PROFILE)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                    <div className="flex items-center gap-3">
+                      <UserIcon className="w-5 h-5 text-gray-400" />
+                      My Profile
+                    </div>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
                 ) : (
                   <button onClick={() => { onSignInClick(); closeDrawer(); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-emerald-800 hover:bg-emerald-50 transition-all">
-                    <div className="flex items-center gap-3"><UserIcon className="w-5 h-5" />Sign In</div>
+                    <div className="flex items-center gap-3">
+                      <UserIcon className="w-5 h-5" />
+                      Sign In
+                    </div>
                     <ChevronRight className="w-4 h-4 text-emerald-200" />
                   </button>
                 )}
@@ -404,6 +454,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
+          {/* Fixed Drawer Footer Actions (Fixed at Bottom) */}
           <div className="p-6 space-y-3 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
             <button 
               onClick={() => handleNavigate(View.POST_SUBMIT)}

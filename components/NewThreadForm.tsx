@@ -186,12 +186,12 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
               <ToolbarButton icon={LinkIcon} tooltip="Link" onClick={() => { const url = prompt('Enter URL:'); if (url) handleFormat('createLink', url); }} />
               <ToolbarButton icon={Quote} tooltip="Quote" onClick={() => handleFormat('formatBlock', 'blockquote')} />
             </div>
-            {/* Fix: Removed invalid 'placeholder' attribute which is not supported on div elements by React types */}
             <div
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
               className="w-full min-h-[350px] p-6 outline-none prose prose-emerald max-w-none text-gray-700"
+              placeholder="Write your discussion here..."
             />
           </div>
         </div>
