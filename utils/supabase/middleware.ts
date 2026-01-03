@@ -47,7 +47,6 @@ export async function updateSession(request: NextRequest) {
           });
           response.cookies.set({
             name,
-            // Fixed: Provide value for shorthand property 'value' which was not in scope in remove method
             value: '',
             ...options,
           });
@@ -56,6 +55,7 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // SESSION HEARTBEAT: Calling getUser() refreshes the session automatically if near expiry
   await supabase.auth.getUser();
 
   return response;
