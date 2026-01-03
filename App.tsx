@@ -70,7 +70,7 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
   const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
   
   return (
@@ -236,10 +236,11 @@ const App: React.FC = () => {
 
   const fetchProfileByUsername = async (username: string) => {
     try {
+      const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', username)
+        .eq('username', cleanUsername)
         .single();
       
       if (!error && data) {
@@ -590,7 +591,12 @@ const App: React.FC = () => {
           <EditProfile 
             user={user} 
             onSave={(updated) => { setUser(prev => prev ? {...prev, ...updated} : null); updateView(View.PROFILE); }} 
-            onCancel={() => updateView(View.PROFILE)} 
+            onCancel={() => updateView(View.PROFILE)}
+            onViewProfile={() => {
+              if (user) {
+                fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
+              }
+            }}
           />
         )}
       </main>
