@@ -21,7 +21,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setMessage(null);
 
-    // PKCE Flow: Redirect to dedicated callback route
+    // PKCE Flow: Redirect to dedicated callback route instead of home
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -34,7 +34,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     } else {
       setMessage({ 
         type: 'success', 
-        text: 'Bismillah! Check your email for the verification link. We use a secure exchange to keep you logged in.' 
+        text: 'Bismillah! Check your email. We used a secure exchange link to keep you logged in reliably.' 
       });
     }
     setLoading(false);
@@ -57,13 +57,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       
-      {/* Modal Container */}
       <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-emerald-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
         <button 
           onClick={onClose}

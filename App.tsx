@@ -148,8 +148,8 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void;
   );
 };
 
-// Add CALLBACK to the View enum conceptually handled here
-const ViewWithCallback = { ...View, CALLBACK: 'auth_callback' as any };
+// Internal constant to handle the auth callback state
+const VIEW_AUTH_CALLBACK = 'auth_callback' as any;
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
@@ -281,7 +281,7 @@ const App: React.FC = () => {
     const handlePopState = () => {
       try {
         const path = window.location.pathname;
-        if (path === '/auth/callback') setView(ViewWithCallback.CALLBACK);
+        if (path === '/auth/callback') setView(VIEW_AUTH_CALLBACK);
         else if (path === '/p/new') setView(View.NEW_THREAD);
         else if (path === '/posts/new') setView(View.POST_SUBMIT);
         else if (path === '/posts/new/submission') setView(View.SUBMISSION);
@@ -322,9 +322,9 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [categories]);
 
-  // PKCE Exchange logic for CALLBACK view
+  // PKCE CODE EXCHANGE LOGIC
   useEffect(() => {
-    if (view === ViewWithCallback.CALLBACK) {
+    if (view === VIEW_AUTH_CALLBACK) {
       const exchangeCode = async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
@@ -332,13 +332,14 @@ const App: React.FC = () => {
           try {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) throw error;
-            // On success, redirect to welcome (or home if already onboarded)
+            // Successfully exchanged code for session, redirect to welcome or dashboard
             updateView(View.WELCOME, '/my/welcome');
           } catch (err) {
-            console.error('Code exchange failed:', err);
+            console.error('Auth code exchange failed:', err);
             updateView(View.HOME, '/?error=auth_failed');
           }
         } else {
+          // No code found, probably already logged in or generic error
           updateView(View.HOME);
         }
       };
@@ -563,14 +564,14 @@ const App: React.FC = () => {
     );
   }
 
-  // Handle Callback loading state
-  if (view === ViewWithCallback.CALLBACK) {
+  // Handle Callback loading view
+  if (view === VIEW_AUTH_CALLBACK) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
         <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-800 animate-pulse">
            <Sparkles className="w-10 h-10" />
         </div>
-        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, establishing secure session...</h2>
+        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, verifying your session...</h2>
         <div className="flex items-center gap-2 text-gray-400 font-black uppercase tracking-widest text-[10px]">
            <Loader2 className="w-3 h-3 animate-spin" />
            Communicating with Auth Gateway
@@ -588,7 +589,7 @@ const App: React.FC = () => {
           setView={updateView} 
           onLogout={async () => { 
             await supabase.auth.signOut(); 
-            // Clear all local states and force reload for absolute session cleanliness
+            // HARD LOGOUT: Forces a fresh start by reloading the page and clearing all memory states
             window.location.href = '/'; 
           }} 
           searchQuery={searchQuery} 
