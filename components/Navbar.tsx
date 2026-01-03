@@ -148,12 +148,17 @@ const Navbar: React.FC<NavbarProps> = ({
                 <Menu className="w-6 h-6" />
               </button>
               
-              <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigate(View.HOME)}>
+              {/* Clickable Logo for Mobile Redirection to Home */}
+              <button 
+                className="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform" 
+                onClick={() => handleNavigate(View.HOME)}
+                aria-label="Home"
+              >
                 <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
                   <span className="font-serif text-lg font-bold">M</span>
                 </div>
                 <h1 className="font-serif text-lg font-bold text-emerald-900 tracking-tight">Muslim Hunt</h1>
-              </div>
+              </button>
             </div>
 
             {/* Right Group: Subscribe + (Sign In / Avatar) */}
@@ -297,12 +302,16 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           {/* Drawer Top Header */}
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
-            <div className="flex items-center gap-2">
+            {/* Clickable Logo in Drawer */}
+            <button 
+              className="flex items-center gap-2 active:scale-95 transition-transform"
+              onClick={() => handleNavigate(View.HOME)}
+            >
               <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
                 <span className="font-serif text-lg font-bold">M</span>
               </div>
               <span className="font-serif font-bold text-emerald-900 text-lg">Muslim Hunt</span>
-            </div>
+            </button>
             <button onClick={closeDrawer} className="p-2 text-gray-400 hover:text-emerald-800 transition-colors">
               <X className="w-6 h-6" />
             </button>
