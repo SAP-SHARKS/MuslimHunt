@@ -70,7 +70,7 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
   const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
   
   return (
