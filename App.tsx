@@ -461,19 +461,15 @@ const App: React.FC = () => {
   };
 
   const handleWelcomeComplete = async (onboardingData: any) => {
-    // 1. Get user (Requirement: using supabase.auth.getUser())
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) {
-      alert("Session expired. Please sign in again.");
+      alert("No active session found. Please sign in again.");
       return;
     }
 
     try {
-      // 2. Data Cleaning (Requirement: username without '@')
       const cleanUsername = onboardingData.username.replace(/^@/, '').trim();
-      
-      // 3. Map fields (Requirement: full_name, username, headline, linkedin_url, twitter_url, newsletter_preferences)
-      const dataToUpdate = {
+      const profileData = {
         full_name: onboardingData.fullName,
         username: cleanUsername,
         headline: onboardingData.headline,
@@ -483,26 +479,25 @@ const App: React.FC = () => {
         updated_at: new Date().toISOString()
       };
 
-      // 4. Persistence (Requirement: use update().eq())
       const { error } = await supabase
         .from('profiles')
-        .update(dataToUpdate)
+        .update(profileData)
         .eq('id', authUser.id);
 
       if (error) throw error;
 
-      // 5. Update local state
-      setUser(prev => prev ? { 
-        ...prev, 
-        ...dataToUpdate
-      } : null);
-
-      // 6. Navigation (Requirement: only after success)
-      updateView(View.HOME);
+      // Update local state for immediate feedback
+      const updatedProfile = { ...user, ...profileData, id: authUser.id } as Profile;
+      setUser(updatedProfile as any);
+      setSelectedProfile(updatedProfile);
+      
+      // Target URL: Redirect to /@username
+      updateView(View.PROFILE, `/@${cleanUsername}`);
     } catch (err: any) {
-      console.error('Error saving onboarding data:', err);
-      // Requirement: show an alert with the specific database error
-      alert(`Bismillah, there was an error saving your profile: ${err.message || 'Unknown error'}. Please try again.`);
+      console.error('Onboarding Error:', err);
+      // Requirement: Show alert and stop buffering (stop buffering happens automatically in Welcome.tsx because we re-throw)
+      alert(`Bismillah, there was an error saving your profile: ${err.message || 'Check your internet connection'}`);
+      throw err;
     }
   };
 
