@@ -114,6 +114,8 @@ export enum View {
   SUBMIT = 'submit', 
   DETAIL = 'detail',
   PROFILE = 'profile',
+  EDIT_PROFILE = 'edit_profile',
+  SETTINGS = 'settings',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',

@@ -135,7 +135,6 @@ const Navbar: React.FC<NavbarProps> = ({
           
           {/* Mobile Header Layout (< 1024px) */}
           <div className="lg:hidden flex items-center justify-between w-full bg-white">
-            {/* Left Group: Hamburger + Logo */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsDrawerOpen(true)} 
@@ -157,7 +156,6 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Right Group: Subscribe + (Sign In / Avatar Link) */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => handleNavigate(View.NEWSLETTER)}
@@ -184,7 +182,6 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Desktop Logo (> 1024px) */}
           <div className="hidden lg:flex items-center gap-4">
             <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setView(View.HOME)}>
               <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md"><span className="font-serif text-xl font-bold">M</span></div>
@@ -192,7 +189,6 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center lg:ml-12 gap-7 h-full">
             {mainNavItems.map((menu) => (
               <React.Fragment key={menu.id}>
@@ -212,7 +208,6 @@ const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
 
-          {/* Desktop Search Bar */}
           <div className="hidden lg:block flex-1 max-w-sm mx-8">
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => onSearchChange(e.target.value)}
@@ -220,8 +215,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Desktop Right Actions */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4 h-full">
             <button 
               onClick={() => setView(View.NEWSLETTER)}
               className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
@@ -266,7 +260,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* Desktop Hover Dropdown Menu */}
                 <div className="relative group flex items-center h-full">
                   <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-emerald-200 transition-all">
                     <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
@@ -280,7 +273,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
                         <Rocket className="w-4 h-4 text-gray-400" /> My products
                       </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                      <button onClick={() => setView(View.EDIT_PROFILE)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
                         <Settings className="w-4 h-4 text-gray-400" /> Settings
                       </button>
                       <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
@@ -397,7 +390,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
               <div className="pt-4 border-t border-gray-100 mt-4">
                 {user ? (
-                  <button onClick={() => handleNavigate(View.PROFILE)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                  <button onClick={onViewProfile} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
                     <div className="flex items-center gap-3"><UserIcon className="w-5 h-5 text-gray-400" />My Profile</div>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
