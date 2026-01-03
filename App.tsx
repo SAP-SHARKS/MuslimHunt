@@ -171,16 +171,34 @@ const App: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
+      // Enrichment: Join with profiles table now that it's public SELECTable
       const { data, error } = await supabase
         .from('products')
-        .select('*')
-        .eq('is_approved', true) // Filter for public feed
+        .select('*, profiles:user_id(*)')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
+    }
+  };
+
+  const fetchUserVotes = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('votes')
+        .select('product_id')
+        .eq('user_id', userId);
+      
+      if (!error && data) {
+        const voteSet = new Set<string>();
+        data.forEach(v => voteSet.add(`${userId}_${v.product_id}`));
+        setVotes(voteSet);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching user votes:', err);
     }
   };
 
@@ -229,6 +247,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // These calls work for both anonymous and authenticated visitors
     fetchProducts();
     fetchCategories();
     fetchNavigation();
@@ -384,6 +403,7 @@ const App: React.FC = () => {
           is_admin: isAdmin || profile?.is_admin
         };
         setUser(finalUser);
+        fetchUserVotes(session.user.id);
       }
     };
 
@@ -399,7 +419,7 @@ const App: React.FC = () => {
         
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
+        const finalUser = { 
           id: session.user.id, 
           email: session.user.email!, 
           username: profile?.username || m.full_name || session.user.email!.split('@')[0], 
@@ -409,21 +429,38 @@ const App: React.FC = () => {
           website_url: profile?.website_url,
           twitter_url: profile?.twitter_url,
           is_admin: isAdmin || profile?.is_admin
-        });
+        };
+        setUser(finalUser);
+        fetchUserVotes(session.user.id);
+
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthModalOpen(false);
         }
-      } else setUser(null);
+      } else {
+        setUser(null);
+        setVotes(new Set()); // Reset votes for anonymous users
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleUpvote = (id: string) => {
+  const handleUpvote = async (id: string) => {
     if (!user) { setIsAuthModalOpen(true); return; }
+    
     const voteKey = `${user.id}_${id}`;
     if (votes.has(voteKey)) return;
+
+    // Optimistic UI update
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+
+    try {
+      // In production, you would also persist this to the 'votes' table
+      await supabase.from('votes').insert([{ user_id: user.id, product_id: id }]);
+      // Re-fetch count for accuracy if needed
+    } catch (e) {
+      console.error('Upvote failed:', e);
+    }
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
