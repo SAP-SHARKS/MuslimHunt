@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -464,6 +465,44 @@ const App: React.FC = () => {
     }
   };
 
+  const handleWelcomeComplete = async (onboardingData: any) => {
+    if (!user) return;
+    
+    try {
+      const cleanUsername = onboardingData.username.replace(/^@/, '').trim();
+      
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          username: cleanUsername,
+          full_name: onboardingData.fullName,
+          headline: onboardingData.headline,
+          linkedin_url: onboardingData.linkedinUrl,
+          twitter_url: onboardingData.twitterUrl,
+          newsletter_preferences: onboardingData.preferences,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // Update local user state to reflect onboarding changes
+      setUser(prev => prev ? { 
+        ...prev, 
+        username: cleanUsername,
+        full_name: onboardingData.fullName,
+        headline: onboardingData.headline,
+        linkedin_url: onboardingData.linkedinUrl,
+        twitter_url: onboardingData.twitterUrl
+      } : null);
+
+      updateView(View.HOME);
+    } catch (err: any) {
+      console.error('Error saving onboarding data:', err);
+      alert(`Bismillah, there was an error saving your profile: ${err.message}. Please try again.`);
+    }
+  };
+
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
 
   const groupedProducts = useMemo(() => {
@@ -608,7 +647,7 @@ const App: React.FC = () => {
         )}
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
-        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
+        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={handleWelcomeComplete} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
