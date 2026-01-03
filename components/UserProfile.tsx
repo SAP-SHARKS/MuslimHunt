@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-// Added missing 'Users' icon to the lucide-react imports
 import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Edit3, Share2, MoreHorizontal, Users } from 'lucide-react';
 import { Product, Profile, User, View } from '../types';
 import ProductCard from './ProductCard';
@@ -106,7 +105,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Centered Tabs */}
       <div className="flex items-center justify-center border-b border-gray-100 mb-12">
         <div className="flex gap-10">
           {tabs.map(tab => (
