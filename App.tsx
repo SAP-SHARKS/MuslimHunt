@@ -21,7 +21,7 @@ import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
@@ -151,6 +151,7 @@ const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void;
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false); // NEW: Track if initial auth check is done
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
@@ -372,36 +373,43 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        // Use getUser() for better security and SSR validation
+        const { data: { user: sessionUser } } = await supabase.auth.getUser();
         
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        
-        const finalUser = { 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: profile?.username || m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          bio: profile?.bio,
-          headline: profile?.headline,
-          website_url: profile?.website_url,
-          twitter_url: profile?.twitter_url,
-          linkedin_url: profile?.linkedin_url,
-          full_name: profile?.full_name,
-          is_admin: isAdmin || profile?.is_admin
-        };
-        setUser(finalUser);
-        fetchUserVotes(session.user.id);
-      } else {
-        setUser(null);
-        setVotes(new Set());
+        if (sessionUser) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', sessionUser.id)
+            .single();
+          
+          const m = sessionUser.user_metadata || {};
+          const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
+          
+          const finalUser = { 
+            id: sessionUser.id, 
+            email: sessionUser.email!, 
+            username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
+            avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
+            bio: profile?.bio,
+            headline: profile?.headline,
+            website_url: profile?.website_url,
+            twitter_url: profile?.twitter_url,
+            linkedin_url: profile?.linkedin_url,
+            full_name: profile?.full_name,
+            is_admin: isAdmin || profile?.is_admin
+          };
+          setUser(finalUser);
+          await fetchUserVotes(sessionUser.id);
+        } else {
+          setUser(null);
+          setVotes(new Set());
+        }
+      } catch (err) {
+        console.error('Auth initialization failed:', err);
+      } finally {
+        setIsAuthReady(true); // Flag that we have resolved the auth state
       }
     };
 
@@ -495,7 +503,6 @@ const App: React.FC = () => {
       updateView(View.PROFILE, `/@${cleanUsername}`);
     } catch (err: any) {
       console.error('Onboarding Error:', err);
-      // Requirement: Show alert and stop buffering (stop buffering happens automatically in Welcome.tsx because we re-throw)
       alert(`Bismillah, there was an error saving your profile: ${err.message || 'Check your internet connection'}`);
       throw err;
     }
@@ -523,6 +530,15 @@ const App: React.FC = () => {
   }, [filteredProducts]);
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
+
+  // PREVENT FLASH: Only render if initial auth check is finished
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 text-emerald-800 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
