@@ -70,8 +70,8 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
-  const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+  const isAdmin = user?.is_admin || (user?.email && ADMIN_EMAILS.includes(user.email));
   
   return (
     <aside className="hidden xl:block w-80 shrink-0">
@@ -177,14 +177,31 @@ const App: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
-        .eq('is_approved', true) 
+        .select('*, profiles:user_id(username, avatar_url)')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
+    }
+  };
+
+  const fetchUserVotes = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('votes')
+        .select('product_id')
+        .eq('user_id', userId);
+      
+      if (!error && data) {
+        const voteSet = new Set<string>();
+        data.forEach(v => voteSet.add(`${userId}_${v.product_id}`));
+        setVotes(voteSet);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching user votes:', err);
     }
   };
 
@@ -292,7 +309,7 @@ const App: React.FC = () => {
           const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
             const catName = unslugify(slug, categories);
-            setActiveCategory(catName);
+            setActiveCategory(catName as string);
             setView(View.CATEGORY_DETAIL);
           } else setView(View.CATEGORIES);
         } else if (path === '/' || path === '') setView(View.HOME);
@@ -305,7 +322,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [categories]);
 
-  // PKCE Code Exchange Effect
+  // PKCE CODE EXCHANGE LOGIC
   useEffect(() => {
     if (view === VIEW_AUTH_CALLBACK) {
       const exchangeCode = async () => {
@@ -315,10 +332,9 @@ const App: React.FC = () => {
           try {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) throw error;
-            // Successfully logged in via fresh PKCE exchange
             updateView(View.WELCOME, '/my/welcome');
           } catch (err) {
-            console.error('PKCE exchange failed:', err);
+            console.error('Auth code exchange failed:', err);
             updateView(View.HOME, '/?error=auth_failed');
           }
         } else {
@@ -383,37 +399,42 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
-
-    const initAuth = async () => {
-      const { data: { user: sessionUser } } = await supabase.auth.getUser();
+    const handleUserUpdate = async (sessionUser: any) => {
       if (sessionUser) {
-        const m = sessionUser.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
-        
-        // Fetch extended profile data
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', sessionUser.id)
           .single();
-
-        setUser({ 
+        
+        const m = sessionUser.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
+        
+        const finalUser = { 
           id: sessionUser.id, 
           email: sessionUser.email!, 
           username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
           avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
-          full_name: profile?.full_name,
           bio: profile?.bio,
           headline: profile?.headline,
           website_url: profile?.website_url,
           twitter_url: profile?.twitter_url,
           linkedin_url: profile?.linkedin_url,
+          full_name: profile?.full_name,
           is_admin: isAdmin || profile?.is_admin
-        });
+        };
+        setUser(finalUser);
+        await fetchUserVotes(sessionUser.id);
+      } else {
+        setUser(null);
+        setVotes(new Set());
+      }
+    };
+
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await handleUserUpdate(session.user);
       }
       setIsAuthReady(true);
     };
@@ -421,32 +442,69 @@ const App: React.FC = () => {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-        }
-      } else {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) await handleUserUpdate(session.user);
+        setIsAuthModalOpen(false);
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setVotes(new Set());
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleUpvote = (id: string) => {
+  const handleUpvote = async (id: string) => {
     if (!user) { setIsAuthModalOpen(true); return; }
+    
     const voteKey = `${user.id}_${id}`;
     if (votes.has(voteKey)) return;
+
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+
+    try {
+      await supabase.from('votes').insert([{ user_id: user.id, product_id: id }]);
+    } catch (e) {
+      console.error('Upvote failed:', e);
+    }
+  };
+
+  const handleWelcomeComplete = async (onboardingData: any) => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      alert("No active session found. Please sign in again.");
+      return;
+    }
+
+    try {
+      const cleanUsername = onboardingData.username.replace(/^@/, '').trim();
+      const profileData = {
+        full_name: onboardingData.fullName,
+        username: cleanUsername,
+        headline: onboardingData.headline,
+        linkedin_url: onboardingData.linkedinUrl,
+        twitter_url: onboardingData.twitterUrl,
+        newsletter_preferences: onboardingData.preferences,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', authUser.id);
+
+      if (error) throw error;
+
+      const updatedProfile = { ...user, ...profileData, id: authUser.id } as any;
+      setUser(updatedProfile);
+      setSelectedProfile(updatedProfile);
+      updateView(View.PROFILE, `/@${cleanUsername}`);
+    } catch (err: any) {
+      console.error('Onboarding Error:', err);
+      alert(`Bismillah, there was an error saving your profile: ${err.message || 'Check your internet connection'}`);
+      throw err;
+    }
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -487,7 +545,7 @@ const App: React.FC = () => {
         <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-800 animate-pulse">
            <Sparkles className="w-10 h-10" />
         </div>
-        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, establishing secure session...</h2>
+        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, verifying your session...</h2>
         <div className="flex items-center gap-2 text-gray-400 font-black uppercase tracking-widest text-[10px]">
            <Loader2 className="w-3 h-3 animate-spin" />
            Communicating with Auth Gateway
@@ -569,28 +627,12 @@ const App: React.FC = () => {
               </div>
               <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
             </div>
-
-            {/* MOBILE-ONLY START NEW THREAD BUTTON */}
-            <div className="block lg:hidden px-4 mb-10">
-              <button 
-                onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
-                className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
-              >
-                <Plus className="w-5 h-5 text-gray-400" />
-                Start new thread
-              </button>
-            </div>
           </>
         )}
 
         {isForumView && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <ForumSidebar 
-              currentView={view} 
-              setView={updateView} 
-              user={user} 
-              onSignIn={() => setIsAuthModalOpen(true)} 
-            />
+            <ForumSidebar currentView={view} setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
@@ -605,19 +647,23 @@ const App: React.FC = () => {
           <CategoryDetail 
             category={activeCategory} products={products} categories={categories}
             onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
-            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_id`)} onCategorySelect={handleCategorySelect} 
+            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect} 
           />
         )}
         {view === View.DETAIL && selectedProduct && (
           <ProductDetail 
             product={selectedProduct} user={user} onBack={() => updateView(View.HOME)} 
             onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
-            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
+            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={(uid) => {
+              supabase.from('profiles').select('*').eq('id', uid).single().then(({data}) => {
+                if(data) { setSelectedProfile(data as Profile); updateView(View.PROFILE); }
+              })
+            }} scrollToComments={shouldScrollToComments} 
           />
         )}
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
-        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
+        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={handleWelcomeComplete} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}

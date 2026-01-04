@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { 
   ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, 
-  MessageSquare, Heart, Sparkles, Settings, Share2, 
-  ShieldCheck, ArrowUpRight, Plus, MapPin, Link as LinkIcon 
+  MessageSquare, Heart, Sparkles, Settings, ArrowUpRight, 
+  Layers, Bookmark, Star, ChevronRight, Share2, Triangle
 } from 'lucide-react';
 import { Product, Profile, User } from '../types';
 import ProductCard from './ProductCard';
@@ -37,16 +37,22 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const isOwnProfile = currentUser?.id === profile.id;
 
   const tabs = [
-    'About', 'Forums', 'Activity', 'Upvotes', 'Collections', 'Stacks', 'Reviews'
+    { name: 'About', count: null },
+    { name: 'Forums', count: 12 },
+    { name: 'Activity', count: null },
+    { name: 'Upvotes', count: votes.size },
+    { name: 'Collections', count: 0 },
+    { name: 'Stacks', count: 2 },
+    { name: 'Reviews', count: 0 }
   ];
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 sm:px-8 animate-in fade-in duration-500">
-      {/* Breadcrumb / Top Nav */}
+      {/* Header Navigation */}
       <div className="flex items-center justify-between mb-12">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors group font-bold uppercase tracking-widest text-[10px]"
+          className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors group font-black uppercase tracking-[0.2em] text-[10px]"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Home
@@ -56,23 +62,23 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </button>
       </div>
 
-      {/* Main Profile Header */}
-      <div className="flex flex-col md:flex-row items-start gap-8 md:gap-12 mb-12">
+      {/* Profile Header Card */}
+      <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
         <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl shrink-0 group">
-          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         </div>
         
         <div className="flex-1 min-w-0 pt-2">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-4xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-3">
+              <h1 className="text-4xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2">
                 {profile.full_name || profile.username}
-                {profile.is_admin && <ShieldCheck className="w-6 h-6 text-emerald-600" />}
+                {profile.is_admin && <Award className="w-5 h-5 text-emerald-600" />}
               </h1>
               <div className="flex items-center gap-2 text-gray-400 font-bold mt-1">
                 <span>@{profile.username}</span>
                 <span className="text-gray-200">•</span>
-                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-800/40">#{profile.id.slice(0, 4)}</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-800/40">#{profile.id.slice(0, 4)}</span>
               </div>
             </div>
 
@@ -91,7 +97,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-2 mb-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
             <div className="flex items-center gap-2">
               <span className="font-black text-gray-900">1.2K</span>
               <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Followers</span>
@@ -107,7 +113,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </div>
 
           {profile.headline && (
-            <p className="text-gray-600 text-lg font-medium leading-relaxed max-w-2xl">
+            <p className="text-gray-600 text-lg font-medium leading-snug max-w-2xl">
               {profile.headline}
             </p>
           )}
@@ -116,17 +122,24 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       {/* Tabs Navigation */}
       <div className="border-b border-gray-100 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        <div className="flex gap-10">
+        <div className="flex gap-8">
           {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
               className={`pb-4 text-[13px] font-black uppercase tracking-[0.15em] transition-all relative ${
-                activeTab === tab ? 'text-emerald-900' : 'text-gray-400 hover:text-gray-600'
+                activeTab === tab.name ? 'text-emerald-900' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              {tab}
-              {activeTab === tab && (
+              <div className="flex items-center gap-2">
+                {tab.name}
+                {tab.count !== null && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${activeTab === tab.name ? 'bg-emerald-100 text-emerald-900' : 'bg-gray-50 text-gray-400'}`}>
+                    {tab.count}
+                  </span>
+                )}
+              </div>
+              {activeTab === tab.name && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-800 rounded-t-full" />
               )}
             </button>
@@ -134,28 +147,27 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </div>
       </div>
 
-      {/* Grid Layout for Content */}
+      {/* Tab Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Left Column: Activity Feed / About */}
         <div className="lg:col-span-2 space-y-12">
           {activeTab === 'About' && (
             <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm mb-12">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Biography</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">About</h2>
+              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
                 <p className="text-gray-500 leading-relaxed font-medium whitespace-pre-wrap">
-                  {profile.bio || "This maker is currently on a journey of discovery within the Ummah. No bio provided yet."}
+                  {profile.bio || "No information provided yet. This maker is still curating their Ummah journey."}
                 </p>
                 <div className="mt-8 pt-8 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {profile.twitter_url && (
                     <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors">
                       <Twitter className="w-5 h-5" />
-                      <span className="text-sm font-bold">Twitter Profile</span>
+                      <span className="text-sm font-bold">Twitter</span>
                     </a>
                   )}
                   {profile.website_url && (
                     <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors">
                       <Globe className="w-5 h-5" />
-                      <span className="text-sm font-bold">Personal Website</span>
+                      <span className="text-sm font-bold">Website</span>
                     </a>
                   )}
                   <div className="flex items-center gap-3 text-gray-400">
@@ -166,9 +178,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
               </div>
 
               {makerHistory.length > 0 && (
-                <div>
+                <div className="mt-12">
                   <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-between">
-                    Products Launched
+                    Products Made
                     <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{makerHistory.length}</span>
                   </h2>
                   <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
@@ -190,13 +202,13 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
                 <Sparkles className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-serif font-bold text-gray-400 mb-2">Module is being polished</h3>
+              <h3 className="text-lg font-serif font-bold text-gray-400 mb-2">Nothing here yet</h3>
               <p className="text-gray-400 text-sm font-medium italic">Bismillah! Activity in {activeTab} will appear here soon.</p>
             </div>
           )}
         </div>
 
-        {/* Right Column: Sidebar Badges / Social Proof */}
+        {/* Profile Sidebar */}
         <aside className="space-y-8">
           <section className="bg-[#052e16] rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
@@ -204,10 +216,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
             </div>
             <div className="relative z-10">
               <div className="inline-block px-2.5 py-1 bg-emerald-400 text-[#052e16] rounded-md text-[9px] font-black uppercase tracking-widest mb-6">MAKER STATUS</div>
-              <h4 className="text-xl font-bold leading-relaxed mb-8">Contributing to the global Halal ecosystem.</h4>
+              <h4 className="text-xl font-bold leading-relaxed mb-8">Active contributor to the global Halal ecosystem.</h4>
               <div className="flex items-center gap-4">
                 <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/10">
-                  <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest mb-0.5">Global Rank</p>
+                  <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest mb-0.5">Rank</p>
                   <p className="font-bold">#241</p>
                 </div>
                 <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/10">
@@ -219,14 +231,23 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </section>
 
           <section className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">TOP INTERESTS</h3>
-            <div className="flex flex-wrap gap-2">
-              {['SaaS', 'EdTech', 'Ethical AI', 'Web3', 'Charity'].map(tag => (
-                <span key={tag} className="px-3 py-1 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">
-                  {tag}
-                </span>
+            <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              UPVOTED PRODUCTS <Triangle className="w-3 h-3 fill-gray-400" />
+            </h3>
+            <div className="space-y-4">
+              {products.slice(0, 3).map(p => (
+                <div key={p.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => onProductClick(p)}>
+                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-50 shrink-0">
+                    <img src={p.logo_url} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors truncate">{p.name}</p>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-tighter">{p.upvotes_count} Upvotes</p>
+                  </div>
+                </div>
               ))}
             </div>
+            <button className="w-full mt-6 py-2 text-[10px] font-black text-emerald-800 hover:underline uppercase tracking-widest">View all upvotes</button>
           </section>
         </aside>
       </div>

@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { 
-  User as UserIcon, Settings, ShieldCheck, CheckCircle2, 
-  Camera, ArrowLeft, Loader2, Link as LinkIcon, 
-  Globe, Twitter, Linkedin, ExternalLink 
+  User as UserIcon, Settings, Link as LinkIcon, ShieldCheck, 
+  Camera, ArrowLeft, Loader2, Check, ExternalLink, Globe, 
+  Twitter, Linkedin, CreditCard, Bell, Lock, Mail
 } from 'lucide-react';
 import { User } from '../types';
 import { supabase } from '../lib/supabase';
@@ -31,21 +31,19 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
   const sidebarItems = [
     { name: 'Settings', icon: Settings },
     { name: 'My details', icon: UserIcon },
-    { name: 'Followed products', icon: CheckCircle2 },
+    { name: 'Followed products', icon: Check },
     { name: 'Verification', icon: ShieldCheck }
   ];
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Fix: Removed undefined setLoginLoading, utilizing existing setLoading instead
     setLoading(true);
-    
     try {
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.full_name,
-          username: formData.username.replace('@', ''),
+          username: formData.username,
           headline: formData.headline,
           bio: formData.bio,
           website_url: formData.website_url,
@@ -59,7 +57,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
       onSave(formData);
     } catch (err) {
       console.error('Update failed:', err);
-      alert('Bismillah, there was an error saving your changes. Please try again.');
+      alert('Bismillah, there was an error saving your changes.');
     } finally {
       setLoading(false);
     }
@@ -72,7 +70,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
           <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-all active:scale-90">
             <ArrowLeft className="w-5 h-5 text-gray-400" />
           </button>
-          <h1 className="text-3xl font-serif font-bold text-gray-900 tracking-tight">Profile Settings</h1>
+          <h1 className="text-3xl font-serif font-bold text-gray-900 tracking-tight">Settings</h1>
         </div>
         <button 
           onClick={onViewProfile}
@@ -90,7 +88,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
               <button
                 key={item.name}
                 onClick={() => setActiveTab(item.name)}
-                className={`flex items-center gap-3 px-6 py-4 rounded-xl font-bold text-sm transition-all text-left ${
+                className={`flex items-center gap-3 px-6 py-3.5 rounded-xl font-bold text-sm transition-all text-left ${
                   activeTab === item.name 
                     ? 'bg-white text-emerald-800 shadow-md border border-gray-100' 
                     : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
@@ -103,7 +101,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
           </nav>
         </aside>
 
-        {/* Main Form Area */}
+        {/* Main Content Form */}
         <main className="flex-1">
           {activeTab === 'My details' ? (
             <div className="bg-white border border-gray-100 rounded-[2.5rem] shadow-sm p-10 sm:p-14 animate-in slide-in-from-right-4 duration-500">
@@ -119,9 +117,9 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
                   </div>
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile Photo</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Profile Photo</h2>
                   <p className="text-gray-400 font-medium mb-6 leading-relaxed">
-                    Upload a high-quality circular photo. This will be your face across the global Ummah community.
+                    Upload a high-quality circular avatar. This is your digital face in the global Ummah community.
                   </p>
                   <button className="px-6 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-black uppercase tracking-widest text-emerald-800 hover:bg-white hover:border-emerald-800 transition-all">
                     Upload new avatar
@@ -144,7 +142,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
                       <span className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 font-bold">@</span>
                       <input 
                         type="text" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})}
-                        className="w-full pl-12 pr-6 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner" 
+                        className="w-full pl-10 pr-6 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner" 
                       />
                     </div>
                   </div>
@@ -169,7 +167,10 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
                 </div>
 
                 <div className="pt-10 border-t border-gray-50 flex items-center justify-between">
-                  <p className="text-[11px] font-black text-gray-300 uppercase tracking-widest">End-to-End Encrypted Persistence</p>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Lock className="w-4 h-4" />
+                    <p className="text-[11px] font-black uppercase tracking-widest">End-to-End Encrypted Changes</p>
+                  </div>
                   <button 
                     type="submit" disabled={loading}
                     className="px-10 py-4 bg-[#ff6154] hover:bg-[#e6574a] text-white font-black rounded-2xl transition-all shadow-xl shadow-red-900/10 active:scale-[0.98] flex items-center gap-3"
@@ -182,7 +183,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, onSave, onCancel, onVie
           ) : (
             <div className="bg-white border border-gray-100 rounded-[2.5rem] p-20 text-center animate-in slide-in-from-right-4">
               <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-800">
-                <Settings className="w-8 h-8" />
+                <ShieldCheck className="w-8 h-8" />
               </div>
               <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-2">Module under optimization</h2>
               <p className="text-gray-400 font-medium">Bismillah! This section of your dashboard is being polished for launch.</p>
