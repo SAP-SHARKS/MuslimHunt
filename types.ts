@@ -3,17 +3,10 @@ export interface Profile {
   id: string;
   username: string;
   avatar_url: string;
-  full_name?: string;
   bio?: string;
   headline?: string;
   twitter_url?: string;
   website_url?: string;
-  linkedin_url?: string;
-  newsletter_preferences?: {
-    leaderboard: boolean;
-    roundup: boolean;
-    frontier: boolean;
-  };
 }
 
 export interface Comment {
@@ -109,11 +102,9 @@ export interface User {
   email: string;
   username: string;
   avatar_url: string;
-  full_name?: string;
   bio?: string;
   twitter_url?: string;
   website_url?: string;
-  linkedin_url?: string;
   headline?: string;
   is_admin?: boolean; // Admin privilege flag
 }
@@ -123,7 +114,6 @@ export enum View {
   SUBMIT = 'submit', 
   DETAIL = 'detail',
   PROFILE = 'profile',
-  EDIT_PROFILE = 'edit_profile',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',

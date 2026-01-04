@@ -26,9 +26,9 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // onboardingData is passed to onComplete which handles the actual Supabase saving
-    await onComplete(formData);
-    // Loading is kept true while parent redirects or if error occurs
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    onComplete(formData);
     setLoading(false);
   };
 
@@ -177,10 +177,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
               className="w-full bg-[#ff6154] hover:bg-[#e6574a] text-white font-black py-5 rounded-[2rem] shadow-xl shadow-red-900/10 transition-all active:scale-[0.98] text-xl flex items-center justify-center gap-3"
             >
               {loading ? (
-                <>
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  Saving...
-                </>
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
                 <>
                   Complete
