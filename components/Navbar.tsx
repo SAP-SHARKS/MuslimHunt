@@ -175,7 +175,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 </button>
               ) : (
                 <button 
-                  onClick={onViewProfile}
+                  onClick={() => setView(View.WELCOME)}
                   className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer active:scale-95 transition-all" 
                 >
                   <img src={user.avatar_url} className="w-full h-full object-cover rounded-full" alt="User profile" />
@@ -266,7 +266,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* Desktop Hover Dropdown Menu */}
+                {/* Desktop Hover Dropdown Menu (5 Options) */}
                 <div className="relative group flex items-center h-full">
                   <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-emerald-200 transition-all">
                     <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
@@ -274,22 +274,23 @@ const Navbar: React.FC<NavbarProps> = ({
                   
                   <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-[110] animate-in fade-in slide-in-from-top-2">
                     <div className="w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 overflow-hidden">
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
                         <UserIcon className="w-4 h-4 text-gray-400" /> Profile
                       </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
                         <Rocket className="w-4 h-4 text-gray-400" /> My products
                       </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
                         <Settings className="w-4 h-4 text-gray-400" /> Settings
                       </button>
-                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
                         <Layout className="w-4 h-4 text-gray-400" /> API dashboard
                       </button>
                       
+                      {/* Divider */}
                       <div className="h-px bg-gray-100 my-1 mx-4" />
                       
-                      <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 transition-colors">
+                      <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 transition-colors text-left">
                         <LogOut className="w-4 h-4" /> Logout
                       </button>
                     </div>
@@ -351,7 +352,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <button onClick={() => toggleAccordion('launches')} className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
                   <div className="flex items-center gap-3"><Rocket className={`w-5 h-5 ${expandedAccordion === 'launches' ? 'text-emerald-800' : 'text-gray-400'}`} />Launches</div>
-                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'launches' ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'launches' ? 'rotate-180' : ''}`}   />
                 </button>
                 {expandedAccordion === 'launches' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">

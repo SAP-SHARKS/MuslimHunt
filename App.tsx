@@ -20,7 +20,7 @@ import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
@@ -147,9 +147,13 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
   );
 };
 
+// Internal constant to handle the auth callback state
+const VIEW_AUTH_CALLBACK = 'auth_callback' as any;
+
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
@@ -172,7 +176,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) // Filter for public feed
+        .eq('is_approved', true) 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -199,7 +203,6 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
-    // Only add to local state if approved (unlikely for new submissions)
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     }
@@ -239,7 +242,8 @@ const App: React.FC = () => {
     const handlePopState = () => {
       try {
         const path = window.location.pathname;
-        if (path === '/p/new') setView(View.NEW_THREAD);
+        if (path === '/auth/callback') setView(VIEW_AUTH_CALLBACK);
+        else if (path === '/p/new') setView(View.NEW_THREAD);
         else if (path === '/posts/new') setView(View.POST_SUBMIT);
         else if (path === '/posts/new/submission') setView(View.SUBMISSION);
         else if (path === '/notifications') setView(View.NOTIFICATIONS);
@@ -271,6 +275,30 @@ const App: React.FC = () => {
     handlePopState(); 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [categories]);
+
+  // PKCE Code Exchange Effect
+  useEffect(() => {
+    if (view === VIEW_AUTH_CALLBACK) {
+      const exchangeCode = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+          try {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) throw error;
+            // Successfully logged in via fresh PKCE exchange
+            updateView(View.WELCOME, '/my/welcome');
+          } catch (err) {
+            console.error('PKCE exchange failed:', err);
+            updateView(View.HOME, '/?error=auth_failed');
+          }
+        } else {
+          updateView(View.HOME);
+        }
+      };
+      exchangeCode();
+    }
+  }, [view]);
 
   const updateView = (newView: View, customPath?: string) => {
     setView(newView);
@@ -327,22 +355,26 @@ const App: React.FC = () => {
       { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
     ]);
 
-    supabase.auth.getSession().then(({ data }) => {
-      const session = data?.session;
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+    // SESSION HEARTBEAT: Proactively check for current user on load
+    const initAuth = async () => {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser();
+      if (sessionUser) {
+        const m = sessionUser.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
         setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          id: sessionUser.id, 
+          email: sessionUser.email!, 
+          username: m.full_name || sessionUser.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
           is_admin: isAdmin
         });
       }
-    });
+      setIsAuthReady(true);
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
@@ -356,7 +388,9 @@ const App: React.FC = () => {
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthModalOpen(false);
         }
-      } else setUser(null);
+      } else {
+        setUser(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -392,6 +426,30 @@ const App: React.FC = () => {
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 text-emerald-800 animate-spin" />
+      </div>
+    );
+  }
+
+  // Handle Callback loading view
+  if (view === VIEW_AUTH_CALLBACK) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-800 animate-pulse">
+           <Sparkles className="w-10 h-10" />
+        </div>
+        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, establishing secure session...</h2>
+        <div className="flex items-center gap-2 text-gray-400 font-black uppercase tracking-widest text-[10px]">
+           <Loader2 className="w-3 h-3 animate-spin" />
+           Communicating with Auth Gateway
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
@@ -399,7 +457,11 @@ const App: React.FC = () => {
           user={user} 
           currentView={view} 
           setView={updateView} 
-          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
+          onLogout={async () => { 
+            await supabase.auth.signOut(); 
+            // HARD RELOAD: Forces a fresh start by reloading the page and clearing all memory states
+            window.location.href = '/'; 
+          }} 
           searchQuery={searchQuery} 
           onSearchChange={setSearchQuery} 
           onViewProfile={() => user && setView(View.PROFILE)} 
