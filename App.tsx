@@ -332,14 +332,12 @@ const App: React.FC = () => {
           try {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) throw error;
-            // Successfully exchanged code for session, redirect to welcome or dashboard
             updateView(View.WELCOME, '/my/welcome');
           } catch (err) {
             console.error('Auth code exchange failed:', err);
             updateView(View.HOME, '/?error=auth_failed');
           }
         } else {
-          // No code found, probably already logged in or generic error
           updateView(View.HOME);
         }
       };
@@ -401,63 +399,23 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const initUser = async () => {
-      try {
-        const { data: { user: sessionUser } } = await supabase.auth.getUser();
-        
-        if (sessionUser) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', sessionUser.id)
-            .single();
-          
-          const m = sessionUser.user_metadata || {};
-          const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
-          
-          const finalUser = { 
-            id: sessionUser.id, 
-            email: sessionUser.email!, 
-            username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
-            avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
-            bio: profile?.bio,
-            headline: profile?.headline,
-            website_url: profile?.website_url,
-            twitter_url: profile?.twitter_url,
-            linkedin_url: profile?.linkedin_url,
-            full_name: profile?.full_name,
-            is_admin: isAdmin || profile?.is_admin
-          };
-          setUser(finalUser);
-          await fetchUserVotes(sessionUser.id);
-        } else {
-          setUser(null);
-          setVotes(new Set());
-        }
-      } catch (err) {
-        console.error('Auth initialization failed:', err);
-      } finally {
-        setIsAuthReady(true);
-      }
-    };
-
-    initUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
+    // SINGLE SOURCE OF TRUTH: Use the SDK's internal state + cookie sync
+    const handleUserUpdate = async (sessionUser: any) => {
+      if (sessionUser) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', session.user.id)
+          .eq('id', sessionUser.id)
           .single();
         
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        const m = sessionUser.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
+        
         const finalUser = { 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: profile?.username || m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          id: sessionUser.id, 
+          email: sessionUser.email!, 
+          username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
+          avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
           bio: profile?.bio,
           headline: profile?.headline,
           website_url: profile?.website_url,
@@ -467,16 +425,34 @@ const App: React.FC = () => {
           is_admin: isAdmin || profile?.is_admin
         };
         setUser(finalUser);
-        fetchUserVotes(session.user.id);
-
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-        }
+        await fetchUserVotes(sessionUser.id);
       } else {
         setUser(null);
-        setVotes(new Set()); 
+        setVotes(new Set());
+      }
+    };
+
+    const initAuth = async () => {
+      // First check for session recovered from cookies/localStorage
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await handleUserUpdate(session.user);
+      }
+      setIsAuthReady(true);
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) await handleUserUpdate(session.user);
+        setIsAuthModalOpen(false);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setVotes(new Set());
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 

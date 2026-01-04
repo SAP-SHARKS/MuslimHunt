@@ -55,7 +55,8 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // SESSION HEARTBEAT: Calling getUser() refreshes the session automatically if near expiry
+  // SESSION HEARTBEAT: Calling getUser() validates and refreshes the session from cookies
+  // before the page is rendered on the client.
   await supabase.auth.getUser();
 
   return response;
