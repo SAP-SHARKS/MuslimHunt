@@ -1,4 +1,5 @@
 
+
 export interface Profile {
   id: string;
   username: string;
@@ -109,11 +110,15 @@ export interface User {
   is_admin?: boolean; // Admin privilege flag
 }
 
+/**
+ * View enumeration for application routing.
+ */
 export enum View {
   HOME = 'home',
   SUBMIT = 'submit', 
   DETAIL = 'detail',
   PROFILE = 'profile',
+  EDIT_PROFILE = 'edit_profile',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',

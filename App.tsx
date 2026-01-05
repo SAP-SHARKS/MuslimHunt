@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -236,6 +237,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (categories.length === 0) return;
 
+    // Handle popstate for browser navigation and View.EDIT_PROFILE routing
     const handlePopState = () => {
       try {
         const path = window.location.pathname;
@@ -250,6 +252,7 @@ const App: React.FC = () => {
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
         else if (path === '/admin') setView(View.ADMIN_PANEL);
+        else if (path === '/settings') setView(View.EDIT_PROFILE);
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -272,6 +275,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [categories]);
 
+  // Update view state and push history, including support for View.EDIT_PROFILE
   const updateView = (newView: View, customPath?: string) => {
     setView(newView);
     let path = customPath || '/';
@@ -287,6 +291,7 @@ const App: React.FC = () => {
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
       else if (newView === View.ADMIN_PANEL) path = '/admin';
+      else if (newView === View.EDIT_PROFILE) path = '/settings';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }

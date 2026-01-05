@@ -3,8 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Mail, Plus, Bell, User as UserIcon,
-  Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy
+  Rocket, Mail, Plus, Bell, User as UserIcon, Settings, Layout,
+  Triangle, Menu, Hash, ShieldCheck, Calendar, Trophy
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
@@ -100,15 +100,12 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   
-  const userDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) setShowUserDropdown(false);
       if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) setShowNotificationDropdown(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -175,7 +172,7 @@ const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <div 
                   className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer" 
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  onClick={onViewProfile}
                 >
                   <img src={user.avatar_url} className="w-full h-full object-cover rounded-full" alt="User profile" />
                 </div>
@@ -220,7 +217,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop Right Actions */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4 h-full">
             <button 
               onClick={() => setView(View.NEWSLETTER)}
               className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
@@ -234,7 +231,7 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {user && (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 h-full">
                 <div className="relative flex items-center" ref={notificationDropdownRef}>
                   <NotificationBell userId={user.id} isOpen={showNotificationDropdown} onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} />
                   {showNotificationDropdown && (
@@ -265,22 +262,36 @@ const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                <div className="relative flex items-center" ref={userDropdownRef}>
-                  <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
-                  {showUserDropdown && (
-                    <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                {/* Desktop User Dropdown Container - Product Hunt Style Hover Menu */}
+                <div className="relative group flex items-center h-full">
+                  <button className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm">
+                    <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" />
+                  </button>
+                  
+                  {/* Hover Menu */}
+                  <div className="absolute top-full right-0 pt-2 hidden group-hover:block z-[110] animate-in fade-in slide-in-from-top-2 lg:block">
+                    <div className="w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 overflow-hidden">
                       <div className="px-4 py-2 mb-1 border-b border-gray-50">
                         <p className="text-[10px] font-black text-emerald-800 uppercase tracking-tighter truncate">{user.username}</p>
                       </div>
-                      {user.is_admin && (
-                        <button onClick={() => { setView(View.ADMIN_PANEL); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-sm font-bold text-emerald-900">
-                          <ShieldCheck className="w-4 h-4 text-emerald-600" /> Admin Panel
-                        </button>
-                      )}
-                      <button onClick={() => { onViewProfile(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
-                      <button onClick={() => { onLogout(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 border-t border-gray-50"><LogOut className="w-4 h-4" /> Logout</button>
+                      <button onClick={onViewProfile} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
+                        <UserIcon className="w-4 h-4 text-gray-400" /> Profile
+                      </button>
+                      <button onClick={() => setView(View.PROFILE)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
+                        <Rocket className="w-4 h-4 text-gray-400" /> My products
+                      </button>
+                      <button onClick={() => setView(View.EDIT_PROFILE)} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
+                        <Settings className="w-4 h-4 text-gray-400" /> Settings
+                      </button>
+                      <button onClick={() => {}} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors text-left">
+                        <Layout className="w-4 h-4 text-gray-400" /> API dashboard
+                      </button>
+                      <div className="h-px bg-gray-100 my-1 mx-4" />
+                      <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 transition-colors text-left">
+                        <LogOut className="w-4 h-4" /> Logout
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}
