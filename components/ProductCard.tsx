@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ChevronUp, MessageSquare, Triangle } from 'lucide-react';
 import { Product } from '../types';
@@ -30,9 +29,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   // Mock tags for professional aesthetic
   const tags = [product.category, 'Web', 'Free'];
-  
-  // Access profile information from the relational join
-  const makerUsername = (product as any).profiles?.username;
 
   return (
     <div 
@@ -59,15 +55,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
         
         {/* Info Area */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 
-              className="text-[17px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight"
-              dangerouslySetInnerHTML={{ __html: highlightedName }}
-            />
-            {makerUsername && (
-              <span className="text-[10px] text-gray-400 font-medium">by @{makerUsername}</span>
-            )}
-          </div>
+          <h3 
+            className="text-[17px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight"
+            dangerouslySetInnerHTML={{ __html: highlightedName }}
+          />
           <p 
             className="text-gray-500 text-[13px] line-clamp-1 mb-2 font-medium tracking-tight"
             dangerouslySetInnerHTML={{ __html: highlightedTagline }}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Mail, Loader2, Sparkles, ArrowRight, X, Facebook, Twitter } from 'lucide-react';
@@ -21,11 +20,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setMessage(null);
 
-    // PKCE Flow: Redirect to dedicated callback route instead of home
+    // Redirect to onboarding path after successful magic link verification
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/my/welcome`,
       },
     });
 
@@ -34,7 +33,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     } else {
       setMessage({ 
         type: 'success', 
-        text: 'Bismillah! Check your email. We used a secure exchange link to keep you logged in reliably.' 
+        text: 'Bismillah! Check your email for the verification link. If you are new, an account has been prepared for you.' 
       });
     }
     setLoading(false);
@@ -46,7 +45,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `${window.location.origin}/my/welcome`
       }
     });
     if (error) {
@@ -57,11 +56,13 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       
+      {/* Modal Container */}
       <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-emerald-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
         <button 
           onClick={onClose}
