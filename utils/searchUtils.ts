@@ -1,4 +1,3 @@
-
 import { Product } from '../types';
 
 /**
@@ -42,4 +41,20 @@ export function formatCompactNumber(number: number): string {
     compactDisplay: 'short',
     maximumFractionDigits: 1,
   }).format(number);
+}
+
+// Added slugify helper to fix missing export error in App.tsx
+export function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with -
+    .replace(/[^\w-]+/g, '')    // Remove all non-word chars
+    .replace(/--+/g, '-');    // Replace multiple - with single -
+}
+
+// Added findProductBySlug helper to fix missing export error in App.tsx
+export function findProductBySlug(products: Product[], slug: string): Product | null {
+  return products.find(p => slugify(p.name) === slug) || null;
 }
