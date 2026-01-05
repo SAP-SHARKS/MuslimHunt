@@ -1,5 +1,4 @@
 
-
 export interface Profile {
   id: string;
   username: string;
@@ -126,7 +125,5 @@ export enum View {
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
   SUBMISSION = 'submission',
-  ADMIN_PANEL = 'admin_panel',
-  // Added EDIT_PROFILE to fix missing enum property errors
-  EDIT_PROFILE = 'edit_profile'
+  ADMIN_PANEL = 'admin_panel'
 }
