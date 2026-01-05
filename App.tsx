@@ -44,6 +44,7 @@ const safeHistory = {
       try {
         const relativePath = path.startsWith('/') ? path : `/${path}`;
         window.history.pushState({}, '', relativePath);
+        // Dispatch event for local router sync
         window.dispatchEvent(new PopStateEvent('popstate'));
       } catch (e) {
         console.warn('[Muslim Hunt] Navigation suppressed (Security Restriction)', e);
@@ -210,112 +211,13 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchNotifications = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      
-      if (!error && data) {
-        setNotifications(data as Notification[]);
-      }
-    } catch (err) {
-      console.error('Failed to fetch notifications');
-    }
-  };
-
-  const handleStreakLogic = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('streak_count, last_login_date')
-        .eq('id', userId)
-        .single();
-      
-      if (error || !profile) return;
-
-      const now = new Date();
-      const lastLogin = profile.last_login_date ? new Date(profile.last_login_date) : null;
-      let newStreak = profile.streak_count || 0;
-
-      if (!lastLogin) {
-        newStreak = 1;
-      } else {
-        const lastLoginDay = new Date(lastLogin).setHours(0, 0, 0, 0);
-        const today = new Date().setHours(0, 0, 0, 0);
-        const diffDays = Math.round((today - lastLoginDay) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 1) {
-          newStreak += 1;
-        } else if (diffDays > 1) {
-          newStreak = 1;
-        }
-      }
-
-      if (!lastLogin || new Date(lastLogin).toDateString() !== now.toDateString()) {
-        await supabase
-          .from('profiles')
-          .update({ streak_count: newStreak, last_login_date: now.toISOString() })
-          .eq('id', userId);
-
-        if (newStreak === 2 || newStreak === 5) {
-          await supabase.from('notifications').insert([{
-            user_id: userId,
-            type: 'streak',
-            message: `You have been awarded a Gone streaking ${newStreak} badge!`,
-            is_read: false
-          }]);
-        }
-      }
-    } catch (err) {
-      console.error('Streak logic error:', err);
-    }
-  };
-
-  const handleUpvote = async (id: string) => {
-    if (!user) { setIsAuthModalOpen(true); return; }
-    const voteKey = `${user.id}_${id}`;
-    if (votes.has(voteKey)) return;
-    
-    setVotes(prev => new Set(prev).add(voteKey));
-    setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
-
-    // Social trigger: notify maker
-    const product = products.find(p => p.id === id);
-    if (product && product.user_id !== user.id) {
-      await supabase.from('notifications').insert([{
-        user_id: product.user_id,
-        type: 'upvote',
-        message: `${user.username} upvoted your product "${product.name}"!`,
-        is_read: false,
-        avatar_url: user.avatar_url,
-        target_id: id
-      }]);
-    }
-  };
-
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
   };
 
-  const handleNewProduct = async (newProduct: Product) => {
+  const handleNewProduct = (newProduct: Product) => {
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
-    } else {
-      // Admin Trigger
-      const { data: admins } = await supabase.from('profiles').select('id').eq('is_admin', true);
-      if (admins) {
-        const notifs = admins.map(admin => ({
-          user_id: admin.id,
-          type: 'submission',
-          message: `New product submitted: "${newProduct.name}" is pending review.`,
-          is_read: false,
-          target_id: newProduct.id
-        }));
-        await supabase.from('notifications').insert(notifs);
-      }
     }
     updateView(View.HOME, '/');
     fetchProducts(); 
@@ -325,94 +227,6 @@ const App: React.FC = () => {
     fetchProducts();
     fetchCategories();
     fetchNavigation();
-  }, []);
-
-  useEffect(() => {
-    // 2.5-second Safety Valve
-    const safetyValve = setTimeout(() => {
-      if (isAuthLoading) {
-        console.warn('Auth state did not resolve in 2.5s. Force rendering.');
-        setIsAuthLoading(false);
-      }
-    }, 2500);
-
-    const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const m = session.user.user_metadata || {};
-          const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-          const userId = session.user.id;
-
-          setUser({ 
-            id: userId, 
-            email: session.user.email!, 
-            username: m.full_name || session.user.email!.split('@')[0], 
-            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
-            is_admin: isAdmin
-          });
-
-          await Promise.allSettled([
-            fetchNotifications(userId),
-            handleStreakLogic(userId)
-          ]);
-
-          const channel = supabase
-            .channel(`notifs_user_${userId}`)
-            .on(
-              'postgres_changes',
-              { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-              (payload) => {
-                setNotifications(prev => [payload.new as Notification, ...prev]);
-              }
-            )
-            .on(
-              'postgres_changes',
-              { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-              (payload) => {
-                const updated = payload.new as Notification;
-                setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
-              }
-            )
-            .subscribe();
-
-          return () => { supabase.removeChannel(channel); };
-        }
-      } catch (err) {
-        console.error('Session initialization failed');
-      } finally {
-        clearTimeout(safetyValve);
-        setIsAuthLoading(false);
-      }
-    };
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-          await Promise.allSettled([
-            fetchNotifications(session.user.id),
-            handleStreakLogic(session.user.id)
-          ]);
-        }
-      } else {
-        setUser(null);
-        setNotifications([]);
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const syncStateFromUrl = () => {
@@ -436,6 +250,7 @@ const App: React.FC = () => {
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/products' || segments[0] === 'products') {
         if (segments[0] === 'products' && segments[1]) {
+          // Dynamic Product Detail Routing
           const prod = products.find(p => slugify(p.name) === segments[1]);
           if (prod) {
             setSelectedProduct(prod);
@@ -461,6 +276,45 @@ const App: React.FC = () => {
       setView(View.HOME);
     }
   };
+
+  useEffect(() => {
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const m = session.user.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        setUser({ 
+          id: session.user.id, 
+          email: session.user.email!, 
+          username: m.full_name || session.user.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          is_admin: isAdmin
+        });
+      }
+      setIsAuthLoading(false);
+    };
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const m = session.user.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        setUser({ 
+          id: session.user.id, 
+          email: session.user.email!, 
+          username: m.full_name || session.user.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          is_admin: isAdmin
+        });
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setIsAuthModalOpen(false);
+        }
+      } else setUser(null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -512,13 +366,12 @@ const App: React.FC = () => {
     updateView(View.DIRECTORY, newPath);
   };
 
-  const markNotificationAsRead = async (id: string) => {
-    try {
-      await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-    } catch (e) {
-      console.warn('Failed to mark read');
-    }
+  const handleUpvote = (id: string) => {
+    if (!user) { setIsAuthModalOpen(true); return; }
+    const voteKey = `${user.id}_${id}`;
+    if (votes.has(voteKey)) return;
+    setVotes(prev => new Set(prev).add(voteKey));
+    setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -664,13 +517,24 @@ const App: React.FC = () => {
             commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
           />
         )}
-        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={markNotificationAsRead} />}
+        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
+
+      {/* Mobile-Only Forum Action Section */}
+      <div className="block lg:hidden px-4 mb-10">
+        <button 
+          onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
+          className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
+        >
+          <Plus className="w-5 h-5 text-gray-400" />
+          Start new thread
+        </button>
+      </div>
 
       <Footer setView={updateView} />
     </div>
