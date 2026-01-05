@@ -19,6 +19,7 @@ export interface Comment {
   created_at: string;
   is_maker?: boolean;
   upvotes_count: number;
+  parent_id?: string; // Added for threading
 }
 
 export interface Badge {
