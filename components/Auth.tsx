@@ -57,13 +57,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       
-      {/* Modal Container */}
       <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-emerald-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
         <button 
           onClick={onClose}

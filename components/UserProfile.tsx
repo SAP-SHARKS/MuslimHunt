@@ -13,6 +13,7 @@ interface UserProfileProps {
   onProductClick: (product: Product) => void;
   onCommentClick: (product: Product) => void;
   onUpvote: (productId: string) => void;
+  onEditClick: () => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -23,7 +24,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
   onProductClick,
   onCommentClick,
-  onUpvote
+  onUpvote,
+  onEditClick
 }) => {
   // Aligned with user_id schema
   const makerHistory = products.filter(p => p.user_id === profile.id);
@@ -59,6 +61,16 @@ const UserProfile: React.FC<UserProfileProps> = ({
               )}
               <p className="text-gray-500 text-sm leading-relaxed">{profile.bio}</p>
             </div>
+
+            {/* Edit Button for Account Owner */}
+            {isOwnProfile && (
+              <button 
+                onClick={onEditClick}
+                className="w-full mb-6 py-2.5 bg-white border border-emerald-800 text-emerald-800 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-all active:scale-[0.98]"
+              >
+                Edit Profile
+              </button>
+            )}
 
             <div className="space-y-3 pt-6 border-t border-gray-50">
               {profile.twitter_url && (

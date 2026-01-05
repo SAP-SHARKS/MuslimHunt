@@ -83,8 +83,7 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
           <SidebarLink 
             icon={Search} 
             label="Search all threads" 
-            isActive={currentView === View.FORUM_SEARCH}
-            onClick={() => setView(View.FORUM_SEARCH)} 
+            onClick={() => {}} 
           />
           <SidebarLink 
             icon={PlusCircle} 
