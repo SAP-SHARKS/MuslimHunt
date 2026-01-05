@@ -7,6 +7,8 @@ export interface Profile {
   headline?: string;
   twitter_url?: string;
   website_url?: string;
+  streak_count?: number;
+  last_login_date?: string;
 }
 
 export interface Comment {
@@ -66,11 +68,12 @@ export interface ForumCategory {
 
 export interface Notification {
   id: string;
-  type: 'upvote' | 'comment' | 'approval' | 'rejection';
+  type: 'upvote' | 'comment' | 'approval' | 'rejection' | 'streak' | 'submission';
   message: string;
   created_at: string;
   is_read: boolean;
   avatar_url?: string;
+  target_id?: string; // Link to product or discussion
 }
 
 export interface NavSubItem {
