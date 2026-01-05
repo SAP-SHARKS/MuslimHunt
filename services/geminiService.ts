@@ -1,13 +1,26 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Guideline: Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Guideline: Always use process.env.API_KEY. 
+// We verify its presence to avoid the "An API Key must be set" error thrown by the SDK.
+const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+
+if (!apiKey) {
+  console.warn('⚠️ process.env.API_KEY not found - Gemini AI features will use fallbacks');
+} else {
+  console.log('✅ Gemini AI initialized successfully');
+}
 
 export const geminiService = {
   /**
    * Optimizes a product tagline using Gemini.
    */
   async optimizeTagline(name: string, description: string): Promise<string> {
+    if (!ai) {
+      console.log('Using fallback tagline (no API key)');
+      return `${name} - Your trusted solution`;
+    }
+    
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -17,7 +30,6 @@ export const geminiService = {
         }
       });
       
-      // Fixed: correctly access .text property and handle potential undefined
       const tagline = response.text?.replace(/"/g, '').trim();
       return tagline || `${name} - Your trusted solution`;
     } catch (error) {
@@ -30,6 +42,11 @@ export const geminiService = {
    * Suggests a category for a product based on its description.
    */
   async getCategorySuggestion(description: string): Promise<string> {
+    if (!ai) {
+      console.log('Using fallback category (no API key)');
+      return 'Productivity';
+    }
+    
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -50,9 +67,8 @@ export const geminiService = {
         }
       });
       
-      // Fixed: safely access .text property and ensure JSON parsing doesn't fail on undefined
-      const jsonStr = response.text?.trim() || '{}';
-      const data = JSON.parse(jsonStr);
+      const jsonStr = response.text.trim();
+      const data = JSON.parse(jsonStr || '{}');
       return data.category || 'Productivity';
     } catch (error) {
       console.error("Gemini category suggestion failed:", error);
