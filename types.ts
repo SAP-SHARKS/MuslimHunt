@@ -113,6 +113,7 @@ export enum View {
   HOME = 'home',
   SUBMIT = 'submit', 
   DETAIL = 'detail',
+  DIRECTORY = 'directory',
   PROFILE = 'profile',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',

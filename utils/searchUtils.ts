@@ -33,13 +33,22 @@ export function highlightSearchTerm(text: string, searchTerm: string): string {
 }
 
 /**
- * Formats numbers into compact strings (e.g., 1500 -> 1.5k)
+ * Converts a string into a URL-friendly slug
  */
-export function formatCompactNumber(number: number): string {
-  if (number === undefined || number === null) return '0';
-  return Intl.NumberFormat('en-US', {
-    notation: 'compact',
-    compactDisplay: 'short',
-    maximumFractionDigits: 1,
-  }).format(number);
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with -
+    .replace(/[^\w-]+/g, '')  // Remove all non-word chars
+    .replace(/--+/g, '-');    // Replace multiple - with single -
+}
+
+/**
+ * Finds a product in the provided array by its name-based slug
+ */
+export function findProductBySlug(products: Product[], slug: string): Product | undefined {
+  return products.find(p => slugify(p.name) === slug);
 }

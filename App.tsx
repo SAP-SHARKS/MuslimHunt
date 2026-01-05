@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
 import ProductDetail from './components/ProductDetail.tsx';
+import ProductDirectory from './components/ProductDirectory.tsx';
 import SubmitForm from './components/SubmitForm.tsx';
 import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
@@ -20,11 +21,10 @@ import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
-import { searchProducts } from './utils/searchUtils.ts';
+import { searchProducts, slugify, findProductBySlug } from './utils/searchUtils.ts';
 
-// Hardcoded admins for demo, in production this should be a DB role
 const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
 
 const safeHistory = {
@@ -44,6 +44,8 @@ const safeHistory = {
       try {
         const relativePath = path.startsWith('/') ? path : `/${path}`;
         window.history.pushState({}, '', relativePath);
+        // Dispatch event for local router sync
+        window.dispatchEvent(new PopStateEvent('popstate'));
       } catch (e) {
         console.warn('[Muslim Hunt] Navigation suppressed (Security Restriction)', e);
       }
@@ -59,14 +61,6 @@ const safeHistory = {
       }
     }
   }
-};
-
-const slugify = (text: string) => text.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-
-const unslugify = (slug: string, categories: Category[]) => {
-  const match = categories.find(c => slugify(c.name) === slug);
-  if (match) return match.name;
-  return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
 export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
@@ -149,11 +143,13 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
+  const [activeTag, setActiveTag] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -198,15 +194,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleNewProduct = (newProduct: Product) => {
-    // Only add to local state if approved (unlikely for new submissions)
-    if (newProduct.is_approved) {
-      setProducts(prev => [newProduct, ...prev]);
-    }
-    updateView(View.HOME, '/');
-    fetchProducts(); 
-  };
-
   const fetchNavigation = async () => {
     try {
       const { data, error } = await supabase
@@ -227,108 +214,59 @@ const App: React.FC = () => {
     setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
   };
 
+  const handleNewProduct = (newProduct: Product) => {
+    if (newProduct.is_approved) {
+      setProducts(prev => [newProduct, ...prev]);
+    }
+    updateView(View.HOME, '/');
+    fetchProducts(); 
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     fetchNavigation();
   }, []);
 
-  useEffect(() => {
-    if (categories.length === 0) return;
-
-    const handlePopState = () => {
-      try {
-        const path = window.location.pathname;
-        if (path === '/p/new') setView(View.NEW_THREAD);
-        else if (path === '/posts/new') setView(View.POST_SUBMIT);
-        else if (path === '/posts/new/submission') setView(View.SUBMISSION);
-        else if (path === '/notifications') setView(View.NOTIFICATIONS);
-        else if (path === '/forums') setView(View.FORUM_HOME);
-        else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
-        else if (path === '/sponsor') setView(View.SPONSOR);
-        else if (path === '/newsletters') setView(View.NEWSLETTER);
-        else if (path === '/categories') setView(View.CATEGORIES);
-        else if (path === '/my/welcome') setView(View.WELCOME);
-        else if (path === '/admin') setView(View.ADMIN_PANEL);
-        else if (path === '/login') {
-          setIsAuthModalOpen(true);
-          setView(View.HOME);
-          safeHistory.replace('/');
-        }
-        else if (path.startsWith('/categories/')) {
-          const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
-          if (slug) {
-            const catName = unslugify(slug, categories);
-            setActiveCategory(catName);
-            setView(View.CATEGORY_DETAIL);
-          } else setView(View.CATEGORIES);
-        } else if (path === '/' || path === '') setView(View.HOME);
-      } catch (err) {
-        setView(View.HOME);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    handlePopState(); 
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [categories]);
-
-  const updateView = (newView: View, customPath?: string) => {
-    setView(newView);
-    let path = customPath || '/';
-    if (!customPath) {
-      if (newView === View.NEW_THREAD) path = '/p/new';
-      else if (newView === View.POST_SUBMIT) path = '/posts/new';
-      else if (newView === View.SUBMISSION) path = '/posts/new/submission';
-      else if (newView === View.NOTIFICATIONS) path = '/notifications';
-      else if (newView === View.FORUM_HOME) path = '/forums';
-      else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
-      else if (newView === View.SPONSOR) path = '/sponsor';
-      else if (newView === View.NEWSLETTER) path = '/newsletters';
-      else if (newView === View.CATEGORIES) path = '/categories';
-      else if (newView === View.WELCOME) path = '/my/welcome';
-      else if (newView === View.ADMIN_PANEL) path = '/admin';
-      else if (newView === View.CATEGORY_DETAIL && activeCategory) {
-        path = `/categories/${slugify(activeCategory)}`;
-      }
-      else if (newView === View.HOME) path = '/';
-    }
-    if (window.location.pathname + window.location.search !== path) safeHistory.push(path);
-  };
-
-  const handleCategorySelect = (cat: string) => {
-    if (!cat) return;
-    setActiveCategory(cat);
-    updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
-  };
-
-  const handleCreateThread = async (threadData: { category_id: number; title: string; body: string }) => {
-    if (!user) return;
+  const syncStateFromUrl = () => {
+    if (categories.length === 0 && products.length === 0) return;
+    
     try {
-      const { error } = await supabase
-        .from('threads')
-        .insert([{
-          title: threadData.title,
-          body: threadData.body,
-          category_id: threadData.category_id,
-          author_id: user.id
-        }]);
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(Boolean);
 
-      if (error) throw error;
-      updateView(View.FORUM_HOME);
+      if (path === '/p/new') setView(View.NEW_THREAD);
+      else if (path === '/posts/new') setView(View.POST_SUBMIT);
+      else if (path === '/posts/new/submission') setView(View.SUBMISSION);
+      else if (path === '/notifications') setView(View.NOTIFICATIONS);
+      else if (path === '/forums') setView(View.FORUM_HOME);
+      else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
+      else if (path === '/sponsor') setView(View.SPONSOR);
+      else if (path === '/newsletters') setView(View.NEWSLETTER);
+      else if (path === '/categories') setView(View.CATEGORIES);
+      else if (path === '/my/welcome') setView(View.WELCOME);
+      else if (path === '/admin') setView(View.ADMIN_PANEL);
+      else if (path === '/products' || segments[0] === 'products') {
+        const tag = segments[1] || '';
+        setActiveTag(tag);
+        setView(View.DIRECTORY);
+      }
+      else if (path.startsWith('/categories/')) {
+        const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
+        if (slug) {
+          const catName = categories.find(c => slugify(c.name) === slug)?.name || slug;
+          setActiveCategory(catName);
+          setView(View.CATEGORY_DETAIL);
+        } else setView(View.CATEGORIES);
+      } else if (path === '/' || path === '') setView(View.HOME);
     } catch (err) {
-      console.error('Error creating thread:', err);
-      alert('Bismillah, there was an error posting your thread. Please try again.');
+      setView(View.HOME);
     }
   };
 
   useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
-
-    supabase.auth.getSession().then(({ data }) => {
-      const session = data?.session;
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
@@ -340,7 +278,10 @@ const App: React.FC = () => {
           is_admin: isAdmin
         });
       }
-    });
+      setIsAuthLoading(false);
+    };
+
+    initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
@@ -358,8 +299,53 @@ const App: React.FC = () => {
         }
       } else setUser(null);
     });
+
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!isAuthLoading) {
+      syncStateFromUrl();
+      window.addEventListener('popstate', syncStateFromUrl);
+      return () => window.removeEventListener('popstate', syncStateFromUrl);
+    }
+  }, [isAuthLoading, categories, products]);
+
+  const updateView = (newView: View, customPath?: string) => {
+    setView(newView);
+    let path = customPath || '/';
+    if (!customPath) {
+      if (newView === View.NEW_THREAD) path = '/p/new';
+      else if (newView === View.POST_SUBMIT) path = '/posts/new';
+      else if (newView === View.SUBMISSION) path = '/posts/new/submission';
+      else if (newView === View.NOTIFICATIONS) path = '/notifications';
+      else if (newView === View.FORUM_HOME) path = '/forums';
+      else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
+      else if (newView === View.SPONSOR) path = '/sponsor';
+      else if (newView === View.NEWSLETTER) path = '/newsletters';
+      else if (newView === View.CATEGORIES) path = '/categories';
+      else if (newView === View.WELCOME) path = '/my/welcome';
+      else if (newView === View.ADMIN_PANEL) path = '/admin';
+      else if (newView === View.DIRECTORY) path = '/products';
+      else if (newView === View.CATEGORY_DETAIL && activeCategory) {
+        path = `/categories/${slugify(activeCategory)}`;
+      }
+      else if (newView === View.HOME) path = '/';
+    }
+    if (window.location.pathname !== path) safeHistory.push(path);
+  };
+
+  const handleCategorySelect = (cat: string) => {
+    if (!cat) return;
+    setActiveCategory(cat);
+    updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
+  };
+
+  const handleTagSelect = (tag: string) => {
+    const slug = slugify(tag);
+    setActiveTag(slug);
+    updateView(View.DIRECTORY, `/products/${slug}`);
+  };
 
   const handleUpvote = (id: string) => {
     if (!user) { setIsAuthModalOpen(true); return; }
@@ -391,6 +377,15 @@ const App: React.FC = () => {
   }, [filteredProducts]);
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfcf0]">
+        <Loader2 className="w-10 h-10 text-emerald-800 animate-spin mb-4" />
+        <p className="text-emerald-900 font-serif italic">Bismillah... Loading Muslim Hunt</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-white lg:bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
@@ -459,6 +454,15 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {view === View.DIRECTORY && (
+          <ProductDirectory 
+            products={products} 
+            activeTag={activeTag} 
+            onTagSelect={handleTagSelect} 
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
+          />
+        )}
+
         {isForumView && (
           <div className={`max-w-7xl mx-auto ${view === View.NEW_THREAD ? 'px-0 lg:px-8' : 'px-4 sm:px-8'} py-6 lg:py-12 flex flex-col lg:flex-row lg:gap-12 gap-0`}>
             <div className="hidden lg:block">
@@ -472,7 +476,7 @@ const App: React.FC = () => {
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
-              {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleCreateThread} setView={updateView} />}
+              {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={updateView} setView={updateView} />}
             </div>
           </div>
         )}
