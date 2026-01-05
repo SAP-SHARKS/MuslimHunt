@@ -82,12 +82,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     >
       <div className="flex items-center gap-4 mb-4">
         <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-50 shrink-0 shadow-sm">
-          <SafeImage 
-            src={comment.avatar_url} 
-            alt={comment.username} 
-            seed={comment.username}
-            className="w-full h-full object-cover" 
-          />
+          <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
         </div>
         <div>
           <h4 className="font-bold text-gray-900 text-lg leading-tight">{comment.username}</h4>
@@ -144,12 +139,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm p-8 sm:p-12">
             <div className="flex items-start gap-8 mb-10">
               <div className="w-24 h-24 rounded-3xl bg-gray-50 overflow-hidden border-4 border-emerald-50 shrink-0">
-                <SafeImage 
-                  src={product.logo_url} 
-                  alt={product.name} 
-                  seed={product.id} 
-                  className="w-full h-full object-cover" 
-                />
+                <SafeImage src={product.logo_url} alt={product.name} seed={product.id} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-3">
@@ -188,12 +178,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   onClick={() => onViewProfile(user.id)}
                   className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-gray-200 active:scale-95 transition-transform cursor-pointer"
                 >
-                  <SafeImage 
-                    src={user.avatar_url} 
-                    alt={user.username} 
-                    seed={user.username}
-                    className="w-full h-full object-cover" 
-                  />
+                  <SafeImage src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                 </button>
                 <div className="flex-1 relative">
                   <input 
@@ -234,12 +219,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                           className="w-9 h-9 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95 shadow-sm"
                           onClick={() => onViewProfile(comment.user_id)}
                         >
-                          <SafeImage 
-                            src={comment.avatar_url} 
-                            alt={comment.username} 
-                            seed={comment.username}
-                            className="w-full h-full object-cover" 
-                          />
+                          <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
                         </button>
                         {isHovered && <UserHoverCard comment={comment} />}
                       </div>
@@ -332,12 +312,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               onClick={() => onViewProfile(product.user_id)}
             >
               <div className="w-12 h-12 rounded-full overflow-hidden border border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
-                <SafeImage 
-                  src={`https://i.pravatar.cc/150?u=${product.user_id}`} 
-                  alt="Founder" 
-                  seed={product.user_id}
-                  className="w-full h-full object-cover" 
-                />
+                <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">View Profile</p>

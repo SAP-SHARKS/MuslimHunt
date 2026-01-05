@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Product, Profile, User } from '../types';
 import ProductCard from './ProductCard';
-import SafeImage from './SafeImage.tsx';
 
 interface UserProfileProps {
   profile: Profile;
@@ -66,12 +65,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       {/* Hero Section */}
       <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
         <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl shrink-0 group">
-          <SafeImage 
-            src={profile.avatar_url} 
-            alt={profile.username} 
-            seed={profile.username}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-          />
+          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>
         
         <div className="flex-1 min-w-0 pt-2">
@@ -244,12 +238,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
               {products.slice(0, 3).map(p => (
                 <div key={p.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => onProductClick(p)}>
                   <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-50 shrink-0">
-                    <SafeImage 
-                      src={p.logo_url} 
-                      alt={p.name} 
-                      seed={p.name}
-                      className="w-full h-full object-cover" 
-                    />
+                    <img src={p.logo_url} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors truncate">{p.name}</p>

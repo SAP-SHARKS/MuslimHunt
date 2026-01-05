@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 interface SafeImageProps {
@@ -10,35 +9,33 @@ interface SafeImageProps {
 
 const SafeImage: React.FC<SafeImageProps> = ({ src, alt, className, seed }) => {
   const [imgSrc, setImgSrc] = useState(src);
-  const [isFallback, setIsFallback] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  // Sync state when props change (vital for dynamic content and pagination)
+  // Sync state when props change (vital for pagination)
   useEffect(() => {
     setImgSrc(src);
-    setIsFallback(false);
+    setHasError(false);
   }, [src, seed]);
 
   const handleImageError = () => {
-    // Prevent infinite loops if the fallback URL itself fails
-    if (isFallback) return;
+    if (hasError) return; // Prevent infinite loops
     
-    setIsFallback(true);
-    
-    // Dynamic high-fidelity initials placeholder matching Product Hunt's reliability
-    const fallbackSeed = encodeURIComponent(seed || alt || 'User');
-    const fallbackUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${fallbackSeed}&backgroundColor=064e3b&fontFamily=serif&fontWeight=700&fontSize=40`;
-    
-    setImgSrc(fallbackUrl);
+    setHasError(true);
+    // Dynamic high-fidelity placeholder
+    const placeholder = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed || alt)}&backgroundColor=064e3b&fontFamily=serif&fontWeight=700&fontSize=40`;
+    setImgSrc(placeholder);
   };
 
   return (
-    <img
-      src={imgSrc}
-      alt={alt}
-      className={className}
-      onError={handleImageError}
-      loading="lazy"
-    />
+    <div className={`${className} bg-emerald-900/5 flex items-center justify-center overflow-hidden`}>
+      <img
+        src={imgSrc}
+        alt={alt}
+        className="w-full h-full object-cover"
+        onError={handleImageError}
+        loading="lazy"
+      />
+    </div>
   );
 };
 
