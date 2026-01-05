@@ -43,3 +43,22 @@ export function formatCompactNumber(number: number): string {
     maximumFractionDigits: 1,
   }).format(number);
 }
+
+/**
+ * Converts a string into a URL-friendly slug
+ */
+export const slugify = (text: string) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-');
+};
+
+/**
+ * Finds a product in an array by its slugified name
+ */
+export const findProductBySlug = (products: Product[], slug: string) => {
+  return products.find(p => slugify(p.name) === slug);
+};
