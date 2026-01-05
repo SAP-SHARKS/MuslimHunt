@@ -49,16 +49,6 @@ const safeHistory = {
         console.warn('[Muslim Hunt] Navigation suppressed (Security Restriction)', e);
       }
     }
-  },
-  replace: (path: string) => {
-    if (safeHistory.isSupported()) {
-      try {
-        const relativePath = path.startsWith('/') ? path : `/${path}`;
-        window.history.replaceState({}, '', relativePath);
-      } catch (e) {
-        console.warn('[Muslim Hunt] ReplaceState suppressed (Security Restriction)', e);
-      }
-    }
   }
 };
 
@@ -305,6 +295,14 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // 2-second Safety Valve: Force render if auth hangs
+    const safetyValve = setTimeout(() => {
+      if (isAuthLoading) {
+        console.warn('[Muslim Hunt] Auth Safety Valve triggered: Force rendering feed.');
+        setIsAuthLoading(false);
+      }
+    }, 2000);
+
     const initSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -321,7 +319,8 @@ const App: React.FC = () => {
             is_admin: isAdmin
           });
 
-          await Promise.all([
+          // Parallel fetches with individual try-catch logic (simplified here)
+          await Promise.allSettled([
             fetchNotifications(userId),
             handleStreakLogic(userId)
           ]);
@@ -348,8 +347,9 @@ const App: React.FC = () => {
           return () => { supabase.removeChannel(channel); };
         }
       } catch (err) {
-        console.error('[Muslim Hunt] Auth init failed:', err);
+        console.error('[Muslim Hunt] Auth initialization failed:', err);
       } finally {
+        clearTimeout(safetyValve);
         setIsAuthLoading(false);
       }
     };
@@ -369,7 +369,7 @@ const App: React.FC = () => {
         });
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthModalOpen(false);
-          await Promise.all([
+          await Promise.allSettled([
             fetchNotifications(session.user.id),
             handleStreakLogic(session.user.id)
           ]);
@@ -502,8 +502,12 @@ const App: React.FC = () => {
   };
 
   const markNotificationAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    try {
+      await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+    } catch (e) {
+      console.warn('Failed to mark notification as read');
+    }
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -639,7 +643,7 @@ const App: React.FC = () => {
           <CategoryDetail 
             category={activeCategory} products={products} categories={categories}
             onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }} 
-            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect} 
+            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_id`)} onCategorySelect={handleCategorySelect} 
           />
         )}
         {view === View.DETAIL && selectedProduct && (

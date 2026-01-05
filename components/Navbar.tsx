@@ -286,23 +286,23 @@ const Navbar: React.FC<NavbarProps> = ({
                           <p className="text-[13px] text-gray-400 italic text-center py-10 px-6">No unread notifications!</p>
                         ) : (
                           notifications.slice(0, 2).map((n) => (
-                            <div key={n.id} onClick={() => handleNavigate(View.NOTIFICATIONS)} className={`flex gap-3 px-6 py-4 transition-all hover:bg-emerald-50/50 cursor-pointer ${!n.is_read ? 'bg-emerald-50/20' : ''}`}>
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
-                                {n.type === 'streak' ? <Flame className="w-4 h-4 text-orange-500 fill-orange-500" /> : 
-                                 n.type === 'approval' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> :
-                                 n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : 
-                                 <MessageSquare className="w-4 h-4" />}
+                            <div key={n.id} onClick={() => handleNavigate(View.NOTIFICATIONS)} className={`flex gap-4 px-6 py-4 transition-all hover:bg-emerald-50/50 cursor-pointer ${!n.is_read ? 'bg-emerald-50/20' : ''}`}>
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
+                                {n.type === 'streak' ? <Flame className="w-5 h-5 text-orange-500 fill-orange-500" /> : 
+                                 n.type === 'approval' ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> :
+                                 n.type === 'upvote' ? <Triangle className="w-5 h-5 fill-current" /> : 
+                                 <MessageSquare className="w-5 h-5" />}
                               </div>
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <p className={`text-[13px] leading-snug ${n.is_read ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'}`}>{n.message}</p>
-                                <p className="text-[10px] font-black text-gray-300 uppercase tracking-tighter mt-1">{formatTimeAgo(n.created_at)}</p>
+                                <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest mt-1.5">{formatTimeAgo(n.created_at).toUpperCase()}</p>
                               </div>
                             </div>
                           ))
                         )}
                       </div>
                       <div className="px-6">
-                        <button onClick={() => handleNavigate(View.NOTIFICATIONS)} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View all</button>
+                        <button onClick={() => handleNavigate(View.NOTIFICATIONS)} className="w-full py-3.5 bg-white border border-gray-100 rounded-xl text-[11px] font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-[0.2em] shadow-sm">View all notifications</button>
                       </div>
                     </div>
                   )}

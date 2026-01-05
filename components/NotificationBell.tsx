@@ -15,56 +15,65 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
   useEffect(() => {
     if (!userId) return;
 
-    // Initial fetch of unread count
+    // Initial fetch of unread count with defensive error handling
     const fetchUnreadCount = async () => {
-      const { count, error } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_read', false);
+      try {
+        const { count, error } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_read', false);
 
-      if (!error && count !== null) {
-        setUnreadCount(count);
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      } catch (e) {
+        console.warn('Notification count fetch failed.');
       }
     };
 
     fetchUnreadCount();
 
-    // Real-time listener for new notifications
-    const channel = supabase
-      .channel(`public:notifications_bell_${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          setUnreadCount((prev) => prev + 1);
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.new.is_read === true && payload.old.is_read === false) {
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-          } else if (payload.new.is_read === false && payload.old.is_read === true) {
+    // Real-time listener for new notifications with clean subscription logic
+    let channel: any;
+    try {
+      channel = supabase
+        .channel(`public:notifications_bell_${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          () => {
             setUnreadCount((prev) => prev + 1);
           }
-        }
-      )
-      .subscribe();
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            if (payload.new.is_read === true && payload.old.is_read === false) {
+              setUnreadCount((prev) => Math.max(0, prev - 1));
+            } else if (payload.new.is_read === false && payload.old.is_read === true) {
+              setUnreadCount((prev) => prev + 1);
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Real-time channel failed to initialize.');
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
   }, [userId]);
 
@@ -74,7 +83,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
         e.stopPropagation();
         onClick();
       }}
-      className={`relative p-2 rounded-xl transition-all duration-200 active:scale-90 group flex items-center justify-center ${
+      className={`relative p-2.5 rounded-xl transition-all duration-200 active:scale-90 group flex items-center justify-center ${
         isOpen 
           ? 'bg-emerald-50 text-emerald-800' 
           : 'text-gray-400 hover:bg-emerald-50 hover:text-emerald-800'
@@ -84,7 +93,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
       <Bell className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-[15deg]' : 'group-hover:rotate-12'}`} />
       
       {unreadCount > 0 && (
-        <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
+        <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#ff6154] border border-white shadow-sm">
           </span>
