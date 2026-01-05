@@ -85,20 +85,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       }
     });
 
-    // Sort by date (newest first for roots, oldest first for replies is common)
     return roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [product.comments]);
 
-  // FIX: Type the local component as React.FC to support the 'key' prop in JSX
   const CommentNode: React.FC<{ node: any; depth?: number }> = ({ node, depth = 0 }) => {
     const hasUpvotedComment = commentVotes.has(`${user?.id}_${node.id}`);
     const isHovered = hoveredCommentId === node.id;
 
     return (
-      <div className={`relative ${depth > 0 ? 'mt-6 ml-6 sm:ml-10' : 'mt-10'}`}>
-        {/* Thread connector line */}
+      <div className={`relative ${depth > 0 ? 'mt-6 ml-6 sm:ml-12' : 'mt-10'}`}>
+        {/* Thread connector line: Only shows for children */}
         {depth > 0 && (
-          <div className="absolute -left-6 sm:-left-10 top-0 bottom-0 w-px bg-gray-100" />
+          <div className="absolute -left-6 sm:-left-10 top-[-24px] bottom-0 w-px bg-gray-100" />
         )}
 
         <div className="flex gap-4 group relative">
@@ -126,13 +124,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </button>
               
               {node.is_maker && (
-                <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 bg-emerald-800 text-white rounded-md font-black uppercase tracking-widest shadow-sm">
-                  <Sparkles className="w-2.5 h-2.5" />
+                <span className="flex items-center gap-1 text-[8px] px-1.5 py-0.5 bg-emerald-600 text-white rounded font-black uppercase tracking-[0.1em] shadow-sm">
                   Maker
                 </span>
               )}
 
-              <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">
+              <span className="text-[11px] font-medium text-gray-400">
                 {formatTimeAgo(node.created_at)}
               </span>
             </div>
@@ -141,18 +138,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {node.text}
             </p>
             
-            <div className="flex items-center gap-5 text-[11px] font-bold text-gray-400 uppercase tracking-tighter">
+            <div className="flex items-center gap-6 text-[11px] font-semibold text-gray-400 uppercase tracking-tight">
               <button 
                 onClick={() => onCommentUpvote(product.id, node.id)}
-                className={`flex items-center gap-1 transition-all ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
+                className={`flex items-center gap-1 transition-all ${hasUpvotedComment ? 'text-emerald-800 font-bold' : 'hover:text-emerald-800'}`}
               >
-                <Triangle className={`w-2.5 h-2.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
-                <span>Upvote {node.upvotes_count > 0 && `(${node.upvotes_count})`}</span>
+                Upvote {node.upvotes_count > 0 && `(${node.upvotes_count})`}
               </button>
               
               <button className="hover:text-emerald-800 transition-colors">Reply</button>
               <button className="hover:text-emerald-800 transition-colors">Share</button>
-              <button className="hover:text-red-600 transition-colors">Report</button>
+              <button className="hover:text-red-600 transition-colors ml-auto opacity-0 group-hover:opacity-100 transition-opacity">Report</button>
             </div>
           </div>
         </div>
