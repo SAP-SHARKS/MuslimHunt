@@ -498,6 +498,18 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
+
+      {/* Mobile-Only Forum Action Section */}
+      <div className="block lg:hidden px-4 mb-10">
+        <button 
+          onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
+          className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
+        >
+          <Plus className="w-5 h-5 text-gray-400" />
+          Start new thread
+        </button>
+      </div>
+
       <Footer setView={updateView} />
     </div>
   );
