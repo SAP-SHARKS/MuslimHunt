@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -31,7 +32,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
 
     // Real-time listener for new notifications
     const channel = supabase
-      .channel('public:notifications')
+      .channel(`public:notifications_bell_${userId}`)
       .on(
         'postgres_changes',
         {
@@ -41,7 +42,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          // Increment unread count instantly
           setUnreadCount((prev) => prev + 1);
         }
       )
@@ -54,9 +54,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          // If a notification was marked as read, decrement the count
           if (payload.new.is_read === true && payload.old.is_read === false) {
             setUnreadCount((prev) => Math.max(0, prev - 1));
+          } else if (payload.new.is_read === false && payload.old.is_read === true) {
+            setUnreadCount((prev) => prev + 1);
           }
         }
       )
@@ -86,7 +87,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
         <span className="absolute top-1.5 right-1.5 flex h-3.5 w-3.5">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#ff6154] border-2 border-white shadow-sm flex items-center justify-center">
-            {/* The badge itself serves as the unread indicator */}
           </span>
         </span>
       )}
