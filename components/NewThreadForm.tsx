@@ -105,22 +105,32 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl font-serif font-bold text-emerald-900">Start new thread</h2>
-        <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 bg-white lg:bg-transparent">
+      {/* Mobile Sub-Header */}
+      <div className="flex lg:hidden items-center gap-4 mb-4 px-4">
+        <button type="button" className="flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
+          Latest <ChevronDown size={14} />
+        </button>
+        <button type="button" className="flex items-center gap-1 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
+          Forums <ChevronDown size={14} />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between lg:mb-8 mb-4 px-4 lg:px-0">
+        <h2 className="text-2xl lg:text-3xl font-semibold lg:font-bold text-emerald-900">Start new thread</h2>
+        <button onClick={onCancel} className="lg:p-2 p-1 hover:bg-gray-100 rounded-full transition-colors">
           <X className="w-6 h-6 text-gray-400" />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 lg:px-0 px-4">
         <div className="relative" ref={dropdownRef}>
-          <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Select Forum</label>
+          <label className="hidden lg:block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Select Forum</label>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             disabled={loading}
-            className="w-full flex items-center justify-between px-5 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 shadow-sm hover:border-emerald-200 transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-between px-4 lg:px-5 py-3 lg:py-3.5 bg-gray-50 lg:bg-white border-transparent lg:border-gray-200 lg:border rounded-xl text-sm font-bold text-gray-900 lg:shadow-sm hover:border-emerald-200 transition-all disabled:opacity-50"
           >
             <div className="flex items-center gap-2">
               <Hash className="w-4 h-4 text-[#004D40]" />
@@ -163,19 +173,19 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
         </div>
 
         <div className="space-y-2">
-          <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Discussion Title</label>
+          <label className="hidden lg:block text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Discussion Title</label>
           <input
             required
             value={formData.title}
             onChange={(e) => { setFormData({ ...formData, title: e.target.value }); setShowTitleError(false); }}
-            placeholder="What would you like to discuss?"
-            className={`w-full px-5 py-5 bg-white border ${showTitleError ? 'border-red-300 ring-4 ring-red-50' : 'border-gray-200'} rounded-2xl text-xl font-bold text-gray-900 outline-none focus:border-[#004D40] transition-all placeholder:text-gray-300`}
+            placeholder="Title*"
+            className={`w-full px-0 lg:px-5 py-3 lg:py-5 bg-white lg:border ${showTitleError ? 'border-red-300 ring-4 ring-red-50' : 'border-transparent lg:border-gray-200'} rounded-2xl text-xl font-bold text-gray-900 outline-none focus:border-[#004D40] transition-all placeholder:text-gray-300`}
           />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Body</label>
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden focus-within:border-[#004D40] transition-all shadow-sm">
+          <label className="hidden lg:block text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">Body</label>
+          <div className="bg-white lg:border border-transparent lg:border-gray-200 rounded-2xl overflow-hidden focus-within:border-[#004D40] transition-all lg:shadow-sm">
             <div className="flex items-center gap-1 p-2.5 border-b border-gray-100 bg-gray-50/30">
               <ToolbarButton icon={Bold} tooltip="Bold (Ctrl+B)" onClick={() => handleFormat('bold')} />
               <ToolbarButton icon={Italic} tooltip="Italic (Ctrl+I)" onClick={() => handleFormat('italic')} />
@@ -190,20 +200,23 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
               ref={editorRef}
               contentEditable
               onInput={handleEditorInput}
-              className="w-full min-h-[350px] p-6 outline-none prose prose-emerald max-w-none text-gray-700"
-              placeholder="Write your discussion here..."
+              className="w-full min-h-[300px] lg:min-h-[350px] p-0 lg:p-6 lg:pt-6 pt-4 outline-none prose prose-emerald max-w-none text-gray-700"
+              placeholder="Body"
             />
           </div>
         </div>
 
         <div className="pt-6 flex items-center justify-between border-t border-gray-100">
-          <div className="flex items-center gap-2 text-gray-400">
+          <div className="hidden lg:flex items-center gap-2 text-gray-400">
             <Info size={16} />
             <p className="text-[11px] font-bold uppercase tracking-widest">Community Guidelines Apply</p>
           </div>
-          <div className="flex gap-4">
-            <button type="button" onClick={onCancel} className="px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>
-            <button type="submit" className="px-10 py-3.5 bg-[#004D40] text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg active:scale-95">Post Thread</button>
+          <div className="flex gap-4 w-full lg:w-auto justify-end">
+            <button type="button" onClick={onCancel} className="hidden lg:block px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>
+            <button type="submit" className="lg:px-10 px-8 lg:py-3.5 py-2.5 bg-white lg:bg-[#004D40] text-[#004D40] lg:text-white rounded-full lg:rounded-xl border border-gray-200 lg:border-transparent font-black text-sm uppercase tracking-widest hover:bg-gray-50 lg:hover:bg-emerald-900 transition-all shadow-sm lg:shadow-lg active:scale-95">
+              <span className="lg:hidden">Submit</span>
+              <span className="hidden lg:inline">Post Thread</span>
+            </button>
           </div>
         </div>
       </form>

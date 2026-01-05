@@ -393,7 +393,7 @@ const App: React.FC = () => {
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
   return (
-    <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
+    <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-white lg:bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
         <Navbar 
           user={user} 
@@ -460,13 +460,15 @@ const App: React.FC = () => {
         )}
 
         {isForumView && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <ForumSidebar 
-              currentView={view} 
-              setView={updateView} 
-              user={user} 
-              onSignIn={() => setIsAuthModalOpen(true)} 
-            />
+          <div className={`max-w-7xl mx-auto ${view === View.NEW_THREAD ? 'px-0 lg:px-8' : 'px-4 sm:px-8'} py-6 lg:py-12 flex flex-col lg:flex-row lg:gap-12 gap-0`}>
+            <div className="hidden lg:block">
+              <ForumSidebar 
+                currentView={view} 
+                setView={updateView} 
+                user={user} 
+                onSignIn={() => setIsAuthModalOpen(true)} 
+              />
+            </div>
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
