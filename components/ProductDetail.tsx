@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   ExternalLink, ArrowLeft, MessageSquare, ShieldCheck, Send, Share2, 
-  Triangle, Image as ImageIcon, Award, ChevronRight, Sparkles, AtSign, Loader2
+  Triangle, Image as ImageIcon, ChevronRight, AtSign, Loader2
 } from 'lucide-react';
 import { Product, Comment } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
@@ -17,7 +17,7 @@ interface ProductDetailProps {
   onCommentUpvote: (productId: string, commentId: string) => void;
   hasUpvoted: boolean;
   commentVotes: Set<string>;
-  onAddComment: (text: string) => void; // Kept for legacy compatibility if needed
+  onAddComment: (text: string) => void;
   onViewProfile: (userId: string) => void;
   scrollToComments?: boolean;
 }
@@ -34,34 +34,43 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   scrollToComments = false
 }) => {
   const [commentText, setCommentText] = useState('');
-  const [localComments, setLocalComments] = useState<Comment[]>(product.comments || []);
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const discussionRef = useRef<HTMLDivElement>(null);
 
-  // Synchronize local state with prop updates (e.g. from parent fetch)
-  useEffect(() => {
-    if (product.comments) {
-      setLocalComments(product.comments);
-    }
-  }, [product.comments]);
+  // Independent Comment Fetching (Localized strictly to this component)
+  const fetchComments = async () => {
+    setIsLoadingComments(true);
+    try {
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('product_id', product.id)
+        .order('created_at', { ascending: false });
 
-  // Real-time Subscription
+      if (error) throw error;
+      setLocalComments(data || []);
+    } catch (err) {
+      console.error('[Muslim Hunt] Failed to fetch comments independently:', err);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
   useEffect(() => {
+    fetchComments();
+
+    // Real-time Subscription for instant feedback
     const channel = supabase
       .channel(`product_comments_${product.id}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'comments',
-          filter: `product_id=eq.${product.id}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'comments', filter: `product_id=eq.${product.id}` },
         (payload) => {
           const newComment = payload.new as Comment;
           setLocalComments((prev) => {
-            // Avoid duplicates
             if (prev.some(c => c.id === newComment.id)) return prev;
             return [newComment, ...prev];
           });
@@ -86,6 +95,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     if (!commentText.trim() || !user) return;
 
     setIsSubmitting(true);
+    // Engagement Logic: Set is_maker if current user is the product owner
     const isMaker = user.id === product.user_id;
 
     try {
@@ -111,7 +121,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     }
   };
 
-  // Build recursive comment tree
   const commentTree = useMemo(() => {
     const map = new Map<string, any>();
     const roots: any[] = [];
@@ -134,10 +143,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     const isReplying = replyingTo === node.id;
 
     return (
-      <div className={`relative ${depth > 0 ? 'mt-6 ml-6 sm:ml-12' : 'mt-10 animate-in fade-in slide-in-from-bottom-2 duration-500'}`}>
-        {/* Vertical connection line for nested threads */}
+      <div className={`relative ${depth > 0 ? 'mt-8 ml-6 sm:ml-12' : 'mt-10 animate-in fade-in slide-in-from-bottom-2 duration-500'}`}>
+        {/* High-Fidelity Threading: 1px gray vertical line */}
         {depth > 0 && (
-          <div className="absolute -left-6 sm:-left-10 top-[-24px] bottom-0 w-px bg-gray-100" />
+          <div className="absolute -left-6 sm:-left-10 top-[-32px] bottom-0 w-px bg-gray-200" />
         )}
 
         <div className="flex gap-4 group">
@@ -157,8 +166,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 {node.username}
               </button>
               
+              {/* Maker Badge */}
               {node.is_maker && (
-                <span className="flex items-center gap-1 text-[8px] px-1.5 py-0.5 bg-emerald-600 text-white rounded font-black uppercase tracking-[0.1em] shadow-sm">
+                <span className="flex items-center gap-1 text-[9px] px-2 py-0.5 bg-emerald-600 text-white rounded font-black uppercase tracking-[0.1em] shadow-sm">
                   Maker
                 </span>
               )}
@@ -172,7 +182,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               {node.text}
             </p>
             
-            {/* Interaction Bar */}
+            {/* Interaction Bar: Semi-bold links exactly like Product Hunt */}
             <div className="flex items-center gap-6 text-[11px] font-semibold text-gray-400 uppercase tracking-tight">
               <button 
                 onClick={() => onCommentUpvote(product.id, node.id)}
@@ -187,6 +197,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               >
                 Reply
               </button>
+              
               <button className="hover:text-emerald-800 transition-colors">Share</button>
             </div>
 
@@ -195,10 +206,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <div className="mt-4 bg-white border border-emerald-100 rounded-2xl p-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
                  <textarea 
                   autoFocus
-                  value={commentText}
+                  placeholder={`Reply to @${node.username}...`}
+                  className="w-full min-h-[80px] outline-none text-sm font-medium resize-none text-gray-700 bg-transparent"
                   onChange={e => setCommentText(e.target.value)}
-                  placeholder={`Reply to ${node.username}...`}
-                  className="w-full min-h-[80px] outline-none text-sm font-medium resize-none text-gray-700"
                 />
                 <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-50">
                   <div className="flex gap-2">
@@ -211,7 +221,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     <button 
                       onClick={() => handleSubmitComment(node.id)}
                       disabled={isSubmitting || !commentText.trim()}
-                      className="px-4 py-1.5 bg-emerald-800 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-emerald-900 transition-all disabled:opacity-50"
+                      className="px-6 py-2 bg-emerald-800 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-emerald-900 transition-all disabled:opacity-50"
                     >
                       {isSubmitting ? 'Posting...' : 'Reply'}
                     </button>
@@ -245,7 +255,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
       <div className="flex flex-col lg:flex-row gap-12">
         <div className="flex-1 lg:max-w-[65%] space-y-12">
-          {/* Header */}
+          {/* Product Header */}
           <div className="flex items-start gap-8">
             <div className="w-24 h-24 rounded-[1.5rem] bg-white overflow-hidden border border-gray-100 shadow-sm shrink-0">
               <SafeImage src={product.logo_url} alt={product.name} seed={product.id} className="w-full h-full object-cover" />
@@ -273,15 +283,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
           </div>
 
+          {/* Media Gallery (Mock) */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              <ImageIcon className="w-3 h-3" /> Media Gallery
-            </div>
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {[1, 2].map((i) => (
                 <div key={i} className="min-w-[450px] aspect-video bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm shrink-0">
                   <SafeImage 
-                    src={`https://images.unsplash.com/photo-${i === 1 ? '1609599006353-e629aaabfeae' : '1557838923-2985c318be48'}?w=900&q=80`} 
+                    src={`https://images.unsplash.com/photo-${i === 1 ? ' photo-1584697964400-2af6a2f6204c' : 'photo-1517694712202-14dd9538aa97'}?w=900&q=80`} 
                     alt="Gallery" className="w-full h-full object-cover" 
                   />
                 </div>
@@ -308,7 +316,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </span>
             </div>
 
-            {/* Input Card: Replicated from image_644e6e.png */}
+            {/*參與狀態 participação: Auth States */}
             {user ? (
               <div className="mb-12 bg-white border border-gray-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-within:border-emerald-800 transition-all">
                 <div className="flex gap-4">
@@ -319,7 +327,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     placeholder="Ask the maker a question or leave feedback..."
-                    className="flex-1 py-2 outline-none text-base font-medium resize-none min-h-[100px] text-gray-700"
+                    className="flex-1 py-2 outline-none text-base font-medium resize-none min-h-[100px] text-gray-700 bg-transparent"
                   />
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
@@ -334,7 +342,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   <button 
                     onClick={() => handleSubmitComment()}
                     disabled={isSubmitting || !commentText.trim()}
-                    className="px-8 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/10 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                    className="px-10 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     Comment
@@ -342,13 +350,23 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="p-8 bg-gray-50 rounded-3xl text-center mb-12 border border-dashed border-gray-200">
-                <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Sign in to join the conversation</p>
+              /* Auth State: Placeholder exactly as requested */
+              <div className="mb-12 p-10 bg-gray-50/50 rounded-3xl text-center border-2 border-dashed border-gray-100 flex flex-col items-center gap-4">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-gray-300 shadow-sm">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <p className="text-[12px] font-black text-gray-400 uppercase tracking-[0.3em]">SIGN IN TO JOIN THE CONVERSATION</p>
+                <p className="text-gray-400 text-sm font-medium italic max-w-xs">Participate in our vibrant community and support makers building for the Ummah.</p>
               </div>
             )}
 
             <div className="space-y-2">
-              {commentTree.length === 0 ? (
+              {isLoadingComments ? (
+                <div className="flex flex-col items-center py-10 gap-4">
+                  <Loader2 className="w-6 h-6 text-emerald-800 animate-spin" />
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loading discussion...</p>
+                </div>
+              ) : commentTree.length === 0 ? (
                 <div className="text-center py-10 italic text-gray-400 font-medium">No comments yet. Be the first to start the discussion!</div>
               ) : (
                 commentTree.map((node: any) => <CommentNode key={node.id} node={node} />)
@@ -376,15 +394,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
 
             <div className="bg-emerald-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-                 <Award className="w-24 h-24 rotate-12" />
-              </div>
               <div className="relative z-10">
                 <div className="inline-block px-3 py-1 bg-emerald-400 text-[#064e3b] rounded-md text-[10px] font-black uppercase tracking-widest mb-4">
                   PERFORMANCE
                 </div>
-                <p className="text-4xl font-serif font-bold mb-1">#4 Product</p>
-                <p className="text-emerald-300 text-[11px] font-black uppercase tracking-[0.2em] mb-8">Of the Day</p>
+                <p className="text-4xl font-serif font-bold mb-1">Top Tier</p>
+                <p className="text-emerald-300 text-[11px] font-black uppercase tracking-[0.2em] mb-8">Of the Week</p>
                 <div className="flex items-center gap-3 p-4 bg-emerald-800/40 rounded-2xl border border-emerald-700/30">
                    <ShieldCheck className="w-6 h-6 text-emerald-400" />
                    <div>
