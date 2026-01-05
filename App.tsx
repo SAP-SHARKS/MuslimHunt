@@ -221,7 +221,7 @@ const App: React.FC = () => {
       if (!error && data) {
         setNotifications(data as Notification[]);
       }
-    } catch (e) {
+    } catch (err) {
       console.error('Failed to fetch notifications');
     }
   };
@@ -260,7 +260,6 @@ const App: React.FC = () => {
           .update({ streak_count: newStreak, last_login_date: now.toISOString() })
           .eq('id', userId);
 
-        // Milestone badge triggers
         if (newStreak === 2 || newStreak === 5) {
           await supabase.from('notifications').insert([{
             user_id: userId,
@@ -275,6 +274,28 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpvote = async (id: string) => {
+    if (!user) { setIsAuthModalOpen(true); return; }
+    const voteKey = `${user.id}_${id}`;
+    if (votes.has(voteKey)) return;
+    
+    setVotes(prev => new Set(prev).add(voteKey));
+    setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+
+    // Social trigger: notify maker
+    const product = products.find(p => p.id === id);
+    if (product && product.user_id !== user.id) {
+      await supabase.from('notifications').insert([{
+        user_id: product.user_id,
+        type: 'upvote',
+        message: `${user.username} upvoted your product "${product.name}"!`,
+        is_read: false,
+        avatar_url: user.avatar_url,
+        target_id: id
+      }]);
+    }
+  };
+
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
   };
@@ -283,7 +304,7 @@ const App: React.FC = () => {
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     } else {
-      // Trigger notification for admins
+      // Admin Trigger
       const { data: admins } = await supabase.from('profiles').select('id').eq('is_admin', true);
       if (admins) {
         const notifs = admins.map(admin => ({
@@ -304,6 +325,94 @@ const App: React.FC = () => {
     fetchProducts();
     fetchCategories();
     fetchNavigation();
+  }, []);
+
+  useEffect(() => {
+    // 2.5-second Safety Valve
+    const safetyValve = setTimeout(() => {
+      if (isAuthLoading) {
+        console.warn('Auth state did not resolve in 2.5s. Force rendering.');
+        setIsAuthLoading(false);
+      }
+    }, 2500);
+
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const m = session.user.user_metadata || {};
+          const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+          const userId = session.user.id;
+
+          setUser({ 
+            id: userId, 
+            email: session.user.email!, 
+            username: m.full_name || session.user.email!.split('@')[0], 
+            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
+            is_admin: isAdmin
+          });
+
+          await Promise.allSettled([
+            fetchNotifications(userId),
+            handleStreakLogic(userId)
+          ]);
+
+          const channel = supabase
+            .channel(`notifs_user_${userId}`)
+            .on(
+              'postgres_changes',
+              { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+              (payload) => {
+                setNotifications(prev => [payload.new as Notification, ...prev]);
+              }
+            )
+            .on(
+              'postgres_changes',
+              { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+              (payload) => {
+                const updated = payload.new as Notification;
+                setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
+              }
+            )
+            .subscribe();
+
+          return () => { supabase.removeChannel(channel); };
+        }
+      } catch (err) {
+        console.error('Session initialization failed');
+      } finally {
+        clearTimeout(safetyValve);
+        setIsAuthLoading(false);
+      }
+    };
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        const m = session.user.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        setUser({ 
+          id: session.user.id, 
+          email: session.user.email!, 
+          username: m.full_name || session.user.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          is_admin: isAdmin
+        });
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setIsAuthModalOpen(false);
+          await Promise.allSettled([
+            fetchNotifications(session.user.id),
+            handleStreakLogic(session.user.id)
+          ]);
+        }
+      } else {
+        setUser(null);
+        setNotifications([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const syncStateFromUrl = () => {
@@ -352,94 +461,6 @@ const App: React.FC = () => {
       setView(View.HOME);
     }
   };
-
-  useEffect(() => {
-    const safetyValve = setTimeout(() => {
-      if (isAuthLoading) {
-        console.warn('Auth Safety Valve: Forcing app to render.');
-        setIsAuthLoading(false);
-      }
-    }, 2500);
-
-    const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const m = session.user.user_metadata || {};
-          const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-          const userId = session.user.id;
-
-          setUser({ 
-            id: userId, 
-            email: session.user.email!, 
-            username: m.full_name || session.user.email!.split('@')[0], 
-            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
-            is_admin: isAdmin
-          });
-
-          await Promise.allSettled([
-            fetchNotifications(userId),
-            handleStreakLogic(userId)
-          ]);
-
-          // Real-time notification channel
-          const channel = supabase
-            .channel(`notifs_user_${userId}`)
-            .on(
-              'postgres_changes',
-              { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-              (payload) => {
-                setNotifications(prev => [payload.new as Notification, ...prev]);
-              }
-            )
-            .on(
-              'postgres_changes',
-              { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-              (payload) => {
-                const updated = payload.new as Notification;
-                setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
-              }
-            )
-            .subscribe();
-
-          return () => { supabase.removeChannel(channel); };
-        }
-      } catch (e) {
-        console.error('Auth check failed');
-      } finally {
-        clearTimeout(safetyValve);
-        setIsAuthLoading(false);
-      }
-    };
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-          await Promise.allSettled([
-            fetchNotifications(session.user.id),
-            handleStreakLogic(session.user.id)
-          ]);
-        }
-      } else {
-        setUser(null);
-        setNotifications([]);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -491,34 +512,12 @@ const App: React.FC = () => {
     updateView(View.DIRECTORY, newPath);
   };
 
-  const handleUpvote = async (id: string) => {
-    if (!user) { setIsAuthModalOpen(true); return; }
-    const voteKey = `${user.id}_${id}`;
-    if (votes.has(voteKey)) return;
-    
-    setVotes(prev => new Set(prev).add(voteKey));
-    setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
-
-    // Social notification for the maker
-    const product = products.find(p => p.id === id);
-    if (product && product.user_id !== user.id) {
-      await supabase.from('notifications').insert([{
-        user_id: product.user_id,
-        type: 'upvote',
-        message: `${user.username} upvoted your product "${product.name}"!`,
-        is_read: false,
-        avatar_url: user.avatar_url,
-        target_id: id
-      }]);
-    }
-  };
-
   const markNotificationAsRead = async (id: string) => {
     try {
       await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (e) {
-      console.warn('Failed to mark as read');
+      console.warn('Failed to mark read');
     }
   };
 

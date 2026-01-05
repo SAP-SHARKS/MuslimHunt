@@ -302,7 +302,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         )}
                       </div>
                       <div className="px-6">
-                        <button onClick={() => handleNavigate(View.NOTIFICATIONS)} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View full history</button>
+                        <button onClick={() => handleNavigate(View.NOTIFICATIONS)} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View all</button>
                       </div>
                     </div>
                   )}
@@ -335,7 +335,7 @@ const Navbar: React.FC<NavbarProps> = ({
       <div className={`fixed inset-0 z-[200] lg:hidden transition-all duration-300 ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeDrawer} />
         
-        <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
