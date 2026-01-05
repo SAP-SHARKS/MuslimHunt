@@ -3,13 +3,10 @@ export interface Profile {
   id: string;
   username: string;
   avatar_url: string;
-  full_name?: string;
   bio?: string;
   headline?: string;
   twitter_url?: string;
   website_url?: string;
-  linkedin_url?: string;
-  is_admin?: boolean;
 }
 
 export interface Comment {
@@ -42,14 +39,14 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  user_id: string; 
+  user_id: string; // Changed from founder_id
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
-  is_approved: boolean; 
+  is_approved: boolean; // Moderation flag
 }
 
 export interface Category {
@@ -105,13 +102,11 @@ export interface User {
   email: string;
   username: string;
   avatar_url: string;
-  full_name?: string;
   bio?: string;
-  headline?: string;
   twitter_url?: string;
   website_url?: string;
-  linkedin_url?: string;
-  is_admin?: boolean;
+  headline?: string;
+  is_admin?: boolean; // Admin privilege flag
 }
 
 export enum View {
@@ -120,6 +115,7 @@ export enum View {
   DETAIL = 'detail',
   PROFILE = 'profile',
   EDIT_PROFILE = 'edit_profile',
+  SETTINGS = 'settings',
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',
