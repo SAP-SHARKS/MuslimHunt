@@ -102,14 +102,17 @@ const Navbar: React.FC<NavbarProps> = ({
   const [expandedAccordion, setExpandedAccordion] = useState<string | null>(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [showSubmitDropdown, setShowSubmitDropdown] = useState(false);
   
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const submitDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) setShowUserDropdown(false);
       if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target as Node)) setShowNotificationDropdown(false);
+      if (submitDropdownRef.current && !submitDropdownRef.current.contains(event.target as Node)) setShowSubmitDropdown(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -123,6 +126,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const handleNavigate = (view: View) => {
     setView(view);
     closeDrawer();
+    setShowSubmitDropdown(false);
   };
 
   const toggleAccordion = (section: string) => {
@@ -136,9 +140,8 @@ const Navbar: React.FC<NavbarProps> = ({
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8 h-16 flex items-center">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
           
-          {/* Mobile Header Layout (< 1024px) - Product Hunt Clone */}
+          {/* Mobile Header Layout (< 1024px) */}
           <div className="lg:hidden flex items-center justify-between w-full bg-white">
-            {/* Left Group: Hamburger + Logo */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsDrawerOpen(true)} 
@@ -156,7 +159,6 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            {/* Right Group: Subscribe + (Sign In / Avatar) */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => handleNavigate(View.NEWSLETTER)}
@@ -191,7 +193,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Desktop Nav Links - Includes specific lg:ml-12 gap */}
+          {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center lg:ml-12 gap-7 h-full">
             {mainNavItems.map((menu) => (
               <React.Fragment key={menu.id}>
@@ -221,13 +223,50 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {/* Desktop Right Actions */}
           <div className="hidden lg:flex items-center gap-4">
-            <button 
-              onClick={() => setView(View.NEWSLETTER)}
-              className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
-            >
-              <Mail className="w-4 h-4" />
-              <span>Subscribe</span>
-            </button>
+            {user ? (
+              /* Submit Dropdown: Only for Logged In Users */
+              <div className="relative" ref={submitDropdownRef}>
+                <button 
+                  onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
+                  className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2 group"
+                >
+                  <Plus className={`w-4 h-4 transition-transform duration-200 ${showSubmitDropdown ? 'rotate-45 text-emerald-800' : 'group-hover:text-emerald-800'}`} />
+                  <span>Submit</span>
+                </button>
+                
+                {showSubmitDropdown && (
+                  <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-[0_15px_45px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                    <button 
+                      onClick={() => handleNavigate(View.POST_SUBMIT)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover/item:scale-105 transition-transform">
+                        <Rocket className="w-4 h-4" />
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-emerald-900">Launch a product</span>
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate(View.NEW_THREAD)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover/item:scale-105 transition-transform">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-emerald-900">Start a thread</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Subscribe Button: For Logged Out Users */
+              <button 
+                onClick={() => setView(View.NEWSLETTER)}
+                className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Subscribe</span>
+              </button>
+            )}
 
             {!user && (
               <button onClick={onSignInClick} className="text-emerald-900 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm">Sign In</button>
@@ -288,14 +327,11 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer (Overlay) - Hidden on desktop via lg:hidden */}
+      {/* Mobile Menu Drawer (Overlay) */}
       <div className={`fixed inset-0 z-[200] lg:hidden transition-all duration-300 ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        {/* Backdrop */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeDrawer} />
         
-        {/* Drawer Content Container */}
         <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          {/* Drawer Top Header */}
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
@@ -309,7 +345,6 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
-            {/* Mobile Search inside Drawer */}
             <div className="relative mb-4">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input 
@@ -322,7 +357,6 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="space-y-1">
-              {/* Accordion: Best Products */}
               <div>
                 <button 
                   onClick={() => toggleAccordion('best_products')}
@@ -346,7 +380,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Accordion: Launches */}
               <div>
                 <button 
                   onClick={() => toggleAccordion('launches')}
@@ -369,7 +402,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Accordion: News */}
               <div>
                 <button 
                   onClick={() => toggleAccordion('news')}
@@ -393,7 +425,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Accordion: Forums */}
               <div>
                 <button 
                   onClick={() => toggleAccordion('forums')}
@@ -417,7 +448,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              {/* Standard Links */}
               <button onClick={() => handleNavigate(View.SPONSOR)} className={`w-full flex items-center gap-3 p-4 rounded-xl font-bold text-[16px] transition-all ${currentView === View.SPONSOR ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
                 <Megaphone className={`w-5 h-5 ${currentView === View.SPONSOR ? 'text-emerald-800' : 'text-gray-400'}`} />
                 Advertise
@@ -445,7 +475,6 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Fixed Drawer Footer Actions (Fixed at Bottom) */}
           <div className="p-6 space-y-3 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
             <button 
               onClick={() => handleNavigate(View.POST_SUBMIT)}
