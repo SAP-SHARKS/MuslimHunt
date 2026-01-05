@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './components/Navbar.tsx';
 import ProductCard from './components/ProductCard.tsx';
@@ -9,6 +8,7 @@ import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
+import EditProfile from './components/EditProfile.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -21,12 +21,12 @@ import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
-import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
 // Hardcoded admins for demo, in production this should be a DB role
-const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -70,8 +70,8 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
-  const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+  const isAdmin = user?.is_admin || (user?.email && ADMIN_EMAILS.includes(user.email));
   
   return (
     <aside className="hidden xl:block w-80 shrink-0">
@@ -148,9 +148,13 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
   );
 };
 
+// Internal constant to handle the auth callback state
+const VIEW_AUTH_CALLBACK = 'auth_callback' as any;
+
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
@@ -159,6 +163,7 @@ const App: React.FC = () => {
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
@@ -172,14 +177,31 @@ const App: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
-        .eq('is_approved', true) // Filter for public feed
+        .select('*, profiles:user_id(username, avatar_url)')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
+    }
+  };
+
+  const fetchUserVotes = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('votes')
+        .select('product_id')
+        .eq('user_id', userId);
+      
+      if (!error && data) {
+        const voteSet = new Set<string>();
+        data.forEach(v => voteSet.add(`${userId}_${v.product_id}`));
+        setVotes(voteSet);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching user votes:', err);
     }
   };
 
@@ -200,7 +222,6 @@ const App: React.FC = () => {
   };
 
   const handleNewProduct = (newProduct: Product) => {
-    // Only add to local state if approved (unlikely for new submissions)
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     }
@@ -234,14 +255,34 @@ const App: React.FC = () => {
     fetchNavigation();
   }, []);
 
+  const fetchProfileByUsername = async (username: string) => {
+    try {
+      const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', cleanUsername)
+        .single();
+      
+      if (!error && data) {
+        setSelectedProfile(data as Profile);
+        return data;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (categories.length === 0) return;
 
-    // Handle popstate for browser navigation and View.EDIT_PROFILE routing
     const handlePopState = () => {
       try {
         const path = window.location.pathname;
-        if (path === '/p/new') setView(View.NEW_THREAD);
+        if (path === '/auth/callback') setView(VIEW_AUTH_CALLBACK);
+        else if (path === '/p/new') setView(View.NEW_THREAD);
         else if (path === '/posts/new') setView(View.POST_SUBMIT);
         else if (path === '/posts/new/submission') setView(View.SUBMISSION);
         else if (path === '/notifications') setView(View.NOTIFICATIONS);
@@ -252,7 +293,13 @@ const App: React.FC = () => {
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
         else if (path === '/admin') setView(View.ADMIN_PANEL);
-        else if (path === '/settings') setView(View.EDIT_PROFILE);
+        else if (path === '/my/details/edit') setView(View.EDIT_PROFILE);
+        else if (path.startsWith('/@')) {
+          const username = path.substring(2).split('?')[0];
+          fetchProfileByUsername(username).then(prof => {
+            if (prof) setView(View.PROFILE);
+          });
+        }
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -262,7 +309,7 @@ const App: React.FC = () => {
           const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
           if (slug) {
             const catName = unslugify(slug, categories);
-            setActiveCategory(catName);
+            setActiveCategory(catName as string);
             setView(View.CATEGORY_DETAIL);
           } else setView(View.CATEGORIES);
         } else if (path === '/' || path === '') setView(View.HOME);
@@ -275,7 +322,29 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [categories]);
 
-  // Update view state and push history, including support for View.EDIT_PROFILE
+  // PKCE CODE EXCHANGE LOGIC
+  useEffect(() => {
+    if (view === VIEW_AUTH_CALLBACK) {
+      const exchangeCode = async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+          try {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) throw error;
+            updateView(View.WELCOME, '/my/welcome');
+          } catch (err) {
+            console.error('Auth code exchange failed:', err);
+            updateView(View.HOME, '/?error=auth_failed');
+          }
+        } else {
+          updateView(View.HOME);
+        }
+      };
+      exchangeCode();
+    }
+  }, [view]);
+
   const updateView = (newView: View, customPath?: string) => {
     setView(newView);
     let path = customPath || '/';
@@ -291,7 +360,10 @@ const App: React.FC = () => {
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
       else if (newView === View.ADMIN_PANEL) path = '/admin';
-      else if (newView === View.EDIT_PROFILE) path = '/settings';
+      else if (newView === View.EDIT_PROFILE) path = '/my/details/edit';
+      else if (newView === View.PROFILE && selectedProfile) {
+        path = `/@${selectedProfile.username}`;
+      }
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }
@@ -327,51 +399,112 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
+    const handleUserUpdate = async (sessionUser: any) => {
+      if (sessionUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sessionUser.id)
+          .single();
+        
+        const m = sessionUser.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
+        
+        const finalUser = { 
+          id: sessionUser.id, 
+          email: sessionUser.email!, 
+          username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
+          avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
+          bio: profile?.bio,
+          headline: profile?.headline,
+          website_url: profile?.website_url,
+          twitter_url: profile?.twitter_url,
+          linkedin_url: profile?.linkedin_url,
+          full_name: profile?.full_name,
+          is_admin: isAdmin || profile?.is_admin
+        };
+        setUser(finalUser);
+        await fetchUserVotes(sessionUser.id);
+      } else {
+        setUser(null);
+        setVotes(new Set());
+      }
+    };
 
-    supabase.auth.getSession().then(({ data }) => {
-      const session = data?.session;
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
+        await handleUserUpdate(session.user);
+      }
+      setIsAuthReady(true);
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) await handleUserUpdate(session.user);
+        setIsAuthModalOpen(false);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setVotes(new Set());
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-        }
-      } else setUser(null);
-    });
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleUpvote = (id: string) => {
+  const handleUpvote = async (id: string) => {
     if (!user) { setIsAuthModalOpen(true); return; }
+    
     const voteKey = `${user.id}_${id}`;
     if (votes.has(voteKey)) return;
+
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+
+    try {
+      await supabase.from('votes').insert([{ user_id: user.id, product_id: id }]);
+    } catch (e) {
+      console.error('Upvote failed:', e);
+    }
+  };
+
+  const handleWelcomeComplete = async (onboardingData: any) => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      alert("No active session found. Please sign in again.");
+      return;
+    }
+
+    try {
+      const cleanUsername = onboardingData.username.replace(/^@/, '').trim();
+      const profileData = {
+        full_name: onboardingData.fullName,
+        username: cleanUsername,
+        headline: onboardingData.headline,
+        linkedin_url: onboardingData.linkedinUrl,
+        twitter_url: onboardingData.twitterUrl,
+        newsletter_preferences: onboardingData.preferences,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', authUser.id);
+
+      if (error) throw error;
+
+      const updatedProfile = { ...user, ...profileData, id: authUser.id } as any;
+      setUser(updatedProfile);
+      setSelectedProfile(updatedProfile);
+      updateView(View.PROFILE, `/@${cleanUsername}`);
+    } catch (err: any) {
+      console.error('Onboarding Error:', err);
+      alert(`Bismillah, there was an error saving your profile: ${err.message || 'Check your internet connection'}`);
+      throw err;
+    }
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -397,6 +530,30 @@ const App: React.FC = () => {
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
+  if (!isAuthReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 text-emerald-800 animate-spin" />
+      </div>
+    );
+  }
+
+  // Handle Callback loading view
+  if (view === VIEW_AUTH_CALLBACK) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-800 animate-pulse">
+           <Sparkles className="w-10 h-10" />
+        </div>
+        <h2 className="text-xl font-serif font-bold text-emerald-900 tracking-tight">Bismillah, verifying your session...</h2>
+        <div className="flex items-center gap-2 text-gray-400 font-black uppercase tracking-widest text-[10px]">
+           <Loader2 className="w-3 h-3 animate-spin" />
+           Communicating with Auth Gateway
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
@@ -404,10 +561,17 @@ const App: React.FC = () => {
           user={user} 
           currentView={view} 
           setView={updateView} 
-          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
+          onLogout={async () => { 
+            await supabase.auth.signOut(); 
+            window.location.href = '/'; 
+          }} 
           searchQuery={searchQuery} 
           onSearchChange={setSearchQuery} 
-          onViewProfile={() => user && setView(View.PROFILE)} 
+          onViewProfile={() => {
+            if (user) {
+              fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
+            }
+          }} 
           onSignInClick={() => setIsAuthModalOpen(true)}
           notifications={notifications}
           menuItems={menuItems}
@@ -420,58 +584,55 @@ const App: React.FC = () => {
 
       <main className="pb-10">
         {view === View.HOME && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <div className="flex-1">
-              <header className="mb-12">
-                <div className="flex items-center gap-2 text-emerald-800 mb-2">
-                  <Sparkles className="w-4 h-4 fill-emerald-800" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
+          <>
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
+              <div className="flex-1">
+                <header className="mb-12">
+                  <div className="flex items-center gap-2 text-emerald-800 mb-2">
+                    <Sparkles className="w-4 h-4 fill-emerald-800" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
+                  </div>
+                  <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
+                </header>
+                <div className="space-y-16">
+                  {[
+                    { id: 'today', title: "Top Products Launching Today", buttonLabel: "today's products", data: groupedProducts.today },
+                    { id: 'yesterday', title: "Yesterday's Top Products", buttonLabel: "yesterday's products", data: groupedProducts.yesterday },
+                    { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
+                    { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
+                  ].map((section) => (
+                    section.data.length > 0 && (
+                      <section key={section.id}>
+                        <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
+                        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
+                          {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
+                            <ProductCard 
+                              key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote} 
+                              hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
+                              onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
+                              onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
+                              searchQuery={searchQuery} 
+                            />
+                          ))}
+                        </div>
+                        {!expandedSections[section.id] && section.data.length > 5 && (
+                          <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
+                            See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
+                          </button>
+                        )}
+                      </section>
+                    )
+                  ))}
                 </div>
-                <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
-              </header>
-              <div className="space-y-16">
-                {[
-                  { id: 'today', title: "Top Products Launching Today", buttonLabel: "today's products", data: groupedProducts.today },
-                  { id: 'yesterday', title: "Yesterday's Top Products", buttonLabel: "yesterday's products", data: groupedProducts.yesterday },
-                  { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
-                  { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
-                ].map((section) => (
-                  section.data.length > 0 && (
-                    <section key={section.id}>
-                      <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
-                      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
-                        {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
-                          <ProductCard 
-                            key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote} 
-                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
-                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
-                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
-                            searchQuery={searchQuery} 
-                          />
-                        ))}
-                      </div>
-                      {!expandedSections[section.id] && section.data.length > 5 && (
-                        <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
-                          See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
-                    </section>
-                  )
-                ))}
               </div>
+              <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
             </div>
-            <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
-          </div>
+          </>
         )}
 
         {isForumView && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <ForumSidebar 
-              currentView={view} 
-              setView={updateView} 
-              user={user} 
-              onSignIn={() => setIsAuthModalOpen(true)} 
-            />
+            <ForumSidebar currentView={view} setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
@@ -493,15 +654,44 @@ const App: React.FC = () => {
           <ProductDetail 
             product={selectedProduct} user={user} onBack={() => updateView(View.HOME)} 
             onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
-            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
+            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={(uid) => {
+              supabase.from('profiles').select('*').eq('id', uid).single().then(({data}) => {
+                if(data) { setSelectedProfile(data as Profile); updateView(View.PROFILE); }
+              })
+            }} scrollToComments={shouldScrollToComments} 
           />
         )}
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
-        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
+        {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={handleWelcomeComplete} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
+        {view === View.PROFILE && selectedProfile && (
+          <UserProfile 
+            profile={selectedProfile} 
+            currentUser={user} 
+            products={products} 
+            votes={votes} 
+            onBack={() => updateView(View.HOME)}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }}
+            onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL); }}
+            onUpvote={handleUpvote}
+            onEditClick={() => updateView(View.EDIT_PROFILE)}
+          />
+        )}
+        {view === View.EDIT_PROFILE && user && (
+          <EditProfile 
+            user={user} 
+            onSave={(updated) => { setUser(prev => prev ? {...prev, ...updated} : null); updateView(View.PROFILE); }} 
+            onCancel={() => updateView(View.PROFILE)}
+            onViewProfile={() => {
+              if (user) {
+                fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
+              }
+            }}
+          />
+        )}
       </main>
       <Footer setView={updateView} />
     </div>

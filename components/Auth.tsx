@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Mail, Loader2, Sparkles, ArrowRight, X, Facebook, Twitter } from 'lucide-react';
@@ -20,11 +21,11 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true);
     setMessage(null);
 
-    // Redirect to onboarding path after successful magic link verification
+    // PKCE Flow: Redirect to dedicated callback route instead of home
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/my/welcome`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -33,7 +34,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     } else {
       setMessage({ 
         type: 'success', 
-        text: 'Bismillah! Check your email for the verification link. If you are new, an account has been prepared for you.' 
+        text: 'Bismillah! Check your email. We used a secure exchange link to keep you logged in reliably.' 
       });
     }
     setLoading(false);
@@ -45,7 +46,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onSuccess }) => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: `${window.location.origin}/my/welcome`
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     });
     if (error) {

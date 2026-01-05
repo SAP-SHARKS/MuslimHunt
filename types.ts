@@ -1,13 +1,15 @@
 
-
 export interface Profile {
   id: string;
   username: string;
   avatar_url: string;
+  full_name?: string;
   bio?: string;
   headline?: string;
   twitter_url?: string;
   website_url?: string;
+  linkedin_url?: string;
+  is_admin?: boolean;
 }
 
 export interface Comment {
@@ -40,14 +42,14 @@ export interface Product {
   url?: string;
   website_url?: string;
   logo_url: string;
-  user_id: string; // Changed from founder_id
+  user_id: string; 
   category: string;
   upvotes_count: number;
   halal_status: 'Certified' | 'Self-Certified' | 'Shariah-Compliant';
   sadaqah_info?: string;
   comments?: Comment[];
   badges?: Badge[];
-  is_approved: boolean; // Moderation flag
+  is_approved: boolean;
 }
 
 export interface Category {
@@ -103,16 +105,15 @@ export interface User {
   email: string;
   username: string;
   avatar_url: string;
+  full_name?: string;
   bio?: string;
   twitter_url?: string;
   website_url?: string;
   headline?: string;
-  is_admin?: boolean; // Admin privilege flag
+  linkedin_url?: string;
+  is_admin?: boolean;
 }
 
-/**
- * View enumeration for application routing.
- */
 export enum View {
   HOME = 'home',
   SUBMIT = 'submit', 
