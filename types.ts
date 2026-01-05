@@ -117,6 +117,7 @@ export enum View {
   NEW_THREAD = 'new_thread',
   FORUM_HOME = 'forum_home',
   RECENT_COMMENTS = 'recent_comments',
+  FORUM_SEARCH = 'forum_search',
   SPONSOR = 'sponsor',
   NEWSLETTER = 'newsletter',
   CATEGORIES = 'categories',

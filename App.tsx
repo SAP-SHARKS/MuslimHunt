@@ -12,6 +12,7 @@ import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
 import RecentComments from './components/RecentComments.tsx';
+import ForumSearchPage from './components/ForumSearchPage.tsx';
 import NotificationsPage from './components/NotificationsPage.tsx';
 import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
@@ -249,6 +250,7 @@ const App: React.FC = () => {
         else if (path === '/notifications') setView(View.NOTIFICATIONS);
         else if (path === '/forums') setView(View.FORUM_HOME);
         else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
+        else if (path === '/forums/search') setView(View.FORUM_SEARCH);
         else if (path === '/sponsor') setView(View.SPONSOR);
         else if (path === '/newsletters') setView(View.NEWSLETTER);
         else if (path === '/categories') setView(View.CATEGORIES);
@@ -310,6 +312,7 @@ const App: React.FC = () => {
       else if (newView === View.NOTIFICATIONS) path = '/notifications';
       else if (newView === View.FORUM_HOME) path = '/forums';
       else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
+      else if (newView === View.FORUM_SEARCH) path = '/forums/search';
       else if (newView === View.SPONSOR) path = '/sponsor';
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
@@ -424,7 +427,7 @@ const App: React.FC = () => {
     return grouped;
   }, [filteredProducts]);
 
-  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
+  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD, View.FORUM_SEARCH].includes(view);
 
   if (!isAuthReady) {
     return (
@@ -545,6 +548,7 @@ const App: React.FC = () => {
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
+              {view === View.FORUM_SEARCH && <ForumSearchPage setView={updateView} />}
               {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleCreateThread} setView={updateView} />}
             </div>
           </div>
