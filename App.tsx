@@ -211,14 +211,18 @@ const App: React.FC = () => {
   };
 
   const fetchNotifications = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (!error && data) {
-      setNotifications(data as Notification[]);
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setNotifications(data as Notification[]);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching notifications:', err);
     }
   };
 
@@ -250,14 +254,12 @@ const App: React.FC = () => {
         }
       }
 
-      // Only update if it's a new day or first login
       if (!lastLogin || new Date(lastLogin).toDateString() !== now.toDateString()) {
         await supabase
           .from('profiles')
           .update({ streak_count: newStreak, last_login_date: now.toISOString() })
           .eq('id', userId);
 
-        // Badge Notifications Triggers
         if (newStreak === 2 || newStreak === 5) {
           await supabase.from('notifications').insert([{
             user_id: userId,
@@ -280,7 +282,6 @@ const App: React.FC = () => {
     if (newProduct.is_approved) {
       setProducts(prev => [newProduct, ...prev]);
     } else {
-      // Admin Trigger: Notify admins on submission
       const { data: admins } = await supabase.from('profiles').select('id').eq('is_admin', true);
       if (admins) {
         const adminNotifs = admins.map(admin => ({
@@ -305,51 +306,57 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        const userId = session.user.id;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const m = session.user.user_metadata || {};
+          const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+          const userId = session.user.id;
 
-        setUser({ 
-          id: userId, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
-          is_admin: isAdmin
-        });
+          setUser({ 
+            id: userId, 
+            email: session.user.email!, 
+            username: m.full_name || session.user.email!.split('@')[0], 
+            avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
+            is_admin: isAdmin
+          });
 
-        // Initialize Real-time & Streaks
-        fetchNotifications(userId);
-        handleStreakLogic(userId);
+          await Promise.all([
+            fetchNotifications(userId),
+            handleStreakLogic(userId)
+          ]);
 
-        const channel = supabase
-          .channel(`notifications_user_${userId}`)
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-            (payload) => {
-              setNotifications(prev => [payload.new as Notification, ...prev]);
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
-            (payload) => {
-              const updated = payload.new as Notification;
-              setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
-            }
-          )
-          .subscribe();
+          const channel = supabase
+            .channel(`notifications_user_${userId}`)
+            .on(
+              'postgres_changes',
+              { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+              (payload) => {
+                setNotifications(prev => [payload.new as Notification, ...prev]);
+              }
+            )
+            .on(
+              'postgres_changes',
+              { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+              (payload) => {
+                const updated = payload.new as Notification;
+                setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
+              }
+            )
+            .subscribe();
 
-        return () => { supabase.removeChannel(channel); };
+          return () => { supabase.removeChannel(channel); };
+        }
+      } catch (err) {
+        console.error('[Muslim Hunt] Auth init failed:', err);
+      } finally {
+        setIsAuthLoading(false);
       }
-      setIsAuthLoading(false);
     };
 
     initSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
@@ -362,8 +369,10 @@ const App: React.FC = () => {
         });
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           setIsAuthModalOpen(false);
-          fetchNotifications(session.user.id);
-          handleStreakLogic(session.user.id);
+          await Promise.all([
+            fetchNotifications(session.user.id),
+            handleStreakLogic(session.user.id)
+          ]);
         }
       } else {
         setUser(null);
@@ -479,7 +488,6 @@ const App: React.FC = () => {
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
 
-    // Instant Social Notification
     const product = products.find(p => p.id === id);
     if (product && product.user_id !== user.id) {
       await supabase.from('notifications').insert([{
@@ -648,17 +656,6 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
       </main>
-
-      {/* Mobile-Only Forum Action Section */}
-      <div className="block lg:hidden px-4 mb-10">
-        <button 
-          onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
-          className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
-        >
-          <Plus className="w-5 h-5 text-gray-400" />
-          Start new thread
-        </button>
-      </div>
 
       <Footer setView={updateView} />
     </div>

@@ -281,9 +281,9 @@ const Navbar: React.FC<NavbarProps> = ({
                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Recent Notifications</h4>
                         <Bell className="w-3 h-3 text-emerald-800 opacity-50" />
                       </div>
-                      <div className="space-y-1 mb-4 overflow-y-auto max-h-[350px]">
+                      <div className="space-y-1 mb-4 overflow-y-auto max-h-[320px]">
                         {notifications.length === 0 ? (
-                          <p className="text-[13px] text-gray-400 italic text-center py-8">No unread notifications!</p>
+                          <p className="text-[13px] text-gray-400 italic text-center py-10 px-6">No unread notifications!</p>
                         ) : (
                           notifications.slice(0, 2).map((n) => (
                             <div key={n.id} onClick={() => handleNavigate(View.NOTIFICATIONS)} className={`flex gap-3 px-6 py-4 transition-all hover:bg-emerald-50/50 cursor-pointer ${!n.is_read ? 'bg-emerald-50/20' : ''}`}>
