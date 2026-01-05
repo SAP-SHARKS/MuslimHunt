@@ -169,7 +169,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) // Filter for public feed
+        .eq('is_approved', true) 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -249,7 +249,16 @@ const App: React.FC = () => {
       else if (path === '/my/welcome') setView(View.WELCOME);
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/products' || segments[0] === 'products') {
-        const topic = searchParams.get('topic') || segments[1] || '';
+        if (segments[0] === 'products' && segments[1]) {
+          // Dynamic Product Detail Routing
+          const prod = products.find(p => slugify(p.name) === segments[1]);
+          if (prod) {
+            setSelectedProduct(prod);
+            setView(View.DETAIL);
+            return;
+          }
+        }
+        const topic = searchParams.get('topic') || '';
         const parent = searchParams.get('parentTopic') || '';
         setActiveTag(topic);
         setActiveParentTopic(parent);

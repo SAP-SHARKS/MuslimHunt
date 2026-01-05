@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { ChevronUp, MessageSquare, Triangle } from 'lucide-react';
 import { Product } from '../types';
-import { highlightSearchTerm } from '../utils/searchUtils';
+import { highlightSearchTerm, slugify } from '../utils/searchUtils';
 import SafeImage from './SafeImage.tsx';
 
 interface ProductCardProps {
@@ -26,14 +27,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const highlightedName = highlightSearchTerm(product.name, searchQuery);
   const highlightedTagline = highlightSearchTerm(product.tagline, searchQuery);
   const commentCount = product.comments?.length || 0;
+  const productSlug = slugify(product.name);
 
   // Mock tags for professional aesthetic
   const tags = [product.category, 'Web', 'Free'];
 
   return (
-    <div 
-      className="group flex items-center justify-between p-5 bg-white border-b border-gray-50 last:border-0 hover:bg-emerald-50/20 transition-all cursor-pointer"
-      onClick={() => onClick(product)}
+    <a 
+      href={`/products/${productSlug}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center justify-between p-5 bg-white border-b border-gray-50 last:border-0 hover:bg-emerald-50/20 transition-all cursor-pointer no-underline block"
+      onClick={(e) => {
+        // If the user is just clicking the card normally (not cmd/ctrl click), 
+        // we can still trigger the internal onClick if needed, 
+        // but for "New Tab" logic as requested, we let the default <a> behavior win.
+      }}
     >
       <div className="flex items-center gap-5 flex-1 min-w-0">
         {/* Ranking Number */}
@@ -85,6 +94,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Comment Button */}
         <button
           onClick={(e) => {
+            e.preventDefault(); // Prevent opening the new tab when clicking specific actions
             e.stopPropagation();
             onCommentClick(product);
           }}
@@ -97,6 +107,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Upvote Button */}
         <button
           onClick={(e) => {
+            e.preventDefault(); // Prevent opening the new tab when clicking specific actions
             e.stopPropagation();
             onUpvote(product.id);
           }}
@@ -110,7 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <span className="text-[11px] font-black tracking-tighter">{product.upvotes_count}</span>
         </button>
       </div>
-    </div>
+    </a>
   );
 };
 
