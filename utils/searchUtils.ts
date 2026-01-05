@@ -1,3 +1,4 @@
+
 import { Product } from '../types';
 
 /**
@@ -29,4 +30,16 @@ export function highlightSearchTerm(text: string, searchTerm: string): string {
   
   const regex = new RegExp(`(${searchTerm})`, 'gi');
   return text.replace(regex, '<mark class="bg-emerald-100 text-emerald-900">$1</mark>');
+}
+
+/**
+ * Formats numbers into compact strings (e.g., 1500 -> 1.5k)
+ */
+export function formatCompactNumber(number: number): string {
+  if (number === undefined || number === null) return '0';
+  return Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    compactDisplay: 'short',
+    maximumFractionDigits: 1,
+  }).format(number);
 }

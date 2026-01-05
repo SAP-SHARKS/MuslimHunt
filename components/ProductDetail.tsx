@@ -4,6 +4,7 @@ import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, Shie
 import { Product, Comment } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 import SafeImage from './SafeImage.tsx';
+import { formatCompactNumber } from '../utils/searchUtils';
 
 interface ProductDetailProps {
   product: Product;
@@ -168,7 +169,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <MessageSquare className="w-5 h-5" />
                 Discussion
               </h3>
-              <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{product.comments?.length || 0} comments</span>
+              <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">
+                {formatCompactNumber(product.comments?.length || 0)} comments
+              </span>
             </div>
 
             {user ? (
@@ -198,8 +201,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </div>
             )}
 
-            {/* High-Density Comments List */}
-            <div className="space-y-4">
+            {/* High-Density Comments List Optimized for High Volume */}
+            <div className="space-y-4 max-h-[800px] overflow-y-auto custom-scrollbar pr-2">
               {product.comments?.length === 0 ? (
                 <div className="text-center py-12 text-gray-400 italic text-sm">No comments yet. Start the conversation!</div>
               ) : (
@@ -208,15 +211,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   const isHovered = hoveredCommentId === comment.id;
 
                   return (
-                    <div key={comment.id} className="flex gap-3 group relative py-1 border-b border-gray-50 last:border-0 pb-4 last:pb-0">
-                      {/* Avatar Trigger */}
+                    <div key={comment.id} className="flex gap-3 group relative py-1 border-b border-gray-50 last:border-0 pb-4 last:pb-0 min-h-[80px]">
+                      {/* Avatar Trigger with fixed dimensions to prevent layout shifts */}
                       <div 
-                        className="relative shrink-0"
+                        className="relative shrink-0 w-9 h-9"
                         onMouseEnter={() => handleMouseEnter(comment.id)}
                         onMouseLeave={handleMouseLeave}
                       >
                         <button 
-                          className="w-9 h-9 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95 shadow-sm"
+                          className="w-9 h-9 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95 shadow-sm bg-gray-100"
                           onClick={() => onViewProfile(comment.user_id)}
                         >
                           <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
@@ -253,7 +256,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                             className={`flex items-center gap-1 transition-colors ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
                           >
                             <Triangle className={`w-2.5 h-2.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
-                            <span>Upvote ({comment.upvotes_count || 0})</span>
+                            <span>Upvote ({formatCompactNumber(comment.upvotes_count || 0)})</span>
                           </button>
                           <span className="text-gray-200">•</span>
                           <button 
@@ -300,7 +303,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </a>
               <button onClick={() => onUpvote(product.id)} className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-lg transition-all border-2 ${hasUpvoted ? 'bg-emerald-700/50 border-white text-white' : 'bg-transparent border-emerald-600/50 text-emerald-100 hover:border-white'}`}>
                 <ChevronUp className="w-6 h-6" />
-                {product.upvotes_count || 0} Upvotes
+                {formatCompactNumber(product.upvotes_count || 0)} Upvotes
               </button>
             </div>
           </div>
