@@ -44,20 +44,9 @@ const safeHistory = {
       try {
         const relativePath = path.startsWith('/') ? path : `/${path}`;
         window.history.pushState({}, '', relativePath);
-        // Dispatch event for local router sync
         window.dispatchEvent(new PopStateEvent('popstate'));
       } catch (e) {
         console.warn('[Muslim Hunt] Navigation suppressed (Security Restriction)', e);
-      }
-    }
-  },
-  replace: (path: string) => {
-    if (safeHistory.isSupported()) {
-      try {
-        const relativePath = path.startsWith('/') ? path : `/${path}`;
-        window.history.replaceState({}, '', relativePath);
-      } catch (e) {
-        console.warn('[Muslim Hunt] ReplaceState suppressed (Security Restriction)', e);
       }
     }
   }
@@ -105,7 +94,9 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
                     <thread.icon className="w-3 h-3 opacity-60" />
                     <span>{thread.tag}</span>
                   </div>
-                  <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">{thread.title}</h4>
+                  <div className="flex items-center gap-1">
+                    <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">{thread.title}</h4>
+                  </div>
                   <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
                     <div className="flex items-center gap-1">
                       <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
@@ -211,22 +202,142 @@ const App: React.FC = () => {
     }
   };
 
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
+  const fetchNotifications = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (!error && data) {
+        setNotifications(data as Notification[]);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching notifications:', err);
+    }
   };
 
-  const handleNewProduct = (newProduct: Product) => {
-    if (newProduct.is_approved) {
-      setProducts(prev => [newProduct, ...prev]);
+  const handleStreakLogic = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('streak_count, last_login_date')
+        .eq('id', userId)
+        .single();
+
+      if (error || !profile) return;
+
+      const now = new Date();
+      const lastLogin = profile.last_login_date ? new Date(profile.last_login_date) : null;
+      let newStreak = profile.streak_count || 0;
+
+      if (!lastLogin) {
+        newStreak = 1;
+      } else {
+        const diffDays = Math.floor((now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 1) {
+          newStreak += 1;
+        } else if (diffDays > 1) {
+          newStreak = 1;
+        }
+      }
+
+      await supabase
+        .from('profiles')
+        .update({ streak_count: newStreak, last_login_date: now.toISOString() })
+        .eq('id', userId);
+
+      // Automated triggers: Streak Badges
+      if (newStreak === 2 || newStreak === 5) {
+        await supabase.from('notifications').insert([{
+          user_id: userId,
+          type: 'streak',
+          message: `You have been awarded a Gone streaking ${newStreak} badge!`,
+          is_read: false
+        }]);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Streak logic failed:', err);
     }
-    updateView(View.HOME, '/');
-    fetchProducts(); 
   };
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
     fetchNavigation();
+  }, []);
+
+  useEffect(() => {
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const m = session.user.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        const userId = session.user.id;
+
+        setUser({ 
+          id: userId, 
+          email: session.user.email!, 
+          username: m.full_name || session.user.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${userId}`,
+          is_admin: isAdmin
+        });
+
+        // Activation: Streak & Notifs
+        handleStreakLogic(userId);
+        fetchNotifications(userId);
+
+        // Real-Time subscription for notifications
+        const channel = supabase
+          .channel(`notifications_user_${userId}`)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+            (payload) => {
+              setNotifications(prev => [payload.new as Notification, ...prev]);
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+            (payload) => {
+              const updated = payload.new as Notification;
+              setNotifications(prev => prev.map(n => n.id === updated.id ? updated : n));
+            }
+          )
+          .subscribe();
+
+        return () => { supabase.removeChannel(channel); };
+      }
+      setIsAuthLoading(false);
+    };
+
+    initSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const m = session.user.user_metadata || {};
+        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
+        setUser({ 
+          id: session.user.id, 
+          email: session.user.email!, 
+          username: m.full_name || session.user.email!.split('@')[0], 
+          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
+          is_admin: isAdmin
+        });
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setIsAuthModalOpen(false);
+          handleStreakLogic(session.user.id);
+          fetchNotifications(session.user.id);
+        }
+      } else {
+        setUser(null);
+        setNotifications([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const syncStateFromUrl = () => {
@@ -250,7 +361,6 @@ const App: React.FC = () => {
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/products' || segments[0] === 'products') {
         if (segments[0] === 'products' && segments[1]) {
-          // Dynamic Product Detail Routing
           const prod = products.find(p => slugify(p.name) === segments[1]);
           if (prod) {
             setSelectedProduct(prod);
@@ -276,45 +386,6 @@ const App: React.FC = () => {
       setView(View.HOME);
     }
   };
-
-  useEffect(() => {
-    const initSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-      }
-      setIsAuthLoading(false);
-    };
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        const m = session.user.user_metadata || {};
-        const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
-          is_admin: isAdmin
-        });
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsAuthModalOpen(false);
-        }
-      } else setUser(null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     if (!isAuthLoading) {
@@ -366,12 +437,46 @@ const App: React.FC = () => {
     updateView(View.DIRECTORY, newPath);
   };
 
-  const handleUpvote = (id: string) => {
+  const handleUpvote = async (id: string) => {
     if (!user) { setIsAuthModalOpen(true); return; }
     const voteKey = `${user.id}_${id}`;
     if (votes.has(voteKey)) return;
+    
     setVotes(prev => new Set(prev).add(voteKey));
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+
+    // Social Trigger: Notify Maker
+    const prod = products.find(p => p.id === id);
+    if (prod && prod.user_id !== user.id) {
+      await supabase.from('notifications').insert([{
+        user_id: prod.user_id,
+        type: 'upvote',
+        message: `${user.username} upvoted your product "${prod.name}"!`,
+        is_read: false,
+        avatar_url: user.avatar_url,
+        target_id: id
+      }]);
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  };
+
+  // Fixed: Defined toggleSection to handle expanding date-based sections
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  // Fixed: Defined handleNewProduct to update state when a submission completes
+  const handleNewProduct = (newProduct: Product) => {
+    setProducts(prev => [newProduct, ...prev]);
+    setSelectedProduct(newProduct);
+    updateView(View.DETAIL, `/products/${slugify(newProduct.name)}`);
   };
 
   const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
@@ -517,7 +622,7 @@ const App: React.FC = () => {
             commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
           />
         )}
-        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
+        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={markNotificationAsRead} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
