@@ -34,34 +34,12 @@ export function highlightSearchTerm(text: string, searchTerm: string): string {
 
 /**
  * Formats numbers into compact strings (e.g., 1500 -> 1.5k)
- * Uses lowercase 'k' and 'm' for a cleaner, high-density look.
  */
 export function formatCompactNumber(number: number): string {
   if (number === undefined || number === null) return '0';
-  if (number < 1000) return number.toString();
-  
   return Intl.NumberFormat('en-US', {
     notation: 'compact',
     compactDisplay: 'short',
     maximumFractionDigits: 1,
-  }).format(number).toLowerCase();
+  }).format(number);
 }
-
-/**
- * Converts a string into a URL-friendly slug
- */
-export const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-    .replace(/--+/g, '-');
-};
-
-/**
- * Finds a product in an array by its slugified name
- */
-export const findProductBySlug = (products: Product[], slug: string) => {
-  return products.find(p => slugify(p.name) === slug);
-};

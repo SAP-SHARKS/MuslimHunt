@@ -1,11 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, 
-  ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, 
-  Sparkles, Triangle, ChevronRight, ChevronLeft, Globe, Twitter,
-  Info, Layout, Award
-} from 'lucide-react';
+import { ExternalLink, ChevronUp, ArrowLeft, Calendar, User, MessageSquare, ShieldCheck, Heart, Send, Share2, Flag, ArrowBigUp, Clock, Sparkles, Triangle } from 'lucide-react';
 import { Product, Comment } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 import SafeImage from './SafeImage.tsx';
@@ -37,21 +32,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   scrollToComments = false
 }) => {
   const [commentText, setCommentText] = useState('');
-  const [activeTab, setActiveTab] = useState('Overview');
+  const [hoveredCommentId, setHoveredCommentId] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<number | null>(null);
   const discussionRef = useRef<HTMLDivElement>(null);
-
-  const screenshots = [
-    `https://picsum.photos/seed/${product.id}1/800/450`,
-    `https://picsum.photos/seed/${product.id}2/800/450`,
-    `https://picsum.photos/seed/${product.id}3/800/450`,
-    `https://picsum.photos/seed/${product.id}4/800/450`,
-  ];
 
   useEffect(() => {
     if (scrollToComments && discussionRef.current) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         discussionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [scrollToComments]);
 
@@ -62,243 +52,278 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     setCommentText('');
   };
 
+  const handleReportComment = (commentId: string, username: string) => {
+    console.log(`[Moderation] Comment ${commentId} by ${username} reported.`);
+    alert(`Thank you for keeping Muslim Hunt safe. The comment by ${username} has been reported for review.`);
+  };
+
+  const handleShareComment = (commentId: string) => {
+    const shareUrl = `${window.location.origin}/comment/${commentId}`;
+    navigator.clipboard.writeText(shareUrl);
+    alert('Link to comment copied to clipboard!');
+  };
+
+  const handleMouseEnter = (commentId: string) => {
+    if (hoverTimeoutRef.current) window.clearTimeout(hoverTimeoutRef.current);
+    setHoveredCommentId(commentId);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      setHoveredCommentId(null);
+    }, 300);
+  };
+
+  const UserHoverCard = ({ comment }: { comment: Comment }) => (
+    <div 
+      className="absolute bottom-full left-0 mb-4 w-72 bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[1.5rem] p-6 z-50 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+      onMouseEnter={() => handleMouseEnter(comment.id)}
+      onMouseLeave={handleMouseLeave}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-50 shrink-0 shadow-sm">
+          <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+        </div>
+        <div>
+          <h4 className="font-bold text-gray-900 text-lg leading-tight">{comment.username}</h4>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded font-black uppercase tracking-wider">
+              {comment.is_maker ? 'Maker' : 'Contributor'}
+            </span>
+            {comment.is_maker && <Sparkles className="w-3 h-3 text-emerald-500" />}
+          </div>
+        </div>
+      </div>
+      
+      <p className="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
+        Building the future of Halal tech. Currently working on <span className="text-emerald-800 font-bold">Global Ummah</span> solutions.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4 mb-6 pt-6 border-t border-gray-50">
+        <div className="text-center">
+          <p className="font-black text-gray-900 text-lg leading-none">1.4k</p>
+          <p className="text-[10px] uppercase font-bold text-gray-400 mt-1 tracking-tighter">Followers</p>
+        </div>
+        <div className="text-center border-l border-gray-50">
+          <p className="font-black text-gray-900 text-lg leading-none">840</p>
+          <p className="text-[10px] uppercase font-bold text-gray-400 mt-1 tracking-tighter">Points</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button className="flex-1 py-2.5 border border-gray-200 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98]">
+          Follow
+        </button>
+        <button 
+          onClick={() => onViewProfile(comment.user_id)}
+          className="px-4 py-2.5 bg-emerald-800 text-white rounded-xl font-bold text-sm hover:bg-emerald-900 transition-all active:scale-[0.98]"
+        >
+          Profile
+        </button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="flex flex-col lg:grid lg:grid-cols-[1fr_300px] gap-10">
-        
-        {/* Left Column (70%) */}
-        <div className="space-y-8 min-w-0">
-          
-          {/* Header Section */}
-          <div className="flex items-start gap-5">
-            <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl overflow-hidden border border-gray-100 shadow-sm shrink-0">
-              <SafeImage src={product.logo_url} alt={product.name} seed={product.id} className="w-full h-full" />
-            </div>
-            <div className="flex-1 min-w-0 pt-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 leading-tight tracking-tight">
-                  {product.name}
-                </h1>
-                <span className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded font-bold uppercase tracking-wider border border-emerald-100">
-                  Launching today
-                </span>
+    <div className="max-w-5xl mx-auto py-8 px-4">
+      <button 
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
+      >
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        Back to feed
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm p-8 sm:p-12">
+            <div className="flex items-start gap-8 mb-10">
+              <div className="w-24 h-24 rounded-3xl bg-gray-50 overflow-hidden border-4 border-emerald-50 shrink-0">
+                <SafeImage src={product.logo_url} alt={product.name} seed={product.id} className="w-full h-full object-cover" />
               </div>
-              <p className="text-[16px] lg:text-[18px] text-gray-500 font-medium leading-snug tracking-tight">
-                {product.tagline}
-              </p>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs px-2 py-1 bg-emerald-50 text-emerald-800 rounded-lg font-bold uppercase tracking-wider">
+                    {product.category}
+                  </span>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(product.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <h1 className="text-5xl font-serif font-bold text-emerald-900 mb-2">{product.name}</h1>
+                <p className="text-xl text-gray-500 font-medium leading-snug">{product.tagline}</p>
+              </div>
             </div>
-          </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-8 border-b border-gray-100 overflow-x-auto whitespace-nowrap scrollbar-hide">
-            {['Overview', 'Reviews', 'Alternatives', 'Team'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-4 text-[13px] font-bold transition-all relative ${
-                  activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {tab}
-                {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-800 rounded-full" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Content Area */}
-          <div className="space-y-12">
-            
-            {/* Description */}
             <div className="prose prose-emerald max-w-none">
-              <p className="text-gray-600 text-[17px] leading-relaxed whitespace-pre-wrap tracking-tight">
-                {product.description}
-              </p>
-            </div>
-
-            {/* Media Gallery */}
-            <div className="relative group">
-              <div className="flex gap-4 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide">
-                {screenshots.map((src, i) => (
-                  <div key={i} className="flex-none w-[85%] lg:w-[480px] aspect-video bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 snap-start shadow-sm hover:shadow-md transition-shadow">
-                    <SafeImage src={src} alt={`${product.name} screenshot ${i+1}`} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-              <button className="absolute left-[-20px] top-[45%] p-2 bg-white rounded-full shadow-xl border border-gray-50 text-gray-400 hover:text-emerald-800 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block">
-                <ChevronLeft size={24} />
-              </button>
-              <button className="absolute right-[-20px] top-[45%] p-2 bg-white rounded-full shadow-xl border border-gray-50 text-gray-400 hover:text-emerald-800 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:block">
-                <ChevronRight size={24} />
-              </button>
-            </div>
-
-            {/* Discussion Feed */}
-            <div ref={discussionRef} className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-900 tracking-tight">Discussion</h3>
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                  {formatCompactNumber(product.comments?.length || 0)} comments
-                </span>
-              </div>
-
-              {/* Input Area */}
-              <div className="flex gap-4 items-start bg-gray-50/50 p-4 lg:p-6 rounded-[2rem] border border-gray-100">
-                <div className="w-9 h-9 rounded-full bg-emerald-800 flex items-center justify-center text-white shrink-0 font-bold text-sm shadow-sm">
-                  {user?.username?.[0].toUpperCase() || 'U'}
-                </div>
-                <div className="flex-1 space-y-3">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="What do you think of this launch?"
-                    className="w-full bg-transparent border-none outline-none resize-none text-[15px] min-h-[60px] font-medium placeholder:text-gray-400 leading-snug"
-                  />
-                  <div className="flex justify-end">
-                    <button 
-                      onClick={handleSubmitComment}
-                      className="px-6 py-2 bg-emerald-800 text-white rounded-full font-bold text-sm hover:bg-emerald-900 transition-all active:scale-95 shadow-md shadow-emerald-900/10"
-                    >
-                      Comment
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments List - High Density Typography */}
-              <div className="space-y-8 pt-4">
-                {product.comments?.map((comment) => (
-                  <div key={comment.id} className="flex gap-4 group">
-                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100 bg-gray-50 shadow-sm">
-                      <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[14px] text-gray-900 cursor-pointer hover:text-emerald-800 transition-colors tracking-tight">
-                          {comment.username}
-                        </span>
-                        {comment.is_maker && (
-                          <span className="text-[9px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase tracking-tighter">Maker</span>
-                        )}
-                        <span className="text-[11px] text-gray-400 font-medium tracking-tight">• {formatTimeAgo(comment.created_at)}</span>
-                      </div>
-                      <p className="text-gray-600 text-[14px] lg:text-[15px] leading-relaxed font-normal tracking-tight">
-                        {comment.text}
-                      </p>
-                      {/* Meta Actions - High Density / Ghost Style */}
-                      <div className="flex items-center gap-4 pt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button className="text-[10px] font-bold text-gray-400 hover:text-emerald-800 uppercase tracking-widest transition-colors">Reply</button>
-                        <button 
-                          onClick={() => onCommentUpvote(product.id, comment.id)}
-                          className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${commentVotes.has(`${user?.id}_${comment.id}`) ? 'text-emerald-800' : 'text-gray-400 hover:text-emerald-800'}`}
-                        >
-                          Upvote {comment.upvotes_count > 0 && `(${formatCompactNumber(comment.upvotes_count)})`}
-                        </button>
-                        <button className="text-[10px] font-bold text-gray-400 hover:text-emerald-800 uppercase tracking-widest transition-colors">Share</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">About this product</h2>
+              <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-wrap">{product.description}</p>
             </div>
           </div>
-        </div>
 
-        {/* Right Column (Sticky Actions - 30%) */}
-        <div className="hidden lg:block">
-          <div className="sticky top-24 space-y-6">
-            
-            {/* Day Rank Card */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shadow-inner">
-                  <Award size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Daily Achievement</p>
-                  <p className="text-[16px] font-bold text-gray-900 tracking-tight">#1 Day Rank</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button className="p-1 hover:bg-gray-50 rounded text-gray-300 hover:text-emerald-800"><ChevronLeft size={16}/></button>
-                <button className="p-1 hover:bg-gray-50 rounded text-gray-300 hover:text-emerald-800"><ChevronRight size={16}/></button>
-              </div>
+          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2rem] shadow-sm p-6 sm:p-8 scroll-mt-20">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Discussion
+              </h3>
+              <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">
+                {formatCompactNumber(product.comments?.length || 0)} comments
+              </span>
             </div>
 
-            {/* Primary Upvote Action - Compact Formatting */}
-            <button
-              onClick={() => onUpvote(product.id)}
-              className={`w-full py-5 rounded-2xl font-black text-lg uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all border-2 ${
-                hasUpvoted 
-                  ? 'bg-emerald-900 border-emerald-900 text-white' 
-                  : 'bg-white border-emerald-800 text-emerald-800 hover:bg-emerald-50'
-              }`}
-            >
-              <Triangle className={`w-5 h-5 ${hasUpvoted ? 'fill-white' : ''}`} />
-              Upvote • {formatCompactNumber(product.upvotes_count || 0)}
-            </button>
-
-            {/* Company Info & Meta */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 space-y-6 shadow-sm">
-              <div>
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Company Info</h4>
-                <div className="space-y-3">
-                  <a href={product.website_url || '#'} className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-emerald-800 transition-colors group tracking-tight">
-                    <div className="flex items-center gap-2"><Globe size={14} className="text-gray-300" /> Website</div>
-                    <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
-                  </a>
-                  <a href="#" className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-emerald-800 transition-colors group tracking-tight">
-                    <div className="flex items-center gap-2"><Twitter size={14} className="text-gray-300" /> Twitter</div>
-                    <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-gray-50">
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Trust & Compliance</h4>
-                <div className="flex items-center gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
-                  <ShieldCheck className="w-5 h-5 text-emerald-800 shrink-0" />
-                  <p className="text-[13px] font-bold text-emerald-900 tracking-tight">{product.halal_status}</p>
-                </div>
-              </div>
-
-              {/* Similar Products */}
-              <div className="pt-6 border-t border-gray-50">
-                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Similar Products</h4>
-                <div className="space-y-4">
-                  {[1, 2].map((i) => (
-                    <div key={i} className="flex items-center gap-3 cursor-pointer group">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden shrink-0 shadow-sm">
-                        <SafeImage src={`https://picsum.photos/seed/${i}${i}/40/40`} alt="Similar" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-900 truncate group-hover:text-emerald-800 tracking-tight">Related App {i}</p>
-                        <p className="text-[11px] text-gray-400 font-medium truncate tracking-tight">Alternative solution...</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Support / Advertise Card */}
-            <div className="bg-emerald-900 rounded-2xl p-6 text-white relative overflow-hidden group shadow-xl">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-                <Sparkles size={100} className="rotate-12" />
-              </div>
-              <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Ummah Support</p>
-                <h4 className="text-lg font-bold leading-tight mb-4 tracking-tight">Launch your product with the community.</h4>
-                <button className="text-[11px] font-black text-emerald-300 hover:text-white transition-colors flex items-center gap-2 uppercase tracking-widest">
-                  Learn how to launch <ChevronRight size={14} />
+            {user ? (
+              <form onSubmit={handleSubmitComment} className="mb-8 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => onViewProfile(user.id)}
+                  className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-gray-200 active:scale-95 transition-transform cursor-pointer"
+                >
+                  <SafeImage src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                 </button>
+                <div className="flex-1 relative">
+                  <input 
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    placeholder="Ask the maker a question..."
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-xl outline-none transition-all pr-12 text-sm"
+                  />
+                  <button type="submit" className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors">
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-5 bg-gray-50 rounded-2xl text-center mb-8 border border-dashed border-gray-200">
+                <p className="text-gray-500 text-sm font-medium">Please sign in to join the discussion.</p>
               </div>
-            </div>
+            )}
 
+            {/* High-Density Comments List Optimized for High Volume */}
+            <div className="space-y-4 max-h-[800px] overflow-y-auto custom-scrollbar pr-2">
+              {product.comments?.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 italic text-sm">No comments yet. Start the conversation!</div>
+              ) : (
+                product.comments?.map((comment: Comment) => {
+                  const hasUpvotedComment = commentVotes.has(`${user?.id}_${comment.id}`);
+                  const isHovered = hoveredCommentId === comment.id;
+
+                  return (
+                    <div key={comment.id} className="flex gap-3 group relative py-1 border-b border-gray-50 last:border-0 pb-4 last:pb-0 min-h-[80px]">
+                      {/* Avatar Trigger with fixed dimensions to prevent layout shifts */}
+                      <div 
+                        className="relative shrink-0 w-9 h-9"
+                        onMouseEnter={() => handleMouseEnter(comment.id)}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <button 
+                          className="w-9 h-9 rounded-full overflow-hidden border border-emerald-50 cursor-pointer hover:ring-2 hover:ring-emerald-800 transition-all active:scale-95 shadow-sm bg-gray-100"
+                          onClick={() => onViewProfile(comment.user_id)}
+                        >
+                          <SafeImage src={comment.avatar_url} alt={comment.username} className="w-full h-full object-cover" />
+                        </button>
+                        {isHovered && <UserHoverCard comment={comment} />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <div 
+                            className="relative"
+                            onMouseEnter={() => handleMouseEnter(comment.id)}
+                            onMouseLeave={handleMouseLeave}
+                          >
+                            <button 
+                              className={`font-bold text-[13px] cursor-pointer hover:underline hover:text-emerald-800 transition-colors ${comment.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                              onClick={() => onViewProfile(comment.user_id)}
+                            >
+                              {comment.username}
+                            </button>
+                          </div>
+                          {comment.is_maker && (
+                            <span className="text-[9px] px-1.5 py-0.5 bg-emerald-800 text-white rounded font-black uppercase tracking-tighter">Maker</span>
+                          )}
+                        </div>
+                        
+                        <p className="text-gray-600 text-sm leading-snug break-words font-medium">
+                          {comment.text}
+                        </p>
+                        
+                        <div className="flex items-center gap-3 mt-1.5 text-[11px] font-black text-gray-400 uppercase tracking-tighter">
+                          <button 
+                            onClick={() => onCommentUpvote(product.id, comment.id)}
+                            className={`flex items-center gap-1 transition-colors ${hasUpvotedComment ? 'text-emerald-800' : 'hover:text-emerald-800'}`}
+                          >
+                            <Triangle className={`w-2.5 h-2.5 ${hasUpvotedComment ? 'fill-emerald-800' : ''}`} />
+                            <span>Upvote ({formatCompactNumber(comment.upvotes_count || 0)})</span>
+                          </button>
+                          <span className="text-gray-200">•</span>
+                          <button 
+                            onClick={() => handleShareComment(comment.id)}
+                            className="hover:text-emerald-800 transition-colors"
+                          >
+                            Share
+                          </button>
+                          <span className="text-gray-200">•</span>
+                          <button 
+                            onClick={() => handleReportComment(comment.id, comment.username)}
+                            className="hover:text-red-500 transition-colors"
+                          >
+                            Report
+                          </button>
+                          <span className="text-gray-200">•</span>
+                          <div className="flex items-center gap-1 text-gray-300">
+                            <Clock className="w-3 h-3" />
+                            <span>{formatTimeAgo(comment.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
 
+        <div className="space-y-6">
+          <div className="bg-emerald-800 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-900/10">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              Halal Verified
+            </h3>
+            <div className="mb-8">
+              <span className="block text-emerald-200 text-xs font-bold uppercase tracking-widest mb-1">Status</span>
+              <p className="text-2xl font-bold">{product.halal_status}</p>
+            </div>
+            <div className="space-y-4">
+              <a href={product.website_url || product.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white text-emerald-900 w-full py-4 rounded-2xl font-black text-lg transition-all hover:shadow-lg active:scale-[0.98]">
+                Visit Site <ExternalLink className="w-5 h-5" />
+              </a>
+              <button onClick={() => onUpvote(product.id)} className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-black text-lg transition-all border-2 ${hasUpvoted ? 'bg-emerald-700/50 border-white text-white' : 'bg-transparent border-emerald-600/50 text-emerald-100 hover:border-white'}`}>
+                <ChevronUp className="w-6 h-6" />
+                {formatCompactNumber(product.upvotes_count || 0)} Upvotes
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8">
+            <h4 className="font-bold text-gray-900 mb-4 uppercase tracking-widest text-xs">The Maker</h4>
+            <button 
+              className="flex items-center gap-4 cursor-pointer group w-full text-left active:scale-[0.98] transition-transform"
+              onClick={() => onViewProfile(product.user_id)}
+            >
+              <div className="w-12 h-12 rounded-full overflow-hidden border border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
+                <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors">View Profile</p>
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-tighter hover:underline">Maker Portfolio</p>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
