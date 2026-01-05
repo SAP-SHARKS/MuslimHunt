@@ -25,7 +25,7 @@ import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus,
 import { supabase } from './lib/supabase.ts';
 import { searchProducts, slugify, findProductBySlug } from './utils/searchUtils.ts';
 
-const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -150,6 +150,7 @@ const App: React.FC = () => {
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [activeTag, setActiveTag] = useState<string>('');
+  const [activeParentTopic, setActiveParentTopic] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -233,6 +234,7 @@ const App: React.FC = () => {
     
     try {
       const path = window.location.pathname;
+      const searchParams = new URLSearchParams(window.location.search);
       const segments = path.split('/').filter(Boolean);
 
       if (path === '/p/new') setView(View.NEW_THREAD);
@@ -247,8 +249,10 @@ const App: React.FC = () => {
       else if (path === '/my/welcome') setView(View.WELCOME);
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/products' || segments[0] === 'products') {
-        const tag = segments[1] || '';
-        setActiveTag(tag);
+        const topic = searchParams.get('topic') || segments[1] || '';
+        const parent = searchParams.get('parentTopic') || '';
+        setActiveTag(topic);
+        setActiveParentTopic(parent);
         setView(View.DIRECTORY);
       }
       else if (path.startsWith('/categories/')) {
@@ -332,7 +336,9 @@ const App: React.FC = () => {
       }
       else if (newView === View.HOME) path = '/';
     }
-    if (window.location.pathname !== path) safeHistory.push(path);
+    
+    const currentFullPath = window.location.pathname + window.location.search;
+    if (currentFullPath !== path) safeHistory.push(path);
   };
 
   const handleCategorySelect = (cat: string) => {
@@ -341,10 +347,14 @@ const App: React.FC = () => {
     updateView(View.CATEGORY_DETAIL, `/categories/${slugify(cat)}`);
   };
 
-  const handleTagSelect = (tag: string) => {
-    const slug = slugify(tag);
-    setActiveTag(slug);
-    updateView(View.DIRECTORY, `/products/${slug}`);
+  const handleTagSelect = (tag: string, parent?: string) => {
+    const params = new URLSearchParams();
+    if (tag) params.set('topic', slugify(tag));
+    if (parent) params.set('parentTopic', slugify(parent));
+    
+    const queryString = params.toString();
+    const newPath = `/products${queryString ? `?${queryString}` : ''}`;
+    updateView(View.DIRECTORY, newPath);
   };
 
   const handleUpvote = (id: string) => {
@@ -434,8 +444,8 @@ const App: React.FC = () => {
                           <ProductCard 
                             key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote} 
                             hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
-                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL); }} 
-                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL); }} 
+                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }} 
+                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }} 
                             searchQuery={searchQuery} 
                           />
                         ))}
@@ -458,8 +468,9 @@ const App: React.FC = () => {
           <ProductDirectory 
             products={products} 
             activeTag={activeTag} 
+            activeParentTopic={activeParentTopic}
             onTagSelect={handleTagSelect} 
-            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }} 
           />
         )}
 
@@ -486,7 +497,7 @@ const App: React.FC = () => {
         {view === View.CATEGORY_DETAIL && (
           <CategoryDetail 
             category={activeCategory} products={products} categories={categories}
-            onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }} 
+            onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }} 
             onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect} 
           />
         )}
