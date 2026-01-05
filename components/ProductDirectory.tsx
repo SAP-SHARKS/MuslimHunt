@@ -12,53 +12,23 @@ import { slugify } from '../utils/searchUtils';
 interface ProductDirectoryProps {
   products: Product[];
   activeTag: string;
-  activeParentTopic: string;
-  onTagSelect: (tag: string, parent?: string) => void;
+  onTagSelect: (tag: string) => void;
   onProductClick: (product: Product) => void;
 }
 
 const LAUNCH_TAGS = [
-  { 
-    name: 'Productivity', 
-    icon: Code, 
-    subtags: ['Alarms', 'Tasks', 'Calendar', 'Notes'] 
-  },
-  { 
-    name: 'Android', 
-    icon: Smartphone, 
-    subtags: ['Google Play', 'Mobile Apps'] 
-  },
-  { 
-    name: 'Apple', 
-    icon: Smartphone, 
-    subtags: ['iOS', 'macOS', 'SwiftUI', 'Apple Watch'] 
-  },
-  { 
-    name: 'Art', 
-    icon: Palette, 
-    subtags: ['Digital Art', 'Photography', '3D Design'] 
-  },
-  { 
-    name: 'Business', 
-    icon: Briefcase, 
-    subtags: ['Finance', 'CRM', 'Startups'] 
-  },
-  { 
-    name: 'Education', 
-    icon: Hash, 
-    subtags: ['Learning', 'Language', 'Coding', 'Courses'] 
-  },
-  { 
-    name: 'Games', 
-    icon: Gamepad2, 
-    subtags: ['Indie Games', 'Puzzles', 'Mobile Gaming'] 
-  }
+  { name: 'Android', icon: Smartphone, subtags: ['Google Play', 'Mobile Apps'] },
+  { name: 'Apple', icon: Smartphone, subtags: ['iOS', 'macOS', 'SwiftUI'] },
+  { name: 'Art', icon: Palette, subtags: ['Digital Art', 'Photography'] },
+  { name: 'Business', icon: Briefcase, subtags: ['Finance', 'CRM'] },
+  { name: 'Education', icon: Hash, subtags: ['Learning', 'Coding'] },
+  { name: 'Games', icon: Gamepad2, subtags: ['Indie', 'Mobile Games'] },
+  { name: 'Productivity', icon: Code, subtags: ['Tasks', 'Calendar'] }
 ];
 
 const ProductDirectory: React.FC<ProductDirectoryProps> = ({ 
   products, 
   activeTag, 
-  activeParentTopic,
   onTagSelect, 
   onProductClick 
 }) => {
@@ -80,49 +50,42 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
     return found || activeTag;
   }, [activeTag]);
 
-  const parentTagName = useMemo(() => {
-    if (!activeParentTopic) return '';
-    const found = LAUNCH_TAGS.find(t => slugify(t.name) === activeParentTopic);
-    return found ? found.name : '';
-  }, [activeParentTopic]);
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col lg:grid lg:grid-cols-[240px_1fr] gap-12 items-start">
       
-      {/* Sidebar: Hierarchical Desktop Launch Tags */}
+      {/* Sidebar: Desktop Only */}
       <aside className="hidden lg:block w-full sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar">
         <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6 px-3">
           Launch tags
         </h3>
         <nav className="space-y-1">
           {LAUNCH_TAGS.map((tag) => {
-            const isParentSlugMatch = slugify(tag.name) === activeTag;
-            const isParentTopicMatch = slugify(tag.name) === activeParentTopic;
-            const isExpanded = isParentSlugMatch || isParentTopicMatch;
+            const isMainActive = slugify(tag.name) === activeTag;
+            const hasActiveSub = tag.subtags.some(s => slugify(s) === activeTag);
             
             return (
               <div key={tag.name} className="space-y-0.5">
                 <button
                   onClick={() => onTagSelect(tag.name)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-bold transition-all ${
-                    isExpanded
+                    isMainActive || hasActiveSub
                       ? 'bg-emerald-50 text-emerald-900' 
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <tag.icon size={16} className={isExpanded ? 'text-emerald-800' : 'text-gray-300'} />
+                    <tag.icon size={16} className={isMainActive || hasActiveSub ? 'text-emerald-800' : 'text-gray-300'} />
                     {tag.name}
                   </div>
-                  {isExpanded ? <ChevronDown size={14} className="text-emerald-800" /> : <ChevronRight size={14} className="text-gray-300" />}
+                  {(isMainActive || hasActiveSub) && <ChevronDown size={14} className="text-emerald-800" />}
                 </button>
                 
-                {isExpanded && (
+                {(isMainActive || hasActiveSub) && (
                   <div className="ml-9 space-y-0.5 pt-0.5 pb-2">
                     {tag.subtags.map(sub => (
                       <button
                         key={sub}
-                        onClick={() => onTagSelect(sub, tag.name)}
+                        onClick={() => onTagSelect(sub)}
                         className={`w-full text-left py-1 text-[12px] font-medium transition-colors ${
                           slugify(sub) === activeTag 
                             ? 'text-emerald-800 font-bold' 
@@ -148,7 +111,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
             <span className="text-[10px] font-black uppercase tracking-widest">Featured Directory</span>
           </div>
           <h1 className="text-3xl lg:text-4xl font-serif font-bold text-emerald-900 mb-2 tracking-tight capitalize">
-            Best {activeTagName} products {parentTagName ? `under ${parentTagName}` : ''} of {currentMonth} {currentYear}
+            Best {activeTagName} products of {currentMonth} {currentYear}
           </h1>
           <p className="text-gray-400 text-sm font-medium">
             Discovering {filteredProducts.length} {activeTagName} tools vetted for the community.
