@@ -1,10 +1,6 @@
 
-import React, { useState } from 'react';
-import { 
-  ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, 
-  MessageSquare, Heart, Sparkles, Settings, ArrowUpRight, 
-  Layers, Bookmark, Star, ChevronRight, Share2, Triangle
-} from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles } from 'lucide-react';
 import { Product, Profile, User } from '../types';
 import ProductCard from './ProductCard';
 
@@ -17,7 +13,6 @@ interface UserProfileProps {
   onProductClick: (product: Product) => void;
   onCommentClick: (product: Product) => void;
   onUpvote: (productId: string) => void;
-  onEditClick: () => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -28,228 +23,118 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
   onProductClick,
   onCommentClick,
-  onUpvote,
-  onEditClick
+  onUpvote
 }) => {
-  const [activeTab, setActiveTab] = useState('About');
+  // Aligned with user_id schema
   const makerHistory = products.filter(p => p.user_id === profile.id);
   const totalKarma = makerHistory.reduce((acc, p) => acc + (p.upvotes_count || 0), 0);
   const isOwnProfile = currentUser?.id === profile.id;
 
-  const tabs = [
-    { name: 'About', count: null },
-    { name: 'Forums', count: 12 },
-    { name: 'Activity', count: null },
-    { name: 'Upvotes', count: votes.size },
-    { name: 'Collections', count: 0 },
-    { name: 'Stacks', count: 2 },
-    { name: 'Reviews', count: 0 }
-  ];
-
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4 sm:px-8 animate-in fade-in duration-500">
-      {/* Header Navigation */}
-      <div className="flex items-center justify-between mb-12">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors group font-black uppercase tracking-[0.2em] text-[10px]"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Home
-        </button>
-        <button className="p-2 text-gray-400 hover:text-emerald-800 transition-all active:scale-95">
-          <Share2 className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="max-w-6xl mx-auto py-8 px-4">
+      <button 
+        onClick={onBack}
+        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
+      >
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        Back to Community
+      </button>
 
-      {/* Profile Header Card */}
-      <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
-        <div className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl shrink-0 group">
-          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-        </div>
-        
-        <div className="flex-1 min-w-0 pt-2">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-4xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                {profile.full_name || profile.username}
-                {profile.is_admin && <Award className="w-5 h-5 text-emerald-600" />}
-              </h1>
-              <div className="flex items-center gap-2 text-gray-400 font-bold mt-1">
-                <span>@{profile.username}</span>
-                <span className="text-gray-200">•</span>
-                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-800/40">#{profile.id.slice(0, 4)}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Profile Sidebar */}
+        <div className="lg:col-span-1 space-y-6 sticky top-24">
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="w-32 h-32 mx-auto rounded-[2.5rem] overflow-hidden border-4 border-emerald-50 mb-6 shadow-md">
+              <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+            </div>
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <h1 className="text-2xl font-serif font-bold text-emerald-900">{profile.username}</h1>
+                {isOwnProfile && <Sparkles className="w-4 h-4 text-emerald-500" />}
               </div>
+              {profile.headline && (
+                <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3 bg-emerald-50 py-1 px-3 rounded-full inline-block">
+                  {profile.headline}
+                </p>
+              )}
+              <p className="text-gray-500 text-sm leading-relaxed">{profile.bio}</p>
             </div>
 
-            {isOwnProfile ? (
-              <button 
-                onClick={onEditClick}
-                className="flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 rounded-xl font-bold text-sm text-gray-700 hover:bg-gray-50 hover:border-emerald-800 transition-all active:scale-95 shadow-sm"
-              >
-                <Settings className="w-4 h-4" />
-                Edit my profile
-              </button>
+            <div className="space-y-3 pt-6 border-t border-gray-50">
+              {profile.twitter_url && (
+                <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors text-sm font-medium">
+                  <Twitter className="w-4 h-4" /> @{profile.username}
+                </a>
+              )}
+              {profile.website_url && (
+                <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors text-sm font-medium">
+                  <Globe className="w-4 h-4" /> Personal Site
+                </a>
+              )}
+              <div className="flex items-center gap-3 text-gray-400 text-sm font-medium">
+                <Calendar className="w-4 h-4" /> Joined 2024
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-emerald-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-900/10">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400 mb-6 flex items-center gap-2">
+              <Award className="w-4 h-4" /> Maker Stats
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-emerald-800/50 p-4 rounded-2xl text-center">
+                <p className="text-2xl font-black">{makerHistory.length}</p>
+                <p className="text-[10px] uppercase font-bold text-emerald-300 tracking-tighter">Launches</p>
+              </div>
+              <div className="bg-emerald-800/50 p-4 rounded-2xl text-center">
+                <p className="text-2xl font-black">{totalKarma}</p>
+                <p className="text-[10px] uppercase font-bold text-emerald-300 tracking-tighter">Karma</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Maker History Main Feed */}
+        <div className="lg:col-span-3 space-y-8">
+          <div>
+            <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
+              <TrendingUp className="w-6 h-6 text-emerald-800" />
+              <h2 className="text-2xl font-serif font-bold text-emerald-900">Maker History</h2>
+            </div>
+
+            {makerHistory.length > 0 ? (
+              <div className="space-y-4 bg-white/40 p-3 rounded-[3rem] border border-emerald-50/50 shadow-inner">
+                {makerHistory.map(p => (
+                  <ProductCard 
+                    key={p.id} 
+                    product={p} 
+                    onUpvote={onUpvote} 
+                    hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
+                    onClick={onProductClick}
+                    onCommentClick={onCommentClick}
+                  />
+                ))}
+              </div>
             ) : (
-              <button className="px-8 py-2.5 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/10 active:scale-95">
-                Follow
-              </button>
+              <div className="bg-white border border-gray-100 rounded-[3rem] p-24 text-center">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Sparkles className="w-10 h-10 text-gray-200" />
+                </div>
+                <h3 className="text-xl font-serif font-bold text-gray-400 mb-2">Preparing for Launch</h3>
+                <p className="text-gray-400 font-medium italic">This maker is currently exploring the ecosystem.</p>
+              </div>
             )}
           </div>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-gray-900">1.2K</span>
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Followers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-black text-gray-900">420</span>
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Following</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-black text-gray-900">{totalKarma}</span>
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Points</span>
+          
+          <div>
+            <h3 className="text-lg font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
+              <MessageSquare className="w-5 h-5 text-gray-300" /> Recent Community Activity
+            </h3>
+            <div className="bg-white border border-gray-50 rounded-[2.5rem] p-12 text-center text-gray-400 text-sm italic shadow-sm">
+              Discussion threads and community contributions will appear here as the maker participates.
             </div>
           </div>
-
-          {profile.headline && (
-            <p className="text-gray-600 text-lg font-medium leading-snug max-w-2xl">
-              {profile.headline}
-            </p>
-          )}
         </div>
-      </div>
-
-      {/* Tabs Navigation */}
-      <div className="border-b border-gray-100 mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        <div className="flex gap-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.name}
-              onClick={() => setActiveTab(tab.name)}
-              className={`pb-4 text-[13px] font-black uppercase tracking-[0.15em] transition-all relative ${
-                activeTab === tab.name ? 'text-emerald-900' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {tab.name}
-                {tab.count !== null && (
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${activeTab === tab.name ? 'bg-emerald-100 text-emerald-900' : 'bg-gray-50 text-gray-400'}`}>
-                    {tab.count}
-                  </span>
-                )}
-              </div>
-              {activeTab === tab.name && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-800 rounded-t-full" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-12">
-          {activeTab === 'About' && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">About</h2>
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
-                <p className="text-gray-500 leading-relaxed font-medium whitespace-pre-wrap">
-                  {profile.bio || "No information provided yet. This maker is still curating their Ummah journey."}
-                </p>
-                <div className="mt-8 pt-8 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {profile.twitter_url && (
-                    <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors">
-                      <Twitter className="w-5 h-5" />
-                      <span className="text-sm font-bold">Twitter</span>
-                    </a>
-                  )}
-                  {profile.website_url && (
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors">
-                      <Globe className="w-5 h-5" />
-                      <span className="text-sm font-bold">Website</span>
-                    </a>
-                  )}
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <Calendar className="w-5 h-5" />
-                    <span className="text-sm font-bold">Joined May 2025</span>
-                  </div>
-                </div>
-              </div>
-
-              {makerHistory.length > 0 && (
-                <div className="mt-12">
-                  <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center justify-between">
-                    Products Made
-                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{makerHistory.length}</span>
-                  </h2>
-                  <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-sm">
-                    {makerHistory.map(p => (
-                      <ProductCard 
-                        key={p.id} product={p} onUpvote={onUpvote} 
-                        hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
-                        onClick={onProductClick} onCommentClick={onCommentClick}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
-          {activeTab !== 'About' && (
-            <div className="py-20 text-center animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-serif font-bold text-gray-400 mb-2">Nothing here yet</h3>
-              <p className="text-gray-400 text-sm font-medium italic">Bismillah! Activity in {activeTab} will appear here soon.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Profile Sidebar */}
-        <aside className="space-y-8">
-          <section className="bg-[#052e16] rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-              <Award className="w-24 h-24 text-emerald-400 rotate-12" />
-            </div>
-            <div className="relative z-10">
-              <div className="inline-block px-2.5 py-1 bg-emerald-400 text-[#052e16] rounded-md text-[9px] font-black uppercase tracking-widest mb-6">MAKER STATUS</div>
-              <h4 className="text-xl font-bold leading-relaxed mb-8">Active contributor to the global Halal ecosystem.</h4>
-              <div className="flex items-center gap-4">
-                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/10">
-                  <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest mb-0.5">Rank</p>
-                  <p className="font-bold">#241</p>
-                </div>
-                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/10">
-                  <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest mb-0.5">Badges</p>
-                  <p className="font-bold">12</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-              UPVOTED PRODUCTS <Triangle className="w-3 h-3 fill-gray-400" />
-            </h3>
-            <div className="space-y-4">
-              {products.slice(0, 3).map(p => (
-                <div key={p.id} className="flex items-center gap-4 group cursor-pointer" onClick={() => onProductClick(p)}>
-                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-50 shrink-0">
-                    <img src={p.logo_url} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors truncate">{p.name}</p>
-                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-tighter">{p.upvotes_count} Upvotes</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="w-full mt-6 py-2 text-[10px] font-black text-emerald-800 hover:underline uppercase tracking-widest">View all upvotes</button>
-          </section>
-        </aside>
       </div>
     </div>
   );
