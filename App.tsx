@@ -8,6 +8,7 @@ import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
+import EditProfile from './components/EditProfile.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -25,7 +26,7 @@ import { supabase } from './lib/supabase.ts';
 import { searchProducts } from './utils/searchUtils.ts';
 
 // Hardcoded admins for demo, in production this should be a DB role
-const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com'];
+const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
 const safeHistory = {
   isSupported: () => {
@@ -69,8 +70,8 @@ const unslugify = (slug: string, categories: Category[]) => {
   return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
-export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
-  const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
+const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
+  const isAdmin = user?.is_admin || (user?.email && ADMIN_EMAILS.includes(user.email));
   
   return (
     <aside className="hidden xl:block w-80 shrink-0">
@@ -162,6 +163,7 @@ const App: React.FC = () => {
   const [commentVotes, setCommentVotes] = useState<Set<string>>(new Set());
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
@@ -236,6 +238,26 @@ const App: React.FC = () => {
     fetchNavigation();
   }, []);
 
+  const fetchProfileByUsername = async (username: string) => {
+    try {
+      const cleanUsername = username.startsWith('@') ? username.substring(1) : username;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', cleanUsername)
+        .single();
+      
+      if (!error && data) {
+        setSelectedProfile(data as Profile);
+        return data;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (categories.length === 0) return;
 
@@ -254,6 +276,13 @@ const App: React.FC = () => {
         else if (path === '/categories') setView(View.CATEGORIES);
         else if (path === '/my/welcome') setView(View.WELCOME);
         else if (path === '/admin') setView(View.ADMIN_PANEL);
+        else if (path === '/my/details/edit') setView(View.EDIT_PROFILE);
+        else if (path.startsWith('/@')) {
+          const username = path.substring(2).split('?')[0];
+          fetchProfileByUsername(username).then(prof => {
+            if (prof) setView(View.PROFILE);
+          });
+        }
         else if (path === '/login') {
           setIsAuthModalOpen(true);
           setView(View.HOME);
@@ -286,7 +315,6 @@ const App: React.FC = () => {
           try {
             const { error } = await supabase.auth.exchangeCodeForSession(code);
             if (error) throw error;
-            // Successfully logged in via fresh PKCE exchange
             updateView(View.WELCOME, '/my/welcome');
           } catch (err) {
             console.error('PKCE exchange failed:', err);
@@ -315,6 +343,10 @@ const App: React.FC = () => {
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
       else if (newView === View.ADMIN_PANEL) path = '/admin';
+      else if (newView === View.EDIT_PROFILE) path = '/my/details/edit';
+      else if (newView === View.PROFILE && selectedProfile) {
+        path = `/@${selectedProfile.username}`;
+      }
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }
@@ -350,23 +382,31 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    setNotifications([
-      { id: 'n1', type: 'upvote', message: 'Samin Chowdhury upvoted QuranFlow', created_at: new Date().toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=samin' },
-      { id: 'n2', type: 'comment', message: 'Ahmed replied to your discussion in p/general', created_at: new Date(Date.now() - 3600000).toISOString(), is_read: false, avatar_url: 'https://i.pravatar.cc/150?u=u_1' }
-    ]);
-
-    // SESSION HEARTBEAT: Proactively check for current user on load
     const initAuth = async () => {
       const { data: { user: sessionUser } } = await supabase.auth.getUser();
       if (sessionUser) {
         const m = sessionUser.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(sessionUser.email!);
+        
+        // Fetch extended profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sessionUser.id)
+          .single();
+
         setUser({ 
           id: sessionUser.id, 
           email: sessionUser.email!, 
-          username: m.full_name || sessionUser.email!.split('@')[0], 
-          avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
-          is_admin: isAdmin
+          username: profile?.username || m.full_name || sessionUser.email!.split('@')[0], 
+          avatar_url: profile?.avatar_url || m.avatar_url || `https://i.pravatar.cc/150?u=${sessionUser.id}`,
+          full_name: profile?.full_name,
+          bio: profile?.bio,
+          headline: profile?.headline,
+          website_url: profile?.website_url,
+          twitter_url: profile?.twitter_url,
+          linkedin_url: profile?.linkedin_url,
+          is_admin: isAdmin || profile?.is_admin
         });
       }
       setIsAuthReady(true);
@@ -459,12 +499,15 @@ const App: React.FC = () => {
           setView={updateView} 
           onLogout={async () => { 
             await supabase.auth.signOut(); 
-            // HARD RELOAD: Forces a fresh start by reloading the page and clearing all memory states
             window.location.href = '/'; 
           }} 
           searchQuery={searchQuery} 
           onSearchChange={setSearchQuery} 
-          onViewProfile={() => user && setView(View.PROFILE)} 
+          onViewProfile={() => {
+            if (user) {
+              fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
+            }
+          }} 
           onSignInClick={() => setIsAuthModalOpen(true)}
           notifications={notifications}
           menuItems={menuItems}
@@ -521,7 +564,6 @@ const App: React.FC = () => {
               <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
             </div>
 
-            {/* MOBILE-ONLY START NEW THREAD BUTTON */}
             <div className="block lg:hidden px-4 mb-10">
               <button 
                 onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
@@ -536,12 +578,7 @@ const App: React.FC = () => {
 
         {isForumView && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
-            <ForumSidebar 
-              currentView={view} 
-              setView={updateView} 
-              user={user} 
-              onSignIn={() => setIsAuthModalOpen(true)} 
-            />
+            <ForumSidebar currentView={view} setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
@@ -563,7 +600,11 @@ const App: React.FC = () => {
           <ProductDetail 
             product={selectedProduct} user={user} onBack={() => updateView(View.HOME)} 
             onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
-            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
+            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={(uid) => {
+              supabase.from('profiles').select('*').eq('id', uid).single().then(({data}) => {
+                if(data) { setSelectedProfile(data as Profile); updateView(View.PROFILE); }
+              })
+            }} scrollToComments={shouldScrollToComments} 
           />
         )}
         {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
@@ -572,6 +613,31 @@ const App: React.FC = () => {
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
+        {view === View.PROFILE && selectedProfile && (
+          <UserProfile 
+            profile={selectedProfile} 
+            currentUser={user} 
+            products={products} 
+            votes={votes} 
+            onBack={() => updateView(View.HOME)}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL); }}
+            onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL); }}
+            onUpvote={handleUpvote}
+            onEditClick={() => updateView(View.EDIT_PROFILE)}
+          />
+        )}
+        {view === View.EDIT_PROFILE && user && (
+          <EditProfile 
+            user={user} 
+            onSave={(updated) => { setUser(prev => prev ? {...prev, ...updated} : null); updateView(View.PROFILE); }} 
+            onCancel={() => updateView(View.PROFILE)}
+            onViewProfile={() => {
+              if (user) {
+                fetchProfileByUsername(user.username).then(() => updateView(View.PROFILE));
+              }
+            }}
+          />
+        )}
       </main>
       <Footer setView={updateView} />
     </div>
