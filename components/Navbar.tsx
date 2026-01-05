@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Mail, Plus, Bell, User as UserIcon,
+  Rocket, Mail, Plus, Bell, User as UserIcon, Flame, CheckCircle2,
   Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
@@ -127,6 +127,7 @@ const Navbar: React.FC<NavbarProps> = ({
     setView(view);
     closeDrawer();
     setShowSubmitDropdown(false);
+    setShowNotificationDropdown(false);
   };
 
   const toggleAccordion = (section: string) => {
@@ -277,29 +278,34 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div className="relative flex items-center" ref={notificationDropdownRef}>
                   <NotificationBell userId={user.id} isOpen={showNotificationDropdown} onClick={() => setShowNotificationDropdown(!showNotificationDropdown)} />
                   {showNotificationDropdown && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 z-[110] animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
+                    <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl py-6 z-[110] animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3 px-6">
                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Recent Notifications</h4>
                         <Bell className="w-3 h-3 text-emerald-800 opacity-50" />
                       </div>
-                      <div className="space-y-4 mb-6">
+                      <div className="space-y-1 mb-4 overflow-y-auto max-h-[350px]">
                         {notifications.length === 0 ? (
-                          <p className="text-[13px] text-gray-400 italic text-center py-4">No unread notifications!</p>
+                          <p className="text-[13px] text-gray-400 italic text-center py-8">No unread notifications!</p>
                         ) : (
-                          notifications.slice(0, 3).map((n) => (
-                            <div key={n.id} className="flex gap-3 group/notif cursor-pointer">
+                          notifications.slice(0, 2).map((n) => (
+                            <div key={n.id} onClick={() => handleNavigate(View.NOTIFICATIONS)} className={`flex gap-3 px-6 py-4 transition-all hover:bg-emerald-50/50 cursor-pointer ${!n.is_read ? 'bg-emerald-50/20' : ''}`}>
                               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
-                                {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : n.type === 'approval' ? <ShieldCheck className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                                {n.type === 'streak' ? <Flame className="w-4 h-4 text-orange-500 fill-orange-500" /> : 
+                                 n.type === 'approval' ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> :
+                                 n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : 
+                                 <MessageSquare className="w-4 h-4" />}
                               </div>
                               <div className="min-w-0">
-                                <p className={`text-[13px] leading-snug line-clamp-2 ${n.is_read ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'}`}>{n.message}</p>
+                                <p className={`text-[13px] leading-snug ${n.is_read ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'}`}>{n.message}</p>
                                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-tighter mt-1">{formatTimeAgo(n.created_at)}</p>
                               </div>
                             </div>
                           ))
                         )}
                       </div>
-                      <button onClick={() => { setView(View.NOTIFICATIONS); setShowNotificationDropdown(false); }} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View full history</button>
+                      <div className="px-6">
+                        <button onClick={() => handleNavigate(View.NOTIFICATIONS)} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View full history</button>
+                      </div>
                     </div>
                   )}
                 </div>
