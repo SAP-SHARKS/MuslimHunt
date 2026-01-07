@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Zap } from 'lucide-react';
 import { Product, Profile, User } from '../types';
 import ProductCard from './ProductCard';
 
@@ -13,6 +13,7 @@ interface UserProfileProps {
   onProductClick: (product: Product) => void;
   onCommentClick: (product: Product) => void;
   onUpvote: (productId: string) => void;
+  onEditProfile?: () => void;
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({
@@ -23,7 +24,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
   onBack,
   onProductClick,
   onCommentClick,
-  onUpvote
+  onUpvote,
+  onEditProfile
 }) => {
   // Aligned with user_id schema
   const makerHistory = products.filter(p => p.user_id === profile.id);

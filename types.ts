@@ -129,5 +129,6 @@ export enum View {
   SUBMISSION = 'submission',
   ADMIN_PANEL = 'admin_panel',
   SETTINGS = 'settings',
-  API_DASHBOARD = 'api_dashboard'
+  API_DASHBOARD = 'api_dashboard',
+  PROFILE_EDIT = 'profile_edit'
 }

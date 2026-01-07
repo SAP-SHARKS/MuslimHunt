@@ -270,6 +270,7 @@ const App: React.FC = () => {
       else if (path === '/newsletters') setView(View.NEWSLETTER);
       else if (path === '/categories') setView(View.CATEGORIES);
       else if (path === '/my/welcome') setView(View.WELCOME);
+      else if (path === '/my/details/edit') setView(View.PROFILE_EDIT);
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/settings') setView(View.SETTINGS);
       else if (path === '/api-dashboard') setView(View.API_DASHBOARD);
@@ -368,6 +369,7 @@ const App: React.FC = () => {
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
+      else if (newView === View.PROFILE_EDIT) path = '/my/details/edit';
       else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.DIRECTORY) path = '/products';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
@@ -427,6 +429,19 @@ const App: React.FC = () => {
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
+  const handleDevLogin = () => {
+    setUser({
+      id: 'dev-admin-id',
+      email: 'admin@muslimhunt.com',
+      username: 'DevAdmin',
+      avatar_url: 'https://i.pravatar.cc/150?u=dev-admin',
+      is_admin: true,
+      bio: 'Development Admin Account',
+      headline: 'Building the Future of Halal Tech'
+    });
+    setIsAuthModalOpen(false);
+  };
+
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfcf0]">
@@ -455,7 +470,12 @@ const App: React.FC = () => {
         />
       )}
 
-      <Auth isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={() => updateView(View.HOME)} />
+      <Auth
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => updateView(View.HOME)}
+        onDevLogin={handleDevLogin}
+      />
 
       <main className="pb-10">
         {view === View.HOME && (
@@ -564,7 +584,16 @@ const App: React.FC = () => {
             onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
             onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
             onUpvote={handleUpvote}
+            onEditProfile={() => updateView(View.PROFILE_EDIT, '/my/details/edit')}
           />
+        )}
+
+        {view === View.PROFILE_EDIT && (
+          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
+            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">Edit Profile</h2>
+            <p className="text-gray-500">Profile editing form will go here.</p>
+            <button onClick={() => updateView(View.HOME)} className="mt-4 text-emerald-600 underline">Back to Home</button>
+          </div>
         )}
 
         {view === View.SETTINGS && (
