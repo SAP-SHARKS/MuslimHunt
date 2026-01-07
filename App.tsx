@@ -9,6 +9,7 @@ import PostSubmit from './components/PostSubmit.tsx';
 import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
+import ProfileEdit from './components/ProfileEdit.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -233,6 +234,15 @@ const App: React.FC = () => {
 
   const fetchProfile = async (username: string) => {
     try {
+      // Dev Admin Bypass check for public profile
+      if (username === 'DevAdmin') {
+        const localData = localStorage.getItem('dev_profile_data');
+        if (localData) {
+          setSelectedProfile(JSON.parse(localData));
+          return;
+        }
+      }
+
       // Try to find user by username from products if no profiles table access or as optimization?
       // Better to query profiles table directly.
       const { data, error } = await supabase
@@ -245,7 +255,7 @@ const App: React.FC = () => {
       else {
         // Fallback: try to find in loaded products (not reliable but helpful if permissions issue)
         const found = products.find(p => p.user_id && (p as any).maker_username === username); // Assuming join? No.
-        console.error('Profile not found', error);
+        if (!found) console.error('Profile not found', error);
       }
     } catch (e) {
       console.error('Error fetching profile', e);
@@ -431,7 +441,7 @@ const App: React.FC = () => {
 
   const handleDevLogin = () => {
     setUser({
-      id: 'dev-admin-id',
+      id: '00000000-0000-0000-0000-000000000000',
       email: 'admin@muslimhunt.com',
       username: 'DevAdmin',
       avatar_url: 'https://i.pravatar.cc/150?u=dev-admin',
@@ -588,12 +598,12 @@ const App: React.FC = () => {
           />
         )}
 
-        {view === View.PROFILE_EDIT && (
-          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
-            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">Edit Profile</h2>
-            <p className="text-gray-500">Profile editing form will go here.</p>
-            <button onClick={() => updateView(View.HOME)} className="mt-4 text-emerald-600 underline">Back to Home</button>
-          </div>
+        {view === View.PROFILE_EDIT && user && (
+          <ProfileEdit
+            user={user}
+            onBack={() => updateView(View.HOME)}
+            onViewProfile={() => updateView(View.PROFILE, '/@' + (user.username || user.email?.split('@')[0]))}
+          />
         )}
 
         {view === View.SETTINGS && (
