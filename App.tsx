@@ -32,8 +32,8 @@ const safeHistory = {
     try {
       if (!window.history || !window.history.pushState) return false;
       const isBlob = window.location.protocol === 'blob:';
-      const isSandbox = window.location.hostname.includes('scf.usercontent.goog') || 
-                        window.location.hostname.includes('ai.studio');
+      const isSandbox = window.location.hostname.includes('scf.usercontent.goog') ||
+        window.location.hostname.includes('ai.studio');
       return !isBlob && !isSandbox;
     } catch (e) {
       return false;
@@ -65,26 +65,26 @@ const safeHistory = {
 
 export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) => void; onSignIn: () => void }> = ({ user, setView, onSignIn }) => {
   const isAdmin = user?.is_admin || ADMIN_EMAILS.includes(user?.email || '');
-  
+
   return (
     <aside className="hidden xl:block w-80 shrink-0">
       <div className="sticky top-24 space-y-8">
         {isAdmin && (
           <section className="bg-emerald-900 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-emerald-800">
-             <div className="flex items-center gap-2 mb-4 text-emerald-400">
-                <ShieldCheck className="w-5 h-5" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
-             </div>
-             <h3 className="text-xl font-bold mb-4">Review Queue</h3>
-             <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
-               Open Admin Panel
-             </button>
+            <div className="flex items-center gap-2 mb-4 text-emerald-400">
+              <ShieldCheck className="w-5 h-5" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
+            </div>
+            <h3 className="text-xl font-bold mb-4">Review Queue</h3>
+            <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
+              Open Admin Panel
+            </button>
           </section>
         )}
 
         <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
-            <h3 
+            <h3
               className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
               onClick={() => setView(View.FORUM_HOME)}
             >
@@ -92,7 +92,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
             </h3>
             <TrendingUp className="w-4 h-4 text-emerald-800 opacity-50" />
           </div>
-          
+
           <div className="space-y-7">
             {[
               { tag: "p/producthunt", title: "What are your favorite Halal apps for 2025?", comments: 24, upvotes: 156, online: 8, icon: Layout },
@@ -159,7 +159,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   const [pendingUrl, setPendingUrl] = useState('');
-  
+
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false, yesterday: false, lastWeek: false, lastMonth: false
   });
@@ -169,7 +169,7 @@ const App: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('is_approved', true) 
+        .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -186,7 +186,7 @@ const App: React.FC = () => {
         .select('*')
         .order('display_order', { ascending: true })
         .order('name', { ascending: true });
-      
+
       if (!error && data) {
         setCategories(data as Category[]);
       }
@@ -202,7 +202,7 @@ const App: React.FC = () => {
         .select('*')
         .eq('is_active', true)
         .order('display_order');
-      
+
       if (!error && data) {
         setMenuItems(data as NavMenuItem[]);
       }
@@ -220,7 +220,7 @@ const App: React.FC = () => {
       setProducts(prev => [newProduct, ...prev]);
     }
     updateView(View.HOME, '/');
-    fetchProducts(); 
+    fetchProducts();
   };
 
   useEffect(() => {
@@ -229,9 +229,32 @@ const App: React.FC = () => {
     fetchNavigation();
   }, []);
 
-  const syncStateFromUrl = () => {
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+
+  const fetchProfile = async (username: string) => {
+    try {
+      // Try to find user by username from products if no profiles table access or as optimization?
+      // Better to query profiles table directly.
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('username', username)
+        .single();
+
+      if (data) setSelectedProfile(data as Profile);
+      else {
+        // Fallback: try to find in loaded products (not reliable but helpful if permissions issue)
+        const found = products.find(p => p.user_id && (p as any).maker_username === username); // Assuming join? No.
+        console.error('Profile not found', error);
+      }
+    } catch (e) {
+      console.error('Error fetching profile', e);
+    }
+  };
+
+  const syncStateFromUrl = async () => {
     if (categories.length === 0 && products.length === 0) return;
-    
+
     try {
       const path = window.location.pathname;
       const searchParams = new URLSearchParams(window.location.search);
@@ -248,6 +271,13 @@ const App: React.FC = () => {
       else if (path === '/categories') setView(View.CATEGORIES);
       else if (path === '/my/welcome') setView(View.WELCOME);
       else if (path === '/admin') setView(View.ADMIN_PANEL);
+      else if (path === '/settings') setView(View.SETTINGS);
+      else if (path === '/api-dashboard') setView(View.API_DASHBOARD);
+      else if (path.startsWith('/@')) {
+        const username = path.substring(2); // Remove /@
+        await fetchProfile(username);
+        setView(View.PROFILE);
+      }
       else if (path === '/products' || segments[0] === 'products') {
         if (segments[0] === 'products' && segments[1]) {
           // Dynamic Product Detail Routing
@@ -283,10 +313,10 @@ const App: React.FC = () => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: m.full_name || session.user.email!.split('@')[0],
           avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
           is_admin: isAdmin
         });
@@ -300,10 +330,10 @@ const App: React.FC = () => {
       if (session?.user) {
         const m = session.user.user_metadata || {};
         const isAdmin = ADMIN_EMAILS.includes(session.user.email!);
-        setUser({ 
-          id: session.user.id, 
-          email: session.user.email!, 
-          username: m.full_name || session.user.email!.split('@')[0], 
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: m.full_name || session.user.email!.split('@')[0],
           avatar_url: m.avatar_url || `https://i.pravatar.cc/150?u=${session.user.id}`,
           is_admin: isAdmin
         });
@@ -345,7 +375,7 @@ const App: React.FC = () => {
       }
       else if (newView === View.HOME) path = '/';
     }
-    
+
     const currentFullPath = window.location.pathname + window.location.search;
     if (currentFullPath !== path) safeHistory.push(path);
   };
@@ -360,7 +390,7 @@ const App: React.FC = () => {
     const params = new URLSearchParams();
     if (tag) params.set('topic', slugify(tag));
     if (parent) params.set('parentTopic', slugify(parent));
-    
+
     const queryString = params.toString();
     const newPath = `/products${queryString ? `?${queryString}` : ''}`;
     updateView(View.DIRECTORY, newPath);
@@ -409,14 +439,14 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-white lg:bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
-        <Navbar 
-          user={user} 
-          currentView={view} 
-          setView={updateView} 
-          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }} 
-          searchQuery={searchQuery} 
-          onSearchChange={setSearchQuery} 
-          onViewProfile={() => user && setView(View.PROFILE)} 
+        <Navbar
+          user={user}
+          currentView={view}
+          setView={updateView}
+          onLogout={async () => { await supabase.auth.signOut(); updateView(View.HOME); }}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onViewProfile={() => user && updateView(View.PROFILE, '/@' + user.username)}
           onSignInClick={() => setIsAuthModalOpen(true)}
           notifications={notifications}
           menuItems={menuItems}
@@ -424,7 +454,7 @@ const App: React.FC = () => {
           onCategorySelect={handleCategorySelect}
         />
       )}
-      
+
       <Auth isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} onSuccess={() => updateView(View.HOME)} />
 
       <main className="pb-10">
@@ -450,12 +480,12 @@ const App: React.FC = () => {
                       <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
                       <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
                         {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
-                          <ProductCard 
-                            key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote} 
-                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)} 
-                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }} 
-                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }} 
-                            searchQuery={searchQuery} 
+                          <ProductCard
+                            key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote}
+                            hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
+                            onClick={(prod) => { setSelectedProduct(prod); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }}
+                            onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }}
+                            searchQuery={searchQuery}
                           />
                         ))}
                       </div>
@@ -474,28 +504,28 @@ const App: React.FC = () => {
         )}
 
         {view === View.DIRECTORY && (
-          <ProductDirectory 
-            products={products} 
-            activeTag={activeTag} 
+          <ProductDirectory
+            products={products}
+            activeTag={activeTag}
             activeParentTopic={activeParentTopic}
-            onTagSelect={handleTagSelect} 
-            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }} 
+            onTagSelect={handleTagSelect}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
           />
         )}
 
         {isForumView && (
           <div className={`max-w-7xl mx-auto ${view === View.NEW_THREAD ? 'px-0 lg:px-8' : 'px-4 sm:px-8'} py-6 lg:py-12 flex flex-col lg:flex-row lg:gap-12 gap-0`}>
             <div className="hidden lg:block">
-              <ForumSidebar 
-                currentView={view} 
-                setView={updateView} 
-                user={user} 
-                onSignIn={() => setIsAuthModalOpen(true)} 
+              <ForumSidebar
+                currentView={view}
+                setView={updateView}
+                user={user}
+                onSignIn={() => setIsAuthModalOpen(true)}
               />
             </div>
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
-              {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => {}} onSignIn={() => setIsAuthModalOpen(true)} />}
+              {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => { }} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={updateView} setView={updateView} />}
             </div>
           </div>
@@ -504,30 +534,57 @@ const App: React.FC = () => {
         {view === View.CATEGORIES && <Categories categories={categories} onBack={() => updateView(View.HOME)} onCategorySelect={handleCategorySelect} />}
         {view === View.SUBMISSION && <SubmitForm initialUrl={pendingUrl} user={user} categories={categories} onCancel={() => updateView(View.POST_SUBMIT)} onSuccess={handleNewProduct} />}
         {view === View.CATEGORY_DETAIL && (
-          <CategoryDetail 
+          <CategoryDetail
             category={activeCategory} products={products} categories={categories}
-            onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }} 
-            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect} 
+            onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+            onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect}
           />
         )}
         {view === View.DETAIL && selectedProduct && (
-          <ProductDetail 
-            product={selectedProduct} user={user} onBack={() => updateView(View.HOME)} 
-            onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)} 
-            commentVotes={commentVotes} onCommentUpvote={() => {}} onAddComment={() => {}} onViewProfile={() => {}} scrollToComments={shouldScrollToComments} 
+          <ProductDetail
+            product={selectedProduct} user={user} onBack={() => updateView(View.HOME)}
+            onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
+            commentVotes={commentVotes} onCommentUpvote={() => { }} onAddComment={() => { }} onViewProfile={() => { }} scrollToComments={shouldScrollToComments}
           />
         )}
-        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => {}} />}
+        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => { }} />}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} onComplete={() => updateView(View.HOME)} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
+
+        {view === View.PROFILE && selectedProfile && (
+          <UserProfile
+            profile={selectedProfile}
+            currentUser={user}
+            products={products}
+            votes={votes}
+            onBack={() => updateView(View.HOME)}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+            onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+            onUpvote={handleUpvote}
+          />
+        )}
+
+        {view === View.SETTINGS && (
+          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
+            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">Settings</h2>
+            <p className="text-gray-500">Settings page is coming soon.</p>
+          </div>
+        )}
+
+        {view === View.API_DASHBOARD && (
+          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
+            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">API Dashboard</h2>
+            <p className="text-gray-500">Developer API access is coming soon.</p>
+          </div>
+        )}
       </main>
 
       {/* Mobile-Only Forum Action Section */}
       <div className="block lg:hidden px-4 mb-10">
-        <button 
+        <button
           onClick={() => user ? updateView(View.NEW_THREAD) : setIsAuthModalOpen(true)}
           className="flex items-center justify-center w-full py-4 border border-gray-200 rounded-full bg-white text-gray-700 font-bold shadow-sm active:scale-95 transition-all gap-2"
         >

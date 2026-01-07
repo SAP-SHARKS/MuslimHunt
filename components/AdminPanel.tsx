@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Product, User } from '../types';
-import { 
-  ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft, 
-  Trash2, RefreshCw, Filter, CheckCircle2, 
+import {
+  ShieldCheck, Check, X, Eye, Loader2, Search, ArrowLeft,
+  Trash2, RefreshCw, Filter, CheckCircle2,
   AlertCircle, Hash, LogOut, Lock, Mail, KeyRound,
   ShieldAlert, UserCheck, ArrowRight, Shield, MessageSquare, AlertTriangle
 } from 'lucide-react';
@@ -20,18 +20,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
-  
+
   // Auth & Login Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  
+
   // Rejection Modal State
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectionNote, setRejectionNote] = useState('');
   const [productToReject, setProductToReject] = useState<any | null>(null);
-  
+
   // Strict Authorization Config
   const AUTHORIZED_ADMIN_EMAIL = 'zeirislam@gmail.com';
 
@@ -95,7 +95,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         .select('*, profiles:user_id(username, avatar_url)')
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
-      
+
       if (error) throw error;
       setPendingProducts(data || []);
     } catch (err) {
@@ -115,7 +115,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
     e.preventDefault();
     setLoginLoading(true);
     setLoginError(null);
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -146,7 +146,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         .from('products')
         .update({ is_approved: true })
         .eq('id', product.id);
-      
+
       if (updateError) {
         console.error('CRITICAL: Product update failed!', updateError.code, updateError.message);
         throw updateError; // Stop here if we can't even update the product
@@ -160,18 +160,18 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           message: `Mabrook! Your product "${product.name}" is now live.`,
           is_read: false
         }]);
-        
+
         if (notifyError) {
           console.warn('Note: Notification failed (possible RLS), but product is approved.', notifyError.code, notifyError.message);
         }
       } catch (nErr) {
         console.warn('Non-critical notification error:', nErr);
       }
-      
+
       // Step 3: Success Actions (Update local UI and global feed)
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); // This makes it show up on the public home page immediately
-      
+
     } catch (err: any) {
       console.error('Full Error (Approval Failed):', err.code, err.message);
       alert(`Failed to approve: ${err.message}. Ensure Admin has 'Update' permissions.`);
@@ -188,20 +188,20 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const confirmRejection = async () => {
     if (!productToReject) return;
-    
+
     const productId = productToReject.id;
     const userId = productToReject.user_id;
     const productName = productToReject.name;
 
     setProcessingId(productId);
     setIsRejectModalOpen(false);
-    
+
     try {
       const { error: deleteError } = await supabase
         .from('products')
         .delete()
         .eq('id', productId);
-      
+
       if (deleteError) throw deleteError;
 
       const reason = rejectionNote.trim() || 'Submission did not meet community guidelines.';
@@ -213,14 +213,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
             type: 'rejection',
             message: `Your submission "${productName}" was removed. Reason: ${reason}`,
             is_read: false,
-            avatar_url: 'https://anzqsjvvguiqcenfdevh.supabase.co/storage/v1/object/public/assets/logo.png'
+            avatar_url: `${(import.meta as any)?.env?.VITE_SUPA_URL}/storage/v1/object/public/assets/logo.png`
+
           }]);
       } catch (e) {
         console.warn('Rejection notification could not be sent.');
       }
-      
+
       setPendingProducts(prev => prev.filter(p => p.id !== productId));
-      onRefresh(); 
+      onRefresh();
     } catch (err) {
       console.error('[Admin] Rejection failed:', err);
       alert('Failed to process rejection. Check connection.');
@@ -232,7 +233,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
   const filteredQueue = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return pendingProducts.filter(p => 
+    return pendingProducts.filter(p =>
       p.name.toLowerCase().includes(query) ||
       p.profiles?.username?.toLowerCase().includes(query) ||
       p.category.toLowerCase().includes(query)
@@ -262,8 +263,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
           <p className="text-gray-500 font-medium mb-10 leading-relaxed">
             {loginError || "Strictly for Admins only. Unauthorized access attempts are monitored."}
           </p>
-          <button 
-            onClick={() => setIsAuthorized(null)} 
+          <button
+            onClick={() => setIsAuthorized(null)}
             className="w-full px-10 py-5 bg-emerald-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-800 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
           >
             Return to Login
@@ -278,7 +279,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
       <div className="min-h-screen flex items-center justify-center px-4 py-20 bg-[#042119] bg-[radial-gradient(circle_at_top_left,rgba(6,78,59,0.4),transparent)]">
         <div className="w-full max-w-md bg-white rounded-[3.5rem] p-10 sm:p-14 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border border-emerald-900/10 animate-in fade-in zoom-in-95 duration-700 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-50 rounded-full -mr-20 -mt-20 opacity-40 blur-3xl" />
-          
+
           <div className="flex flex-col items-center mb-12 text-center relative z-10">
             <div className="w-24 h-24 bg-emerald-900 rounded-[2.5rem] flex items-center justify-center text-white mb-8 shadow-2xl shadow-emerald-900/40 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
               <KeyRound className="w-12 h-12" />
@@ -292,24 +293,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               <label className="text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.2em] px-1">Identity</label>
               <div className="relative group">
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-800/30 group-focus-within:text-emerald-800 transition-colors" />
-                <input 
+                <input
                   type="email" placeholder="zeirislam@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} required
                   className="w-full pl-12 pr-6 py-4 bg-emerald-50/30 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner placeholder:text-gray-300"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-1">
               <label className="text-[10px] font-black text-emerald-800/40 uppercase tracking-[0.2em] px-1">Security Key</label>
               <div className="relative group">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-800/30 group-focus-within:text-emerald-800 transition-colors" />
-                <input 
+                <input
                   type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required
                   className="w-full pl-12 pr-6 py-4 bg-emerald-50/30 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none font-bold text-gray-900 transition-all shadow-inner placeholder:text-gray-300"
                 />
               </div>
             </div>
-            
+
             {loginError && (
               <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex items-center gap-3 text-red-600 text-[11px] font-black uppercase tracking-wider animate-in slide-in-from-top-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -317,7 +318,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               </div>
             )}
 
-            <button 
+            <button
               type="submit" disabled={loginLoading}
               className="w-full bg-emerald-900 hover:bg-emerald-800 text-white font-black py-5 rounded-[1.5rem] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 mt-4 group shadow-xl shadow-emerald-900/20"
             >
@@ -352,12 +353,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                   <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{productToReject?.name}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-4 mb-8">
                 <label className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
                   <MessageSquare className="w-3.5 h-3.5 text-red-600" /> Rejection Note
                 </label>
-                <textarea 
+                <textarea
                   value={rejectionNote}
                   onChange={(e) => setRejectionNote(e.target.value)}
                   placeholder="Explain to the maker why this submission is being removed..."
@@ -367,13 +368,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               </div>
 
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={() => setIsRejectModalOpen(false)}
                   className="flex-1 py-4 px-6 border border-gray-100 rounded-2xl font-black text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={confirmRejection}
                   disabled={processingId !== null}
                   className="flex-1 py-4 px-6 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 disabled:opacity-50"
@@ -388,7 +389,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
 
       {/* Premium Green Box Dashboard Container */}
       <div className="max-w-7xl mx-auto bg-gradient-to-br from-emerald-50/40 via-white to-white border-4 border-emerald-100/50 rounded-[3.5rem] p-8 md:p-12 shadow-[0_32px_64px_-12px_rgba(6,78,59,0.1)]">
-        
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-emerald-800">
@@ -407,14 +408,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
               <span className="text-4xl font-serif font-bold text-emerald-900 leading-none">{pendingProducts.length}</span>
             </div>
             <div className="flex flex-col gap-2">
-              <button 
+              <button
                 onClick={fetchPending}
                 className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm active:scale-90 group"
                 title="Refresh Sync"
               >
                 <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin text-emerald-800' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
               </button>
-              <button 
+              <button
                 onClick={handleAdminLogout}
                 className="p-4 bg-white border border-gray-100 rounded-2xl text-gray-300 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all shadow-sm active:scale-90 group"
                 title="Sign Out"
@@ -428,7 +429,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         <div className="bg-white border border-emerald-100 rounded-t-[3rem] p-6 sm:p-10 flex flex-col md:flex-row items-center gap-6">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
-            <input 
+            <input
               type="text" placeholder="Search pending products..."
               value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-16 pr-8 py-5 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-[2rem] outline-none transition-all font-bold text-gray-900 shadow-inner"
@@ -486,9 +487,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       </td>
                       <td className="px-12 py-10">
                         <div className="flex items-center gap-4">
-                          <img 
-                            src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`} 
-                            className="w-10 h-10 rounded-full border border-gray-100 shadow-sm" 
+                          <img
+                            src={p.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${p.user_id}`}
+                            className="w-10 h-10 rounded-full border border-gray-100 shadow-sm"
                             alt="Maker"
                           />
                           <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
@@ -507,23 +508,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                       </td>
                       <td className="px-12 py-10 text-right">
                         <div className="flex items-center justify-end gap-4">
-                          <a 
-                            href={p.url || p.website_url} 
-                            target="_blank" 
+                          <a
+                            href={p.url || p.website_url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="p-4 text-emerald-700/60 hover:text-emerald-800 hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100/50 active:scale-95"
                           >
                             <Eye className="w-6 h-6" />
                           </a>
-                          <button 
+                          <button
                             onClick={() => initiateReject(p)}
                             disabled={processingId === p.id}
                             className="p-4 text-red-400/60 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all active:scale-95"
                           >
                             <Trash2 className="w-6 h-6" />
                           </button>
-                          <button 
-                            onClick={() => handleApprove(p)} 
+                          <button
+                            onClick={() => handleApprove(p)}
                             disabled={processingId === p.id}
                             className="pl-8 pr-6 py-4 bg-emerald-800/90 hover:bg-emerald-900 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
                           >

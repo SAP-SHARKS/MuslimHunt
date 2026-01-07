@@ -32,106 +32,113 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
-      <button 
+      {/* Top Nav */}
+      <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
+        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-8 group font-bold uppercase tracking-widest text-xs"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         Back to Community
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        {/* Profile Sidebar */}
-        <div className="lg:col-span-1 space-y-6 sticky top-24">
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
-            <div className="w-32 h-32 mx-auto rounded-[2.5rem] overflow-hidden border-4 border-emerald-50 mb-6 shadow-md">
+      {/* Profile Header */}
+      <div className="bg-white border border-gray-100 rounded-[2rem] p-8 mb-12 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+
+          {/* Left: Info */}
+          <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8 w-full lg:w-auto text-center lg:text-left">
+            <div className="w-32 h-32 shrink-0 rounded-full overflow-hidden border-4 border-emerald-50 shadow-md">
               <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
             </div>
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <h1 className="text-2xl font-serif font-bold text-emerald-900">{profile.username}</h1>
-                {isOwnProfile && <Sparkles className="w-4 h-4 text-emerald-500" />}
-              </div>
-              {profile.headline && (
-                <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3 bg-emerald-50 py-1 px-3 rounded-full inline-block">
-                  {profile.headline}
-                </p>
-              )}
-              <p className="text-gray-500 text-sm leading-relaxed">{profile.bio}</p>
-            </div>
 
-            <div className="space-y-3 pt-6 border-t border-gray-50">
-              {profile.twitter_url && (
-                <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors text-sm font-medium">
-                  <Twitter className="w-4 h-4" /> @{profile.username}
-                </a>
-              )}
-              {profile.website_url && (
-                <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-gray-400 hover:text-emerald-800 transition-colors text-sm font-medium">
-                  <Globe className="w-4 h-4" /> Personal Site
-                </a>
-              )}
-              <div className="flex items-center gap-3 text-gray-400 text-sm font-medium">
-                <Calendar className="w-4 h-4" /> Joined 2024
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-center lg:justify-start gap-3">
+                <h1 className="text-3xl font-serif font-bold text-emerald-900">{profile.username}</h1>
+                {isOwnProfile && <Sparkles className="w-5 h-5 text-emerald-500 fill-emerald-100" />}
+                {profile.headline && (
+                  <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest bg-emerald-50 py-1.5 px-3 rounded-full border border-emerald-100">
+                    {profile.headline}
+                  </span>
+                )}
               </div>
-            </div>
-          </div>
 
-          <div className="bg-emerald-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-emerald-900/10">
-            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400 mb-6 flex items-center gap-2">
-              <Award className="w-4 h-4" /> Maker Stats
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-emerald-800/50 p-4 rounded-2xl text-center">
-                <p className="text-2xl font-black">{makerHistory.length}</p>
-                <p className="text-[10px] uppercase font-bold text-emerald-300 tracking-tighter">Launches</p>
-              </div>
-              <div className="bg-emerald-800/50 p-4 rounded-2xl text-center">
-                <p className="text-2xl font-black">{totalKarma}</p>
-                <p className="text-[10px] uppercase font-bold text-emerald-300 tracking-tighter">Karma</p>
-              </div>
-            </div>
-          </div>
-        </div>
+              {profile.bio && <p className="text-gray-500 font-medium leading-relaxed max-w-xl">{profile.bio}</p>}
 
-        {/* Maker History Main Feed */}
-        <div className="lg:col-span-3 space-y-8">
-          <div>
-            <div className="flex items-center gap-3 mb-6 border-b border-gray-100 pb-4">
-              <TrendingUp className="w-6 h-6 text-emerald-800" />
-              <h2 className="text-2xl font-serif font-bold text-emerald-900">Maker History</h2>
-            </div>
-
-            {makerHistory.length > 0 ? (
-              <div className="space-y-4 bg-white/40 p-3 rounded-[3rem] border border-emerald-50/50 shadow-inner">
-                {makerHistory.map(p => (
-                  <ProductCard 
-                    key={p.id} 
-                    product={p} 
-                    onUpvote={onUpvote} 
-                    hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
-                    onClick={onProductClick}
-                    onCommentClick={onCommentClick}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white border border-gray-100 rounded-[3rem] p-24 text-center">
-                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="w-10 h-10 text-gray-200" />
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-1">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                  <p className="text-emerald-800">{makerHistory.length}</p> Launches
                 </div>
-                <h3 className="text-xl font-serif font-bold text-gray-400 mb-2">Preparing for Launch</h3>
-                <p className="text-gray-400 font-medium italic">This maker is currently exploring the ecosystem.</p>
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                  <p className="text-emerald-800">{totalKarma}</p> Karma
+                </div>
+                <div className="w-px h-4 bg-gray-200 hidden lg:block" />
+                {profile.twitter_url && (
+                  <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#1DA1F2] transition-colors"><Twitter className="w-4 h-4" /></a>
+                )}
+                {profile.website_url && (
+                  <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-800 transition-colors"><Globe className="w-4 h-4" /></a>
+                )}
+                <span className="text-gray-300 text-xs font-medium flex items-center gap-1.5"><Calendar className="w-3 h-3" /> Joined 2024</span>
               </div>
+            </div>
+          </div>
+
+          {/* Right: Actions (Desktop Only) */}
+          <div className="hidden lg:flex flex-col gap-3 shrink-0">
+            {isOwnProfile ? (
+              <button className="px-6 py-3 bg-white border-2 border-gray-100 text-emerald-900 font-bold rounded-xl hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-sm transition-all text-sm">
+                Edit my profile
+              </button>
+            ) : (
+              <button className="px-6 py-3 bg-emerald-900 text-white font-bold rounded-xl hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 transition-all text-sm">
+                Follow
+              </button>
             )}
           </div>
-          
-          <div>
-            <h3 className="text-lg font-serif font-bold text-emerald-900 mb-6 flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-gray-300" /> Recent Community Activity
+        </div>
+      </div>
+
+      {/* Main Content Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-emerald-800" />
+              <h2 className="text-xl font-serif font-bold text-emerald-900">Maker History</h2>
+            </div>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{makerHistory.length} Products</span>
+          </div>
+
+          {makerHistory.length > 0 ? (
+            <div className="space-y-4">
+              {makerHistory.map(p => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  onUpvote={onUpvote}
+                  hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
+                  onClick={onProductClick}
+                  onCommentClick={onCommentClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-100 rounded-[2rem] p-16 text-center">
+              <Sparkles className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No launches yet</h3>
+              <p className="text-gray-500">This maker hasn't launched any products yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar (Community) */}
+        <div className="space-y-8">
+          <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
+            <h3 className="text-sm font-bold text-emerald-900 mb-4 flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Activity
             </h3>
-            <div className="bg-white border border-gray-50 rounded-[2.5rem] p-12 text-center text-gray-400 text-sm italic shadow-sm">
-              Discussion threads and community contributions will appear here as the maker participates.
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-400 italic">No recent activity.</p>
             </div>
           </div>
         </div>

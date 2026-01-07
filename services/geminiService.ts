@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 // Guideline: Always use process.env.API_KEY. 
 // We verify its presence to avoid the "An API Key must be set" error thrown by the SDK.
-const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : null;
+const apiKey = (import.meta as any)?.env?.VITE_GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 if (!apiKey) {
@@ -20,7 +20,7 @@ export const geminiService = {
       console.log('Using fallback tagline (no API key)');
       return `${name} - Your trusted solution`;
     }
-    
+
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -29,7 +29,7 @@ export const geminiService = {
           thinkingConfig: { thinkingBudget: 0 }
         }
       });
-      
+
       const tagline = response.text?.replace(/"/g, '').trim();
       return tagline || `${name} - Your trusted solution`;
     } catch (error) {
@@ -46,7 +46,7 @@ export const geminiService = {
       console.log('Using fallback category (no API key)');
       return 'Productivity';
     }
-    
+
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -56,7 +56,7 @@ export const geminiService = {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              category: { 
+              category: {
                 type: Type.STRING,
                 description: 'The suggested category for the product.'
               }
@@ -66,7 +66,7 @@ export const geminiService = {
           }
         }
       });
-      
+
       const jsonStr = response.text.trim();
       const data = JSON.parse(jsonStr || '{}');
       return data.category || 'Productivity';

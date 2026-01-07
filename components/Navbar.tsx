@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X, 
+import {
+  Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X,
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
   Rocket, Mail, Plus, Bell, User as UserIcon,
-  Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy
+  Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy, Settings
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
@@ -65,7 +65,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
         {label}
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
-      
+
       {isOpen && (
         <div className={`absolute top-full left-0 ${label === "Best Products" ? 'w-[520px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[1.5rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
           <div className="py-4">{items.map((item, i) => (
@@ -83,7 +83,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
 interface NavbarProps {
   user: User | null;
   currentView: View;
-  setView: (view: View) => void;
+  setView: (view: View, path?: string) => void;
   onLogout: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -95,7 +95,7 @@ interface NavbarProps {
   onCategorySelect?: (category: string) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ 
+const Navbar: React.FC<NavbarProps> = ({
   user, currentView, setView, onLogout, searchQuery, onSearchChange, onViewProfile, onSignInClick, notifications, menuItems
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -103,7 +103,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
   const [showSubmitDropdown, setShowSubmitDropdown] = useState(false);
-  
+
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const submitDropdownRef = useRef<HTMLDivElement>(null);
@@ -139,18 +139,18 @@ const Navbar: React.FC<NavbarProps> = ({
     <>
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 px-4 sm:px-8 h-16 flex items-center">
         <div className="max-w-7xl mx-auto flex items-center justify-between w-full">
-          
+
           {/* Mobile Header Layout (< 1024px) */}
           <div className="lg:hidden flex items-center justify-between w-full bg-white">
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setIsDrawerOpen(true)} 
+              <button
+                onClick={() => setIsDrawerOpen(true)}
                 className="p-1 -ml-1 text-gray-600 hover:text-emerald-900 transition-all active:scale-90"
                 aria-label="Open menu"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              
+
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigate(View.HOME)}>
                 <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
                   <span className="font-serif text-lg font-bold">M</span>
@@ -160,23 +160,23 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => handleNavigate(View.NEWSLETTER)}
                 className="px-3 py-1 text-sm font-bold text-emerald-800 border border-emerald-800 rounded-xl hover:bg-emerald-50 transition-all whitespace-nowrap"
               >
                 Subscribe
               </button>
-              
+
               {!user ? (
-                <button 
-                  onClick={onSignInClick} 
+                <button
+                  onClick={onSignInClick}
                   className="px-3 py-1 bg-emerald-800 text-white font-bold text-sm rounded-xl hover:bg-emerald-900 transition-all active:scale-95 shadow-sm whitespace-nowrap"
                 >
                   Sign In
                 </button>
               ) : (
-                <div 
-                  className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer" 
+                <div
+                  className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
                 >
                   <img src={user.avatar_url} className="w-full h-full object-cover rounded-full" alt="User profile" />
@@ -226,17 +226,17 @@ const Navbar: React.FC<NavbarProps> = ({
             {user ? (
               /* Submit Dropdown: Only for Logged In Users */
               <div className="relative" ref={submitDropdownRef}>
-                <button 
+                <button
                   onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
                   className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2 group"
                 >
                   <Plus className={`w-4 h-4 transition-transform duration-200 ${showSubmitDropdown ? 'rotate-45 text-emerald-800' : 'group-hover:text-emerald-800'}`} />
                   <span>Submit</span>
                 </button>
-                
+
                 {showSubmitDropdown && (
                   <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-[0_15px_45px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
-                    <button 
+                    <button
                       onClick={() => handleNavigate(View.POST_SUBMIT)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
                     >
@@ -245,7 +245,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       </div>
                       <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-emerald-900">Launch a product</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleNavigate(View.NEW_THREAD)}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
                     >
@@ -259,7 +259,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             ) : (
               /* Subscribe Button: For Logged Out Users */
-              <button 
+              <button
                 onClick={() => setView(View.NEWSLETTER)}
                 className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
               >
@@ -308,15 +308,10 @@ const Navbar: React.FC<NavbarProps> = ({
                   <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
                   {showUserDropdown && (
                     <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
-                      <div className="px-4 py-2 mb-1 border-b border-gray-50">
-                        <p className="text-[10px] font-black text-emerald-800 uppercase tracking-tighter truncate">{user.username}</p>
-                      </div>
-                      {user.is_admin && (
-                        <button onClick={() => { setView(View.ADMIN_PANEL); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-sm font-bold text-emerald-900">
-                          <ShieldCheck className="w-4 h-4 text-emerald-600" /> Admin Panel
-                        </button>
-                      )}
-                      <button onClick={() => { onViewProfile(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
+                      <button onClick={() => { setView(View.PROFILE, '/@' + user.username); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
+                      <button onClick={() => { setView(View.PROFILE, '/@' + user.username); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><Menu className="w-4 h-4 text-gray-400" /> My products</button>
+                      <button onClick={() => { setView(View.SETTINGS, '/settings'); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><Settings className="w-4 h-4 text-gray-400" /> Settings</button>
+                      <button onClick={() => { setView(View.API_DASHBOARD, '/api-dashboard'); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><Code className="w-4 h-4 text-gray-400" /> API dashboard</button>
                       <button onClick={() => { onLogout(); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm font-bold text-red-600 border-t border-gray-50"><LogOut className="w-4 h-4" /> Logout</button>
                     </div>
                   )}
@@ -330,7 +325,7 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Menu Drawer (Overlay) */}
       <div className={`fixed inset-0 z-[200] lg:hidden transition-all duration-300 ${isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeDrawer} />
-        
+
         <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
             <div className="flex items-center gap-2">
@@ -347,18 +342,18 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
             <div className="relative mb-4">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Search community..." 
+              <input
+                type="text"
+                placeholder="Search community..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-emerald-800 transition-all text-sm font-medium" 
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-emerald-800 transition-all text-sm font-medium"
               />
             </div>
 
             <div className="space-y-1">
               <div>
-                <button 
+                <button
                   onClick={() => toggleAccordion('best_products')}
                   className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'best_products' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
@@ -381,7 +376,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               <div>
-                <button 
+                <button
                   onClick={() => toggleAccordion('launches')}
                   className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
@@ -403,7 +398,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               <div>
-                <button 
+                <button
                   onClick={() => toggleAccordion('news')}
                   className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'news' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
@@ -426,7 +421,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
 
               <div>
-                <button 
+                <button
                   onClick={() => toggleAccordion('forums')}
                   className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'forums' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
@@ -476,13 +471,13 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="p-6 space-y-3 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-            <button 
+            <button
               onClick={() => handleNavigate(View.POST_SUBMIT)}
               className="w-full py-4 bg-[#004D40] text-white rounded-2xl font-black text-[14px] uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" /> LAUNCH PRODUCT
             </button>
-            <button 
+            <button
               onClick={() => handleNavigate(View.NEWSLETTER)}
               className="w-full py-4 bg-white border-2 border-[#004D40] text-[#004D40] rounded-2xl font-black text-[14px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
             >

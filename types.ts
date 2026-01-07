@@ -112,7 +112,7 @@ export interface User {
 
 export enum View {
   HOME = 'home',
-  SUBMIT = 'submit', 
+  SUBMIT = 'submit',
   DETAIL = 'detail',
   DIRECTORY = 'directory',
   PROFILE = 'profile',
@@ -127,5 +127,7 @@ export enum View {
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
   SUBMISSION = 'submission',
-  ADMIN_PANEL = 'admin_panel'
+  ADMIN_PANEL = 'admin_panel',
+  SETTINGS = 'settings',
+  API_DASHBOARD = 'api_dashboard'
 }
