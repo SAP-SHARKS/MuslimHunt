@@ -285,7 +285,7 @@ const App: React.FC = () => {
       else if (path === '/settings') setView(View.SETTINGS);
       else if (path === '/api-dashboard') setView(View.API_DASHBOARD);
       else if (path.startsWith('/@')) {
-        const username = path.substring(2); // Remove /@
+        const username = decodeURIComponent(path.substring(2)); // Remove /@ and decode
         await fetchProfile(username);
         setView(View.PROFILE);
       }

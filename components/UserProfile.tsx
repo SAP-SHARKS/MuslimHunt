@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { ArrowLeft, TrendingUp, Twitter, Globe, Calendar, Award, MessageSquare, Heart, Sparkles, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { Twitter, Globe, Flame, MessageSquare, ChevronDown } from 'lucide-react';
 import { Product, Profile, User } from '../types';
 import ProductCard from './ProductCard';
 
@@ -21,129 +20,189 @@ const UserProfile: React.FC<UserProfileProps> = ({
   currentUser,
   products,
   votes,
-  onBack,
   onProductClick,
   onCommentClick,
   onUpvote,
   onEditProfile
 }) => {
-  // Aligned with user_id schema
-  const makerHistory = products.filter(p => p.user_id === profile.id);
-  const totalKarma = makerHistory.reduce((acc, p) => acc + (p.upvotes_count || 0), 0);
+  const [activeTab, setActiveTab] = useState('About');
   const isOwnProfile = currentUser?.id === profile.id;
 
+  // Aligned with user_id schema
+  const makerHistory = products.filter(p => p.user_id === profile.id);
+
+  const tabs = ['About', 'Forums', 'Activity', 'Upvotes', 'Collections', 'Stacks', 'Reviews'];
+
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
-      {/* Top Nav */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-8 group font-bold uppercase tracking-widest text-xs"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Back to Community
-      </button>
+    <div className="min-h-screen bg-white font-sans text-[#4b587c]">
+      {/* Header Section */}
+      <div className="max-w-5xl mx-auto px-4 pt-12 pb-4">
+        <div className="flex flex-col md:flex-row items-start gap-8">
 
-      {/* Profile Header */}
-      <div className="bg-white border border-gray-100 rounded-[2rem] p-8 mb-12 shadow-sm relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-
-          {/* Left: Info */}
-          <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8 w-full lg:w-auto text-center lg:text-left">
-            <div className="w-32 h-32 shrink-0 rounded-full overflow-hidden border-4 border-emerald-50 shadow-md">
+          {/* Avatar */}
+          <div className="shrink-0">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border border-gray-100">
               <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-center lg:justify-start gap-3">
-                <h1 className="text-3xl font-serif font-bold text-emerald-900">{profile.username}</h1>
-                {isOwnProfile && <Sparkles className="w-5 h-5 text-emerald-500 fill-emerald-100" />}
-                {profile.headline && (
-                  <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest bg-emerald-50 py-1.5 px-3 rounded-full border border-emerald-100">
-                    {profile.headline}
-                  </span>
-                )}
-              </div>
-
-              {profile.bio && <p className="text-gray-500 font-medium leading-relaxed max-w-xl">{profile.bio}</p>}
-
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-1">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                  <p className="text-emerald-800">{makerHistory.length}</p> Launches
-                </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                  <p className="text-emerald-800">{totalKarma}</p> Karma
-                </div>
-                <div className="w-px h-4 bg-gray-200 hidden lg:block" />
-                {profile.twitter_url && (
-                  <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#1DA1F2] transition-colors"><Twitter className="w-4 h-4" /></a>
-                )}
-                {profile.website_url && (
-                  <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-800 transition-colors"><Globe className="w-4 h-4" /></a>
-                )}
-                <span className="text-gray-300 text-xs font-medium flex items-center gap-1.5"><Calendar className="w-3 h-3" /> Joined 2024</span>
-              </div>
             </div>
           </div>
 
-          {/* Right: Actions (Desktop Only) */}
-          <div className="hidden lg:flex flex-col gap-3 shrink-0">
-            {isOwnProfile ? (
-              <button className="px-6 py-3 bg-white border-2 border-gray-100 text-emerald-900 font-bold rounded-xl hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-sm transition-all text-sm">
-                Edit my profile
-              </button>
-            ) : (
-              <button className="px-6 py-3 bg-emerald-900 text-white font-bold rounded-xl hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 transition-all text-sm">
-                Follow
-              </button>
-            )}
+          {/* User Info & Actions */}
+          <div className="flex-1 min-w-0 w-full">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+
+              {/* Info */}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">{profile.full_name || profile.username}</h1>
+                <p className="text-gray-500 mb-2 font-light">{profile.headline || 'Community Member'}</p>
+
+                {/* Stats Row */}
+                <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-500 mb-4">
+                  <span className="uppercase tracking-wide">#{profile.id.substring(0, 7)}</span>
+                  <span>0 followers</span>
+                  <span>0 following</span>
+                  <span className="flex items-center gap-1 text-[#ff6154]"><Flame className="w-3 h-3 fill-[#ff6154]" /> 7 day streak</span>
+                </div>
+
+                {/* Socials / Location */}
+                <div className="flex items-center gap-4">
+                  {profile.twitter_url && (
+                    <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#1DA1F2] transition-colors"><Twitter className="w-4 h-4" /></a>
+                  )}
+                  {profile.website_url && (
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-800 transition-colors"><Globe className="w-4 h-4" /></a>
+                  )}
+                </div>
+              </div>
+
+              {/* Edit Button */}
+              {isOwnProfile && (
+                <button
+                  onClick={onEditProfile}
+                  className="px-5 py-2.5 rounded-full border border-[#d9e1ec] text-sm font-semibold text-[#4b587c] hover:bg-gray-50 transition-colors bg-white shadow-sm"
+                >
+                  Edit my profile
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-emerald-800" />
-              <h2 className="text-xl font-serif font-bold text-emerald-900">Maker History</h2>
-            </div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{makerHistory.length} Products</span>
-          </div>
-
-          {makerHistory.length > 0 ? (
-            <div className="space-y-4">
-              {makerHistory.map(p => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onUpvote={onUpvote}
-                  hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
-                  onClick={onProductClick}
-                  onCommentClick={onCommentClick}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white border border-gray-100 rounded-[2rem] p-16 text-center">
-              <Sparkles className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">No launches yet</h3>
-              <p className="text-gray-500">This maker hasn't launched any products yet.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Right Sidebar (Community) */}
-        <div className="space-y-8">
-          <div className="bg-white border border-gray-100 rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-sm font-bold text-emerald-900 mb-4 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" /> Activity
-            </h3>
-            <div className="text-center py-8">
-              <p className="text-sm text-gray-400 italic">No recent activity.</p>
-            </div>
+      {/* Tabs Navigation */}
+      <div className="pl-4 md:pl-0 mt-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-8 overflow-x-auto no-scrollbar border-b border-gray-100">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`pb-4 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === tab
+                    ? 'text-gray-900 border-b-2 border-[#ff6154]'
+                    : 'text-gray-500 hover:text-gray-900'
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        {activeTab === 'About' && (
+          <div className="space-y-12">
+
+            {/* About Section */}
+            <section>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">About</h3>
+              {profile.bio ? (
+                <p className="text-gray-600 leading-relaxed max-w-3xl text-[15px]">{profile.bio}</p>
+              ) : (
+                <div className="bg-[#f3f4f8] rounded-md p-8 text-center border border-gray-100 max-w-3xl">
+                  <p className="text-gray-600 text-sm">Add a bio to help people get a better idea of you, your skills, history, and talents.</p>
+                </div>
+              )}
+            </section>
+
+            {/* Badges Section */}
+            <section>
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Badges</h3>
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-3 bg-white border border-[#e8ebf3] px-4 py-3 rounded-xl shadow-sm min-w-[200px]">
+                  <div className="w-10 h-10 bg-[#fff0ed] rounded-full flex items-center justify-center">
+                    <Flame className="w-5 h-5 text-[#ff6154] fill-[#ff6154]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Gone streaking</p>
+                    <div className="flex gap-0.5 mt-1">
+                      <div className="w-4 h-1 bg-[#ff6154] rounded-full"></div>
+                      <div className="w-4 h-1 bg-[#ff6154] rounded-full"></div>
+                      <div className="w-4 h-1 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white border border-[#e8ebf3] px-4 py-3 rounded-xl shadow-sm min-w-[200px]">
+                  <div className="w-10 h-10 bg-[#e7f6ed] rounded-full flex items-center justify-center">
+                    <Flame className="w-5 h-5 text-[#4bba72] fill-[#4bba72]" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Gone streaking 5</p>
+                    <p className="text-[10px] text-gray-400">5 day streak</p>
+                  </div>
+                </div>
+              </div>
+              <button className="mt-4 text-xs font-semibold text-gray-500 hover:text-gray-900">View all badges</button>
+            </section>
+          </div>
+        )}
+
+        {/* Forums Tab */}
+        {activeTab === 'Forums' && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            {/* Cat Placeholder Icon */}
+            <span className="text-4xl mb-4">🐱</span>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">You haven't started any discussions yet.</h3>
+          </div>
+        )}
+
+        {/* Activity Tab */}
+        {activeTab === 'Activity' && (
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <button className="text-sm font-semibold text-gray-900 flex items-center gap-1 hover:text-gray-700">
+                All activity <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+
+            {makerHistory.length > 0 ? (
+              <div className="grid gap-4 max-w-2xl">
+                {makerHistory.map(p => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onUpvote={onUpvote}
+                    hasUpvoted={votes.has(`${currentUser?.id}_${p.id}`)}
+                    onClick={onProductClick}
+                    onCommentClick={onCommentClick}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-left text-gray-500 text-sm">
+                No activity events
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Generic Fallback for other empty tabs */}
+        {['Upvotes', 'Collections', 'Stacks', 'Reviews'].includes(activeTab) && (
+          <div className="py-20 text-center">
+            <p className="text-gray-500">Content coming soon.</p>
+          </div>
+        )}
+
       </div>
     </div>
   );
