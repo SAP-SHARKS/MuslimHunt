@@ -1,14 +1,15 @@
-
 import React, { useState } from 'react';
-/* Added ArrowRight to imports and cleaned up unused LinkedIn/Twitter icons */
 import { User, Check, Mail, Info, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { supabase } from '../lib/supabase.ts';
+import WelcomeSkeleton from './WelcomeSkeleton.tsx';
 
 interface WelcomeProps {
   onComplete: (data: any) => void;
   userEmail: string;
+  userId: string;
 }
 
-const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
+const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -26,10 +27,41 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    onComplete(formData);
-    setLoading(false);
+
+    try {
+      // 1. Prepare data for Supabase profiles table
+      const profileUpdates = {
+        id: userId,
+        username: formData.username,
+        full_name: formData.fullName,
+        headline: formData.headline,
+        linkedin_url: formData.linkedinUrl,
+        twitter_url: formData.twitterUrl,
+        newsletter_leaderboard: formData.preferences.leaderboard,
+        newsletter_roundup: formData.preferences.roundup,
+        newsletter_frontier: formData.preferences.frontier,
+        newsletter_preferences: formData.preferences, // Store full JSON for flexibility
+        email: userEmail,
+        updated_at: new Date().toISOString(),
+      };
+
+      // 2. Upsert into Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(profileUpdates, { onConflict: 'id' });
+
+      if (error) {
+        throw error;
+      }
+
+      // 3. Complete
+      onComplete(formData);
+    } catch (error) {
+      console.error('[Welcome] Error updating profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const togglePreference = (key: keyof typeof formData.preferences) => {
@@ -41,6 +73,8 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
       }
     }));
   };
+
+  if (loading) return <WelcomeSkeleton />;
 
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-700">
@@ -62,7 +96,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
               </div>
               <h2 className="text-xl font-bold text-gray-900">Profile Details</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">Full Name</label>
@@ -119,7 +153,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
               </div>
               <h2 className="text-xl font-bold text-gray-900">Professional Headline</h2>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">What do you do?</label>
               <textarea
@@ -141,14 +175,14 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
               </div>
               <h2 className="text-xl font-bold text-gray-900">Newsletter Preferences</h2>
             </div>
-            
+
             <div className="space-y-4">
               {[
                 { id: 'leaderboard', title: 'The Leaderboard', desc: 'Weekly top products and launches.' },
                 { id: 'roundup', title: 'The Roundup', desc: 'Daily news from the tech ecosystem.' },
                 { id: 'frontier', title: 'The Frontier', desc: 'Deep dives into AI and technical shifts.' }
               ].map(news => (
-                <div 
+                <div
                   key={news.id}
                   onClick={() => togglePreference(news.id as any)}
                   className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors group"
@@ -157,11 +191,10 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail }) => {
                     <p className="text-sm font-bold text-gray-900">{news.title}</p>
                     <p className="text-xs font-medium text-gray-500">{news.desc}</p>
                   </div>
-                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                    formData.preferences[news.id as keyof typeof formData.preferences]
+                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${formData.preferences[news.id as keyof typeof formData.preferences]
                       ? 'bg-emerald-800 border-emerald-800 text-white'
                       : 'border-gray-200 group-hover:border-emerald-300'
-                  }`}>
+                    }`}>
                     {formData.preferences[news.id as keyof typeof formData.preferences] && <Check className="w-4 h-4" />}
                   </div>
                 </div>
