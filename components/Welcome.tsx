@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Check, Mail, Info, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase.ts';
 import WelcomeSkeleton from './WelcomeSkeleton.tsx';
@@ -23,6 +23,39 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
       frontier: false
     }
   });
+
+  useEffect(() => {
+    const fetchExistingProfile = async () => {
+      if (!userId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            fullName: data.full_name || prev.fullName,
+            username: data.username || prev.username,
+            headline: data.headline || prev.headline,
+            linkedinUrl: data.linkedin_url || prev.linkedinUrl,
+            twitterUrl: data.twitter_url || prev.twitterUrl,
+            preferences: {
+              ...prev.preferences,
+              ...data.newsletter_preferences
+            }
+          }));
+        }
+      } catch (error) {
+        console.log('[Welcome] No existing profile found or error fetching:', error);
+      }
+    };
+
+    fetchExistingProfile();
+  }, [userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,8 +225,8 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                     <p className="text-xs font-medium text-gray-500">{news.desc}</p>
                   </div>
                   <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${formData.preferences[news.id as keyof typeof formData.preferences]
-                      ? 'bg-emerald-800 border-emerald-800 text-white'
-                      : 'border-gray-200 group-hover:border-emerald-300'
+                    ? 'bg-emerald-800 border-emerald-800 text-white'
+                    : 'border-gray-200 group-hover:border-emerald-300'
                     }`}>
                     {formData.preferences[news.id as keyof typeof formData.preferences] && <Check className="w-4 h-4" />}
                   </div>
