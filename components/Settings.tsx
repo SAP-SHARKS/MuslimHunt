@@ -1,8 +1,13 @@
 
 import React, { useState } from 'react';
 import { CheckCircle, Github, Linkedin, X, Apple, Facebook, Twitter } from 'lucide-react';
+import { View } from '../types';
 
-const Settings: React.FC = () => {
+interface SettingsProps {
+    onNavigate: (view: View, path?: string) => void;
+}
+
+const Settings: React.FC<SettingsProps> = ({ onNavigate }) => {
     const [activeTab, setActiveTab] = useState('Settings');
     const [email, setEmail] = useState('support@sapsharks.com');
     const [unsubscribeAll, setUnsubscribeAll] = useState(false);
@@ -16,6 +21,14 @@ const Settings: React.FC = () => {
         { name: 'Verification', href: '#' },
     ];
 
+    const handleTabClick = (tabName: string) => {
+        if (tabName === 'My details') {
+            onNavigate(View.PROFILE_EDIT, '/my/details/edit');
+        } else {
+            setActiveTab(tabName);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-white font-sans text-[#4b587c]">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -26,9 +39,9 @@ const Settings: React.FC = () => {
                         {tabs.map((tab) => (
                             <button
                                 key={tab.name}
-                                onClick={() => setActiveTab(tab.name)}
+                                onClick={() => handleTabClick(tab.name)}
                                 className={`
-                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
                   ${activeTab === tab.name
                                         ? 'border-[#ff6154] text-[#ff6154]' // Product Hunt primary color
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'

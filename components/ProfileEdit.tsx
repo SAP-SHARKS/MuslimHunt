@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { User, Profile } from '../types';
+import { User, Profile, View } from '../types';
 import { Loader2, Plus, X, Upload } from 'lucide-react';
 
 interface ProfileEditProps {
     user: User;
     onBack: () => void;
     onViewProfile: () => void;
+    onNavigate: (view: View, path?: string) => void;
 }
 
-const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile }) => {
+const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, onNavigate }) => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -187,7 +188,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile }
             <div className="border-b border-gray-200">
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="flex items-center gap-8 h-12">
-                        <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Settings</button>
+                        <button onClick={() => onNavigate(View.SETTINGS, '/my/settings/edit')} className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Settings</button>
                         <button className="text-orange-500 text-sm font-medium h-full flex items-center border-b-2 border-orange-500">My details</button>
                         <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Followed products</button>
                         <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Verification</button>

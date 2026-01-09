@@ -10,6 +10,7 @@ import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import ProfileEdit from './components/ProfileEdit.tsx';
+import ProfileEditSkeleton from './components/ProfileEditSkeleton.tsx';
 import UserProfileSkeleton from './components/UserProfileSkeleton.tsx';
 import MyProducts from './components/MyProducts.tsx';
 import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
@@ -154,6 +155,7 @@ const App: React.FC = () => {
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingMyProducts, setIsLoadingMyProducts] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [isLoadingProfileEdit, setIsLoadingProfileEdit] = useState(false);
   const [isLoadingApiDashboard, setIsLoadingApiDashboard] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -297,7 +299,11 @@ const App: React.FC = () => {
       else if (path === '/newsletters') setView(View.NEWSLETTER);
       else if (path === '/categories') setView(View.CATEGORIES);
       else if (path === '/my/welcome') setView(View.WELCOME);
-      else if (path === '/my/details/edit') setView(View.PROFILE_EDIT);
+      else if (path === '/my/details/edit') {
+        setIsLoadingProfileEdit(true);
+        setTimeout(() => setIsLoadingProfileEdit(false), 800);
+        setView(View.PROFILE_EDIT);
+      }
       else if (path === '/my/products') {
         setIsLoadingMyProducts(true);
         // Simulate loading time as per request
@@ -410,7 +416,12 @@ const App: React.FC = () => {
       else if (newView === View.NEWSLETTER) path = '/newsletters';
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
-      else if (newView === View.PROFILE_EDIT) path = '/my/details/edit';
+      else if (newView === View.WELCOME) path = '/my/welcome';
+      else if (newView === View.PROFILE_EDIT) {
+        path = '/my/details/edit';
+        setIsLoadingProfileEdit(true);
+        setTimeout(() => setIsLoadingProfileEdit(false), 800);
+      }
       else if (newView === View.MY_PRODUCTS) {
         path = '/my/products';
         setIsLoadingMyProducts(true);
@@ -651,11 +662,16 @@ const App: React.FC = () => {
         )}
 
         {view === View.PROFILE_EDIT && user && (
-          <ProfileEdit
-            user={user}
-            onBack={() => updateView(View.HOME)}
-            onViewProfile={() => updateView(View.PROFILE, '/@' + (user.username || user.email?.split('@')[0]))}
-          />
+          isLoadingProfileEdit ? (
+            <ProfileEditSkeleton />
+          ) : (
+            <ProfileEdit
+              user={user}
+              onBack={() => updateView(View.HOME)}
+              onViewProfile={() => updateView(View.PROFILE, '/@' + (user.username || user.email?.split('@')[0]))}
+              onNavigate={updateView}
+            />
+          )
         )}
 
         {view === View.MY_PRODUCTS && (
@@ -670,7 +686,7 @@ const App: React.FC = () => {
           isLoadingSettings ? (
             <SettingsSkeleton />
           ) : (
-            <Settings />
+            <Settings onNavigate={updateView} />
           )
         )}
 
