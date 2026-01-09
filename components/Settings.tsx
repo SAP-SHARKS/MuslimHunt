@@ -254,58 +254,7 @@ const Settings: React.FC = () => {
                 </div>
             </div>
 
-            {/* Footer mimicking screenshot */}
-            <footer className="bg-[#0e121e] text-white py-12 px-4">
-                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-xs text-gray-400">
-                    <div>
-                        <h4 className="font-bold text-white mb-4">Top Product Categories</h4>
-                        <ul className="space-y-2">
-                            <li>Engineering & Development</li>
-                            <li>Design Tools</li>
-                            <li>Productivity</li>
-                            <li>Marketing & Sales</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white mb-4">Trending Categories</h4>
-                        <ul className="space-y-2">
-                            <li>AI Trading Tools</li>
-                            <li>AI Coding Assistants</li>
-                            <li>No-code Platforms</li>
-                            <li>Developer Tools</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white mb-4">Company</h4>
-                        <ul className="space-y-2">
-                            <li>About Is</li>
-                            <li>Careers</li>
-                            <li>Legal</li>
-                            <li>Contact</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-white mb-4">Social</h4>
-                        <ul className="space-y-2">
-                            <li>Twitter</li>
-                            <li>Instagram</li>
-                            <li>LinkedIn</li>
-                            <li>Facebook</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-800 text-xs text-gray-500 flex justify-between">
-                    <span>© 2026 Product Hunt</span>
-                    <div className="flex gap-4">
-                        <span>Newsletter</span>
-                        <span>Apps</span>
-                        <span>About</span>
-                        <span>FAQ</span>
-                        <span>Terms</span>
-                        <span>Privacy</span>
-                    </div>
-                </div>
-            </footer>
+
         </div>
     );
 };
