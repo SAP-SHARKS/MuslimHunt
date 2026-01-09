@@ -130,5 +130,6 @@ export enum View {
   ADMIN_PANEL = 'admin_panel',
   SETTINGS = 'settings',
   API_DASHBOARD = 'api_dashboard',
-  PROFILE_EDIT = 'profile_edit'
+  PROFILE_EDIT = 'profile_edit',
+  MY_PRODUCTS = 'my_products'
 }

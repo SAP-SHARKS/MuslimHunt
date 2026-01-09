@@ -11,6 +11,8 @@ import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import ProfileEdit from './components/ProfileEdit.tsx';
 import UserProfileSkeleton from './components/UserProfileSkeleton.tsx';
+import MyProducts from './components/MyProducts.tsx';
+import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -146,6 +148,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingMyProducts, setIsLoadingMyProducts] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -289,6 +292,12 @@ const App: React.FC = () => {
       else if (path === '/categories') setView(View.CATEGORIES);
       else if (path === '/my/welcome') setView(View.WELCOME);
       else if (path === '/my/details/edit') setView(View.PROFILE_EDIT);
+      else if (path === '/my/products') {
+        setIsLoadingMyProducts(true);
+        // Simulate loading time as per request
+        setTimeout(() => setIsLoadingMyProducts(false), 800);
+        setView(View.MY_PRODUCTS);
+      }
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/settings') setView(View.SETTINGS);
       else if (path === '/api-dashboard') setView(View.API_DASHBOARD);
@@ -388,6 +397,12 @@ const App: React.FC = () => {
       else if (newView === View.CATEGORIES) path = '/categories';
       else if (newView === View.WELCOME) path = '/my/welcome';
       else if (newView === View.PROFILE_EDIT) path = '/my/details/edit';
+      else if (newView === View.MY_PRODUCTS) {
+        path = '/my/products';
+        setIsLoadingMyProducts(true);
+        // Simulate loading time as per request
+        setTimeout(() => setIsLoadingMyProducts(false), 800);
+      }
       else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.DIRECTORY) path = '/products';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
@@ -617,6 +632,14 @@ const App: React.FC = () => {
             onBack={() => updateView(View.HOME)}
             onViewProfile={() => updateView(View.PROFILE, '/@' + (user.username || user.email?.split('@')[0]))}
           />
+        )}
+
+        {view === View.MY_PRODUCTS && (
+          isLoadingMyProducts ? (
+            <MyProductsSkeleton />
+          ) : (
+            <MyProducts onNewPost={() => updateView(View.POST_SUBMIT)} />
+          )
         )}
 
         {view === View.SETTINGS && (
