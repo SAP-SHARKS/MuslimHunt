@@ -10,6 +10,7 @@ import Auth from './components/Auth.tsx';
 import Welcome from './components/Welcome.tsx';
 import UserProfile from './components/UserProfile.tsx';
 import ProfileEdit from './components/ProfileEdit.tsx';
+import UserProfileSkeleton from './components/UserProfileSkeleton.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -144,6 +145,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -233,6 +235,9 @@ const App: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
 
   const fetchProfile = async (username: string) => {
+    const start = performance.now();
+    setIsLoadingProfile(true);
+    setSelectedProfile(null); // Reset previous profile to avoid staleness
     try {
       // Dev Admin Bypass check for public profile
       if (username === 'DevAdmin') {
@@ -243,8 +248,7 @@ const App: React.FC = () => {
         }
       }
 
-      // Try to find user by username from products if no profiles table access or as optimization?
-      // Better to query profiles table directly.
+      // Try to find user by username from profiles table
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -259,6 +263,10 @@ const App: React.FC = () => {
       }
     } catch (e) {
       console.error('Error fetching profile', e);
+    } finally {
+      const end = performance.now();
+      console.log(`[Profile Load] Fetch took ${Math.round(end - start)}ms`);
+      setIsLoadingProfile(false);
     }
   };
 
@@ -385,6 +393,7 @@ const App: React.FC = () => {
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
       }
+      else if (newView === View.PROFILE && user) path = `/@${user.username}`;
       else if (newView === View.HOME) path = '/';
     }
 
@@ -584,18 +593,22 @@ const App: React.FC = () => {
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
 
-        {view === View.PROFILE && selectedProfile && (
-          <UserProfile
-            profile={selectedProfile}
-            currentUser={user}
-            products={products}
-            votes={votes}
-            onBack={() => updateView(View.HOME)}
-            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
-            onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
-            onUpvote={handleUpvote}
-            onEditProfile={() => updateView(View.PROFILE_EDIT, '/my/details/edit')}
-          />
+        {view === View.PROFILE && (
+          isLoadingProfile || !selectedProfile ? (
+            <UserProfileSkeleton />
+          ) : (
+            <UserProfile
+              profile={selectedProfile}
+              currentUser={user}
+              products={products}
+              votes={votes}
+              onBack={() => updateView(View.HOME)}
+              onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+              onCommentClick={(p) => { setSelectedProduct(p); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+              onUpvote={handleUpvote}
+              onEditProfile={() => updateView(View.PROFILE_EDIT, '/my/details/edit')}
+            />
+          )
         )}
 
         {view === View.PROFILE_EDIT && user && (
