@@ -13,6 +13,10 @@ import ProfileEdit from './components/ProfileEdit.tsx';
 import UserProfileSkeleton from './components/UserProfileSkeleton.tsx';
 import MyProducts from './components/MyProducts.tsx';
 import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
+import Settings from './components/Settings.tsx';
+import SettingsSkeleton from './components/SettingsSkeleton.tsx';
+import ApiDashboard from './components/ApiDashboard.tsx';
+import ApiDashboardSkeleton from './components/ApiDashboardSkeleton.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
@@ -149,6 +153,8 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingMyProducts, setIsLoadingMyProducts] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [isLoadingApiDashboard, setIsLoadingApiDashboard] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -299,8 +305,16 @@ const App: React.FC = () => {
         setView(View.MY_PRODUCTS);
       }
       else if (path === '/admin') setView(View.ADMIN_PANEL);
-      else if (path === '/settings') setView(View.SETTINGS);
-      else if (path === '/api-dashboard') setView(View.API_DASHBOARD);
+      else if (path === '/my/settings/edit') {
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+        setView(View.SETTINGS);
+      }
+      else if (path === '/v2/oauth/applications') {
+        setIsLoadingApiDashboard(true);
+        setTimeout(() => setIsLoadingApiDashboard(false), 800);
+        setView(View.API_DASHBOARD);
+      }
       else if (path.startsWith('/@')) {
         const username = decodeURIComponent(path.substring(2)); // Remove /@ and decode
         await fetchProfile(username);
@@ -404,6 +418,16 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingMyProducts(false), 800);
       }
       else if (newView === View.ADMIN_PANEL) path = '/admin';
+      else if (newView === View.SETTINGS) {
+        path = '/my/settings/edit';
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+      }
+      else if (newView === View.API_DASHBOARD) {
+        path = '/v2/oauth/applications';
+        setIsLoadingApiDashboard(true);
+        setTimeout(() => setIsLoadingApiDashboard(false), 800);
+      }
       else if (newView === View.DIRECTORY) path = '/products';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
@@ -643,17 +667,19 @@ const App: React.FC = () => {
         )}
 
         {view === View.SETTINGS && (
-          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
-            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">Settings</h2>
-            <p className="text-gray-500">Settings page is coming soon.</p>
-          </div>
+          isLoadingSettings ? (
+            <SettingsSkeleton />
+          ) : (
+            <Settings />
+          )
         )}
 
         {view === View.API_DASHBOARD && (
-          <div className="max-w-2xl mx-auto py-12 px-4 text-center">
-            <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-4">API Dashboard</h2>
-            <p className="text-gray-500">Developer API access is coming soon.</p>
-          </div>
+          isLoadingApiDashboard ? (
+            <ApiDashboardSkeleton />
+          ) : (
+            <ApiDashboard />
+          )
         )}
       </main>
 
