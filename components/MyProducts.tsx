@@ -88,7 +88,10 @@ const MyProducts: React.FC<MyProductsProps> = ({ onNewPost, activeFilter = 'all'
                                 >
                                     Launch Guide
                                 </button>
-                                <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors">
+                                <button
+                                    onClick={() => onNavigate('HELP_CENTER', '/help')}
+                                    className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                                >
                                     FAQ
                                 </button>
                             </nav>
@@ -101,7 +104,7 @@ const MyProducts: React.FC<MyProductsProps> = ({ onNewPost, activeFilter = 'all'
                             <span className="text-4xl mb-6">😳</span>
                             <h3 className="text-xl font-medium text-gray-900 mb-2">Looks like you dont have any posts yet</h3>
                             <p className="text-sm text-gray-500 mb-8 max-w-md">
-                                To learn more about posting a product, check out our <a href="#" className="text-[#ff6154] hover:underline">guides to a successful launch</a>
+                                To learn more about posting a product, check out our <button onClick={() => onNavigate('HELP_CENTER', '/help')} className="text-[#ff6154] hover:underline bg-transparent border-none p-0 inline cursor-pointer">guides to a successful launch</button>
                             </p>
                             <button
                                 onClick={onNewPost}

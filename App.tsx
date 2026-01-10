@@ -16,6 +16,8 @@ import MyProducts from './components/MyProducts.tsx';
 import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
 import LaunchGuide from './components/LaunchGuide.tsx';
 import LaunchGuideSkeleton from './components/LaunchGuideSkeleton.tsx';
+import HelpCenter from './components/HelpCenter.tsx';
+import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import Settings from './components/Settings.tsx';
 import SettingsSkeleton from './components/SettingsSkeleton.tsx';
 import ApiDashboard from './components/ApiDashboard.tsx';
@@ -160,6 +162,7 @@ const App: React.FC = () => {
   const [isLoadingProfileEdit, setIsLoadingProfileEdit] = useState(false);
   const [isLoadingApiDashboard, setIsLoadingApiDashboard] = useState(false);
   const [isLoadingLaunchGuide, setIsLoadingLaunchGuide] = useState(false);
+  const [isLoadingHelpCenter, setIsLoadingHelpCenter] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -322,6 +325,11 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingLaunchGuide(false), 800);
         setView(View.LAUNCH_GUIDE);
       }
+      else if (path === '/help') {
+        setIsLoadingHelpCenter(true);
+        setTimeout(() => setIsLoadingHelpCenter(false), 800);
+        setView(View.HELP_CENTER);
+      }
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/my/settings/edit') {
         setIsLoadingSettings(true);
@@ -479,6 +487,11 @@ const App: React.FC = () => {
         path = '/launch';
         setIsLoadingLaunchGuide(true);
         setTimeout(() => setIsLoadingLaunchGuide(false), 800);
+      }
+      else if (newView === View.HELP_CENTER) {
+        path = '/help';
+        setIsLoadingHelpCenter(true);
+        setTimeout(() => setIsLoadingHelpCenter(false), 800);
       }
       else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.SETTINGS) {
@@ -769,6 +782,14 @@ const App: React.FC = () => {
             <LaunchGuideSkeleton />
           ) : (
             <LaunchGuide onBack={() => updateView(View.HOME)} />
+          )
+        )}
+
+        {view === View.HELP_CENTER && (
+          isLoadingHelpCenter ? (
+            <HelpCenterSkeleton />
+          ) : (
+            <HelpCenter onBack={() => updateView(View.HOME)} />
           )
         )}
       </main>
