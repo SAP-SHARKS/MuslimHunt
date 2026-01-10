@@ -193,22 +193,7 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                             </div>
                             {/* ... (End of Verification inner content wrapper) */}
                         </div>
-                        {/* Connected Accounts Section */}
-                        <div className="mb-16">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">Connected accounts</h2>
-                            <p className="text-sm text-gray-500 mb-2">You're connected with:</p>
-                            <p className="text-sm font-medium text-gray-900 mb-8">Google</p>
 
-                            <p className="text-sm text-gray-500 mb-4">Connect additional providers:</p>
-                            <div className="space-y-3 max-w-xs">
-                                {['Facebook', 'Twitter', 'Apple', 'Linkedin', 'Github'].map(provider => (
-                                    <div key={provider} className="flex justify-between items-center text-sm group cursor-pointer">
-                                        <span className="text-gray-700 font-medium">{provider}</span>
-                                        <button className="px-3 py-1 border border-gray-200 rounded text-xs font-medium text-gray-500 hover:bg-gray-50 group-hover:border-gray-300 transition-colors">Connect</button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     </div>
                 );
             case 'Settings':
