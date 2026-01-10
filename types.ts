@@ -127,6 +127,8 @@ export enum View {
   POST_SUBMIT = 'post_submit',
   NOTIFICATIONS = 'notifications',
   SUBMISSION = 'submission',
+  LAUNCH_GUIDE = 'LAUNCH_GUIDE',
+  HELP_CENTER = 'HELP_CENTER',
   ADMIN_PANEL = 'admin_panel',
   SETTINGS = 'settings',
   API_DASHBOARD = 'api_dashboard',
