@@ -97,8 +97,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`pb-4 text-sm font-medium whitespace-nowrap transition-colors relative ${activeTab === tab
-                    ? 'text-gray-900 border-b-2 border-[#ff6154]'
-                    : 'text-gray-500 hover:text-gray-900'
+                  ? 'text-gray-900 border-b-2 border-[#ff6154]'
+                  : 'text-gray-500 hover:text-gray-900'
                   }`}
               >
                 {tab}
@@ -196,10 +196,35 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </div>
         )}
 
-        {/* Generic Fallback for other empty tabs */}
-        {['Upvotes', 'Collections', 'Stacks', 'Reviews'].includes(activeTab) && (
-          <div className="py-20 text-center">
-            <p className="text-gray-500">Content coming soon.</p>
+        {/* Upvotes Tab */}
+        {activeTab === 'Upvotes' && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <span className="text-4xl mb-4">🐱</span>
+            <h3 className="text-gray-900 font-medium">No upvotes yet!</h3>
+          </div>
+        )}
+
+        {/* Collections Tab */}
+        {activeTab === 'Collections' && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <span className="text-4xl mb-4">🐱</span>
+            <h3 className="text-gray-900 font-medium">No collections yet!</h3>
+          </div>
+        )}
+
+        {/* Stacks Tab */}
+        {activeTab === 'Stacks' && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <span className="text-4xl mb-4">🐱</span>
+            <h3 className="text-gray-900 font-medium">You have not stacked any products yet.</h3>
+            <p className="text-gray-500 text-sm mt-2">Stacks are a way to share the tools you use.</p>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'Reviews' && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <h3 className="text-gray-500 font-medium">No reviews</h3>
           </div>
         )}
 
