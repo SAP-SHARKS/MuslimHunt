@@ -4,10 +4,42 @@ import { View } from '../types';
 
 interface MyProductsProps {
     onNewPost: () => void;
+    activeFilter?: string;
+    onNavigate: (view: any, path: string) => void;
 }
 
-const MyProducts: React.FC<MyProductsProps> = ({ onNewPost }) => {
-    const [activeTab, setActiveTab] = useState('All');
+const MyProducts: React.FC<MyProductsProps> = ({ onNewPost, activeFilter = 'all', onNavigate }) => {
+    // Map filter values to Labels
+    const getLabelFromFilter = (filter: string) => {
+        switch (filter) {
+            case 'inprogress': return 'In Progress';
+            case 'drafts': return 'Drafts';
+            case 'scheduled': return 'Scheduled';
+            case 'posted': return 'Posted';
+            default: return 'All';
+        }
+    };
+
+    const getFilterFromLabel = (label: string) => {
+        switch (label) {
+            case 'In Progress': return 'inprogress';
+            case 'Drafts': return 'drafts';
+            case 'Scheduled': return 'scheduled';
+            case 'Posted': return 'posted';
+            default: return 'all';
+        }
+    };
+
+    const [activeTab, setActiveTab] = useState(getLabelFromFilter(activeFilter));
+
+    React.useEffect(() => {
+        setActiveTab(getLabelFromFilter(activeFilter));
+    }, [activeFilter]);
+
+    const handleTabClick = (label: string) => {
+        const filter = getFilterFromLabel(label);
+        onNavigate('MY_PRODUCTS', `/my/products?filter=${filter}`);
+    };
 
     const menuItems = [
         { label: 'All', count: 0, icon: '💯' },
@@ -31,10 +63,10 @@ const MyProducts: React.FC<MyProductsProps> = ({ onNewPost }) => {
                                 {menuItems.map((item) => (
                                     <button
                                         key={item.label}
-                                        onClick={() => setActiveTab(item.label)}
+                                        onClick={() => handleTabClick(item.label)}
                                         className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === item.label
-                                                ? 'text-[#ff6154] bg-[#ff6154]/5'
-                                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                            ? 'text-[#ff6154] bg-[#ff6154]/5'
+                                            : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                                             }`}
                                     >
                                         <div className="flex items-center gap-3">

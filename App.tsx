@@ -163,6 +163,8 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
+  const [profileActiveTab, setProfileActiveTab] = useState('About');
+  const [myProductsFilter, setMyProductsFilter] = useState('all');
   const [activeTag, setActiveTag] = useState<string>('');
   const [activeParentTopic, setActiveParentTopic] = useState<string>('');
   const [votes, setVotes] = useState<Set<string>>(new Set());
@@ -308,6 +310,8 @@ const App: React.FC = () => {
         setIsLoadingMyProducts(true);
         // Simulate loading time as per request
         setTimeout(() => setIsLoadingMyProducts(false), 800);
+        const filter = searchParams.get('filter') || 'all';
+        setMyProductsFilter(filter);
         setView(View.MY_PRODUCTS);
       }
       else if (path === '/admin') setView(View.ADMIN_PANEL);
@@ -434,9 +438,34 @@ const App: React.FC = () => {
       }
       else if (newView === View.MY_PRODUCTS) {
         path = '/my/products';
-        setIsLoadingMyProducts(true);
-        // Simulate loading time as per request
-        setTimeout(() => setIsLoadingMyProducts(false), 800);
+        // if customPath has query params, we rely on them appearing in the path? 
+        // actually customPath is passed as full string in handleTabClick so it's fine.
+        // BUT if wait, updateView logic re-constructs path if customPath is not falsy?
+        // Wait, line 417 says `let path = customPath || '/';`
+        // So if we pass `/my/products?filter=xyz`, specific logic below might override it if we are not careful.
+        // The block is `if (!customPath) { ... }`. 
+        // So if customPath IS provided, we skip the block.
+        // However, we still need to handle side effects like `setIsLoading`.
+
+        // Refactoring to ensure side effects run even with customPath for known views
+        if (customPath && customPath.startsWith('/my/products')) {
+          setIsLoadingMyProducts(true);
+          setTimeout(() => setIsLoadingMyProducts(false), 800);
+          // extracting filter from customPath for local state sync?
+          // Since we use window.location in syncStateFromUrl, and customPath is pushed to history...
+          // Wait, safeHistory.push happens at the end.
+          // We need to update state immediately if we want instant feedback?
+          // syncStateFromUrl parses window.location.
+          // If we push state, popstate event is dispatched (custom logic in safeHistory.push).
+          // But existing logic relies on `syncStateFromUrl` being called on popstate or manually?
+          // safeHistory.push dispatches 'popstate'.
+          // `syncStateFromUrl` listens to 'popstate'.
+          // So if we push path, state should sync.
+        } else if (!customPath) {
+          path = '/my/products';
+          setIsLoadingMyProducts(true);
+          setTimeout(() => setIsLoadingMyProducts(false), 800);
+        }
       }
       else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.SETTINGS) {
@@ -698,7 +727,11 @@ const App: React.FC = () => {
           isLoadingMyProducts ? (
             <MyProductsSkeleton />
           ) : (
-            <MyProducts onNewPost={() => updateView(View.POST_SUBMIT)} />
+            <MyProducts
+              onNewPost={() => updateView(View.POST_SUBMIT)}
+              activeFilter={myProductsFilter}
+              onNavigate={updateView}
+            />
           )
         )}
 
