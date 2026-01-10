@@ -174,6 +174,18 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
         }
     };
 
+    const handleTabClick = (tabName: string) => {
+        if (tabName === 'My details') {
+            // Already here
+        } else if (tabName === 'Followed products') {
+            onNavigate(View.FOLLOWED_PRODUCTS, '/my/subscriptions/products');
+        } else if (tabName === 'Verification') {
+            onNavigate(View.VERIFICATION, '/my/verification');
+        } else if (tabName === 'Settings') {
+            onNavigate(View.SETTINGS, '/my/settings/edit');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center py-20">
@@ -183,20 +195,29 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
     }
 
     return (
-        <div className="bg-white min-h-screen">
-            {/* Top Navigation Bar - Matching PH Style */}
-            <div className="border-b border-gray-200">
-                <div className="max-w-5xl mx-auto px-4">
-                    <div className="flex items-center gap-8 h-12">
-                        <button onClick={() => onNavigate(View.SETTINGS, '/my/settings/edit')} className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Settings</button>
-                        <button className="text-emerald-600 text-sm font-medium h-full flex items-center border-b-2 border-emerald-600">My details</button>
-                        <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Followed products</button>
-                        <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Verification</button>
-                    </div>
-                </div>
-            </div>
+        <div className="min-h-screen bg-white font-sans text-[#4b587c]">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <div className="max-w-4xl mx-auto py-10 px-4">
+                {/* Tabs - Matching Settings.tsx exactly */}
+                <div className="border-b border-gray-200 mb-8">
+                    <nav className="-mb-px flex space-x-8">
+                        {['Settings', 'My details', 'Followed products', 'Verification'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => handleTabClick(tab)}
+                                className={`
+                                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                  ${tab === 'My details'
+                                        ? 'border-emerald-600 text-emerald-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-emerald-600'
+                                    }
+                                `}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
 
                 {/* Header */}
                 <div className="flex justify-between items-end mb-10">
