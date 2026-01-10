@@ -189,7 +189,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
                 <div className="max-w-5xl mx-auto px-4">
                     <div className="flex items-center gap-8 h-12">
                         <button onClick={() => onNavigate(View.SETTINGS, '/my/settings/edit')} className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Settings</button>
-                        <button className="text-orange-500 text-sm font-medium h-full flex items-center border-b-2 border-orange-500">My details</button>
+                        <button className="text-emerald-600 text-sm font-medium h-full flex items-center border-b-2 border-emerald-600">My details</button>
                         <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Followed products</button>
                         <button className="text-gray-500 text-sm font-medium hover:text-gray-900 h-full flex items-center">Verification</button>
                     </div>
@@ -319,7 +319,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="bg-[#ff6154] hover:bg-[#ff4f40] text-white font-bold py-3 px-8 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg text-sm transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                             </button>
@@ -329,7 +329,7 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
 
                     {/* Right Column: Avatar */}
                     <div className="md:w-64 shrink-0 flex flex-col items-center text-center">
-                        <div className="w-32 h-32 rounded-full overflow-hidden mb-4 bg-gray-100 relavtive group cursor-pointer border border-gray-100">
+                        <div className="w-32 h-32 rounded-full overflow-hidden mb-4 bg-gray-100 relative group cursor-pointer border border-gray-100">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
