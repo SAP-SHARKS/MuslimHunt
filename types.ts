@@ -66,11 +66,12 @@ export interface ForumCategory {
 
 export interface Notification {
   id: string;
-  type: 'upvote' | 'comment' | 'approval' | 'rejection';
+  type: 'upvote' | 'comment' | 'approval' | 'rejection' | 'streak';
   message: string;
   created_at: string;
   is_read: boolean;
   avatar_url?: string;
+  streak_days?: number;
 }
 
 export interface NavSubItem {

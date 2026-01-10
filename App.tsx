@@ -27,6 +27,7 @@ import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
 import RecentComments from './components/RecentComments.tsx';
 import NotificationsPage from './components/NotificationsPage.tsx';
+import NotificationsSkeleton from './components/NotificationsSkeleton.tsx';
 import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
@@ -163,6 +164,7 @@ const App: React.FC = () => {
   const [isLoadingApiDashboard, setIsLoadingApiDashboard] = useState(false);
   const [isLoadingLaunchGuide, setIsLoadingLaunchGuide] = useState(false);
   const [isLoadingHelpCenter, setIsLoadingHelpCenter] = useState(false);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -300,7 +302,11 @@ const App: React.FC = () => {
       if (path === '/p/new') setView(View.NEW_THREAD);
       else if (path === '/posts/new') setView(View.POST_SUBMIT);
       else if (path === '/posts/new/submission') setView(View.SUBMISSION);
-      else if (path === '/notifications') setView(View.NOTIFICATIONS);
+      else if (path === '/notifications') {
+        setIsLoadingNotifications(true);
+        setTimeout(() => setIsLoadingNotifications(false), 800);
+        setView(View.NOTIFICATIONS);
+      }
       else if (path === '/forums') setView(View.FORUM_HOME);
       else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
       else if (path === '/sponsor') setView(View.SPONSOR);
@@ -424,6 +430,71 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Simulate Notifications & Streaks
+  useEffect(() => {
+    if (user) {
+      // Simple streak logic using local storage simulation
+      const today = new Date().toDateString();
+      const lastLogin = localStorage.getItem('last_login_date');
+      let streak = parseInt(localStorage.getItem('user_streak') || '0');
+
+      if (lastLogin !== today) {
+        streak++; // increment streak for "today"
+        localStorage.setItem('last_login_date', today);
+        localStorage.setItem('user_streak', streak.toString());
+      }
+
+      const mockNotifications: Notification[] = [];
+
+      // Streak Notification if streak > 0
+      if (streak > 1) {
+        mockNotifications.push({
+          id: 'streak-1',
+          type: 'streak',
+          message: `You maintained a streak of ${streak} days!`,
+          created_at: new Date().toISOString(),
+          is_read: false,
+          streak_days: streak
+        });
+      }
+
+      // Mock Admin Approval if admin
+      if (user.is_admin) {
+        mockNotifications.push({
+          id: 'admin-1',
+          type: 'approval',
+          message: 'New product "Halal AI" is waiting for your approval.',
+          created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+          is_read: false
+        });
+      }
+
+      // Mock Maker Notification
+      mockNotifications.push({
+        id: 'maker-1',
+        type: 'upvote',
+        message: 'Someone just upvoted your product "Quran App".',
+        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        is_read: true,
+        avatar_url: 'https://i.pravatar.cc/150?u=voter'
+      });
+
+      // Add 5 day streak example if needed for demo
+      if (streak < 5) {
+        mockNotifications.push({
+          id: 'streak-demo',
+          type: 'streak',
+          message: `You maintained a streak of 5 days!`,
+          created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+          is_read: false,
+          streak_days: 5
+        });
+      }
+
+      setNotifications(mockNotifications);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (!isAuthLoading) {
       syncStateFromUrl();
@@ -439,7 +510,11 @@ const App: React.FC = () => {
       if (newView === View.NEW_THREAD) path = '/p/new';
       else if (newView === View.POST_SUBMIT) path = '/posts/new';
       else if (newView === View.SUBMISSION) path = '/posts/new/submission';
-      else if (newView === View.NOTIFICATIONS) path = '/notifications';
+      else if (newView === View.NOTIFICATIONS) {
+        path = '/notifications';
+        setIsLoadingNotifications(true);
+        setTimeout(() => setIsLoadingNotifications(false), 800);
+      }
       else if (newView === View.FORUM_HOME) path = '/forums';
       else if (newView === View.RECENT_COMMENTS) path = '/forums/comments';
       else if (newView === View.SPONSOR) path = '/sponsor';
@@ -711,7 +786,9 @@ const App: React.FC = () => {
             commentVotes={commentVotes} onCommentUpvote={() => { }} onAddComment={() => { }} onViewProfile={() => { }} scrollToComments={shouldScrollToComments}
           />
         )}
-        {view === View.NOTIFICATIONS && <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => { }} />}
+        {view === View.NOTIFICATIONS && (
+          isLoadingNotifications ? <NotificationsSkeleton /> : <NotificationsPage notifications={notifications} onBack={() => updateView(View.HOME)} onMarkAsRead={() => { }} />
+        )}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} userId={user.id} onComplete={() => updateView(View.HOME)} />}
         {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}

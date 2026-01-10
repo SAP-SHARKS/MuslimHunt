@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Search, LogOut, ChevronDown, ChevronRight, BookOpen, Users, Megaphone, Sparkles, X,
   MessageSquare, Code, Cpu, CheckSquare, Palette, DollarSign, Bot, ArrowRight, Star,
-  Rocket, Mail, Plus, Bell, User as UserIcon,
+  Rocket, Mail, Plus, Bell, User as UserIcon, Flame,
   Triangle, Menu, Layout, Hash, ShieldCheck, Calendar, Trophy, Settings
 } from 'lucide-react';
 import { User, View, Notification, NavMenuItem, Category } from '../types';
@@ -289,7 +289,7 @@ const Navbar: React.FC<NavbarProps> = ({
                           notifications.slice(0, 3).map((n) => (
                             <div key={n.id} className="flex gap-3 group/notif cursor-pointer">
                               <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
-                                {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : n.type === 'approval' ? <ShieldCheck className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                                {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : n.type === 'approval' ? <ShieldCheck className="w-4 h-4" /> : n.type === 'streak' ? <Flame className="w-4 h-4 fill-amber-500 text-amber-500" /> : <MessageSquare className="w-4 h-4" />}
                               </div>
                               <div className="min-w-0">
                                 <p className={`text-[13px] leading-snug line-clamp-2 ${n.is_read ? 'text-gray-500 font-medium' : 'text-gray-900 font-bold'}`}>{n.message}</p>
