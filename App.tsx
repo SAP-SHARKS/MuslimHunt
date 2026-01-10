@@ -316,6 +316,11 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingSettings(false), 800);
         setView(View.SETTINGS);
       }
+      else if (path === '/my/subscriptions/products') {
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+        setView(View.FOLLOWED_PRODUCTS);
+      }
       else if (path === '/v2/oauth/applications') {
         setIsLoadingApiDashboard(true);
         setTimeout(() => setIsLoadingApiDashboard(false), 800);
@@ -431,6 +436,11 @@ const App: React.FC = () => {
       else if (newView === View.ADMIN_PANEL) path = '/admin';
       else if (newView === View.SETTINGS) {
         path = '/my/settings/edit';
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+      }
+      else if (newView === View.FOLLOWED_PRODUCTS) {
+        path = '/my/subscriptions/products';
         setIsLoadingSettings(true);
         setTimeout(() => setIsLoadingSettings(false), 800);
       }
@@ -682,11 +692,11 @@ const App: React.FC = () => {
           )
         )}
 
-        {view === View.SETTINGS && (
+        {(view === View.SETTINGS || view === View.FOLLOWED_PRODUCTS) && (
           isLoadingSettings ? (
             <SettingsSkeleton />
           ) : (
-            <Settings onNavigate={updateView} />
+            <Settings onNavigate={updateView} currentView={view} />
           )
         )}
 
