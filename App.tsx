@@ -321,6 +321,11 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingSettings(false), 800);
         setView(View.FOLLOWED_PRODUCTS);
       }
+      else if (path === '/my/verification') {
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+        setView(View.VERIFICATION);
+      }
       else if (path === '/v2/oauth/applications') {
         setIsLoadingApiDashboard(true);
         setTimeout(() => setIsLoadingApiDashboard(false), 800);
@@ -441,6 +446,11 @@ const App: React.FC = () => {
       }
       else if (newView === View.FOLLOWED_PRODUCTS) {
         path = '/my/subscriptions/products';
+        setIsLoadingSettings(true);
+        setTimeout(() => setIsLoadingSettings(false), 800);
+      }
+      else if (newView === View.VERIFICATION) {
+        path = '/my/verification';
         setIsLoadingSettings(true);
         setTimeout(() => setIsLoadingSettings(false), 800);
       }
@@ -692,7 +702,7 @@ const App: React.FC = () => {
           )
         )}
 
-        {(view === View.SETTINGS || view === View.FOLLOWED_PRODUCTS) && (
+        {(view === View.SETTINGS || view === View.FOLLOWED_PRODUCTS || view === View.VERIFICATION) && (
           isLoadingSettings ? (
             <SettingsSkeleton />
           ) : (

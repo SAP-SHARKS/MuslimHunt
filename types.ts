@@ -132,5 +132,6 @@ export enum View {
   API_DASHBOARD = 'api_dashboard',
   PROFILE_EDIT = 'profile_edit',
   MY_PRODUCTS = 'my_products',
-  FOLLOWED_PRODUCTS = 'followed_products'
+  FOLLOWED_PRODUCTS = 'followed_products',
+  VERIFICATION = 'verification'
 }

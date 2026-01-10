@@ -11,6 +11,7 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
     // Derive initial active tab from currentView
     const getInitialTab = () => {
         if (currentView === View.FOLLOWED_PRODUCTS) return 'Followed products';
+        if (currentView === View.VERIFICATION) return 'Verification';
         return 'Settings';
     };
 
@@ -25,7 +26,9 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
     React.useEffect(() => {
         if (currentView === View.FOLLOWED_PRODUCTS) {
             setActiveTab('Followed products');
-        } else if (currentView === View.SETTINGS && activeTab === 'Followed products') {
+        } else if (currentView === View.VERIFICATION) {
+            setActiveTab('Verification');
+        } else if (currentView === View.SETTINGS && (activeTab === 'Followed products' || activeTab === 'Verification')) {
             // If we navigated back to settings, reset to Settings default active tab
             setActiveTab('Settings');
         }
@@ -49,6 +52,14 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                     onNavigate(View.FOLLOWED_PRODUCTS);
                 }, 600);
             }
+        } else if (tabName === 'Verification') {
+            if (activeTab !== 'Verification') {
+                setLoadingTab(tabName);
+                setTimeout(() => {
+                    setLoadingTab(null);
+                    onNavigate(View.VERIFICATION);
+                }, 600);
+            }
         } else if (tabName === 'Settings') {
             if (currentView !== View.SETTINGS) {
                 onNavigate(View.SETTINGS);
@@ -57,15 +68,8 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
             }
         } else {
             // For tabs that don't need URL changes yet
-            if (currentView === View.FOLLOWED_PRODUCTS) {
-                // If on followed products view, clicking verification should probably go to settings view URL context? 
-                // But for now keeping simple tab switch on same view might be confusing if URL stays.
-                // Switching to Settings view generally better for auxiliary tabs.
+            if (currentView === View.FOLLOWED_PRODUCTS || currentView === View.VERIFICATION) {
                 onNavigate(View.SETTINGS);
-                // Then set tab - but we need to wait for nav? 
-                // Simply navigating to settings will default to settings tab. 
-                // We might need a generic 'view' change if we want other tabs to have URLs.
-                // For now, let's keep it simple:
             }
             setActiveTab(tabName);
         }
