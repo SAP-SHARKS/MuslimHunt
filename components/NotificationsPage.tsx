@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Bell, ArrowLeft, MessageSquare, Triangle, Clock } from 'lucide-react';
+import { Bell, ArrowLeft, MessageSquare, Triangle, Clock, Flame, ShieldCheck } from 'lucide-react';
 import { Notification } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 
