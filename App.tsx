@@ -770,7 +770,7 @@ const App: React.FC = () => {
         {view === View.HOME && (
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
-              <header className="mb-12">
+              <header className="mb-6">
                 <div className="flex items-center gap-2 text-emerald-800 mb-2">
                   <Sparkles className="w-4 h-4 fill-emerald-800" />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
@@ -784,21 +784,12 @@ const App: React.FC = () => {
                   { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
                   { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
                 ].map((section) => (
-                  <section key={section.id}>
-                    {section.data.length > 0 && (
+                  section.data.length > 0 && (
+                    <section key={section.id}>
                       <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
-                    )}
 
-                    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
-                      {isLoadingProducts && section.id === 'today' ? (
-                        // Render Skeletons for the today section if loading
-                        // We rely on isLoadingProducts to show dedicated skeleton section below, 
-                        // but to avoid "No Products" gap, we can just hide this if loading and empty?
-                        // Actually, sticking to the strategy: if loading, show dedicated section. 
-                        // If loaded, show data.
-                        null
-                      ) : (
-                        (expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
+                      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
+                        {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
                           <ProductCard
                             key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote}
                             hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
@@ -806,16 +797,16 @@ const App: React.FC = () => {
                             onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }}
                             searchQuery={searchQuery}
                           />
-                        ))
-                      )}
-                    </div>
+                        ))}
+                      </div>
 
-                    {!isLoadingProducts && !expandedSections[section.id] && section.data.length > 5 && (
-                      <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
-                        See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </section>
+                      {!expandedSections[section.id] && section.data.length > 5 && (
+                        <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
+                          See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                    </section>
+                  )
                 ))}
 
                 {/* Dedicated Loading State when isLoadingProducts is true */}
