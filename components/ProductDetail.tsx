@@ -20,6 +20,7 @@ interface ProductDetailProps {
   onAddComment: (text: string) => void;
   onViewProfile: (userId: string) => void;
   scrollToComments?: boolean;
+  onCommentAdded?: (comment: Comment) => void;
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -31,7 +32,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   hasUpvoted,
   commentVotes,
   onViewProfile,
-  scrollToComments = false
+  scrollToComments = false,
+  onCommentAdded
 }) => {
   const [commentText, setCommentText] = useState('');
   const [localComments, setLocalComments] = useState<Comment[]>([]);
@@ -108,9 +110,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         avatar_url: user.avatar_url,
         is_maker: isMaker,
         upvotes_count: 0
-      }]);
+      }]).select().single();
 
       if (error) throw error;
+
+      if (data && onCommentAdded) {
+        onCommentAdded(data as Comment);
+      }
 
       setCommentText('');
       setReplyingTo(null);

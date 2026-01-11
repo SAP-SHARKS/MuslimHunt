@@ -38,6 +38,7 @@ import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Categ
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts, slugify, findProductBySlug } from './utils/searchUtils.ts';
+import ProductCardSkeleton from './components/ProductCardSkeleton.tsx';
 
 const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
@@ -158,6 +159,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 const App: React.FC = () => {
   const [view, setView] = useState<View>(View.HOME);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isLoadingMyProducts, setIsLoadingMyProducts] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(false);
   const [isLoadingProfileEdit, setIsLoadingProfileEdit] = useState(false);
@@ -189,10 +191,11 @@ const App: React.FC = () => {
   });
 
   const fetchProducts = async () => {
+    setIsLoadingProducts(true);
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, comments(*)')
         .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
@@ -200,6 +203,8 @@ const App: React.FC = () => {
       setProducts(data || []);
     } catch (err) {
       console.error('[Muslim Hunt] Error fetching products:', err);
+    } finally {
+      setTimeout(() => setIsLoadingProducts(false), 500);
     }
   };
 
@@ -377,6 +382,15 @@ const App: React.FC = () => {
         setActiveTag(topic);
         setActiveParentTopic(parent);
         setView(View.DIRECTORY);
+      }
+      else if (path.startsWith('/topics/')) {
+        const slug = path.split('/topics/')[1]?.split('?')[0];
+        if (slug) {
+          setActiveTag(slug);
+          setView(View.DIRECTORY);
+        } else {
+          setView(View.HOME);
+        }
       }
       else if (path.startsWith('/categories/')) {
         const slug = path.split('/categories/')[1]?.split('?')[0]?.replace(/\/$/, '');
@@ -625,7 +639,13 @@ const App: React.FC = () => {
     setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
   };
 
-  const filteredProducts = useMemo(() => searchProducts(products, searchQuery), [products, searchQuery]);
+  const filteredProducts = useMemo(() => {
+    let result = searchProducts(products, searchQuery);
+    if (activeTag) {
+      result = result.filter(p => slugify(p.category) === activeTag);
+    }
+    return result;
+  }, [products, searchQuery, activeTag]);
 
   const groupedProducts = useMemo(() => {
     const now = new Date().getTime();
@@ -645,6 +665,16 @@ const App: React.FC = () => {
     Object.values(grouped).forEach(g => g.sort(sortFn));
     return grouped;
   }, [filteredProducts]);
+
+  const handleCommentAdded = (productId: string, newComment: Comment) => {
+    setProducts(prev => prev.map(p => {
+      if (p.id === productId) {
+        const updatedComments = p.comments ? [newComment, ...p.comments] : [newComment];
+        return { ...p, comments: updatedComments };
+      }
+      return p;
+    }));
+  };
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
@@ -714,11 +744,21 @@ const App: React.FC = () => {
                   { id: 'lastWeek', title: "Last Week's Top Products", buttonLabel: "last week's products", data: groupedProducts.lastWeek },
                   { id: 'lastMonth', title: "Older Products", buttonLabel: "older products", data: groupedProducts.lastMonth }
                 ].map((section) => (
-                  section.data.length > 0 && (
-                    <section key={section.id}>
+                  <section key={section.id}>
+                    {section.data.length > 0 && (
                       <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
-                      <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
-                        {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
+                    )}
+
+                    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
+                      {isLoadingProducts && section.id === 'today' ? (
+                        // Render Skeletons for the today section if loading
+                        // We rely on isLoadingProducts to show dedicated skeleton section below, 
+                        // but to avoid "No Products" gap, we can just hide this if loading and empty?
+                        // Actually, sticking to the strategy: if loading, show dedicated section. 
+                        // If loaded, show data.
+                        null
+                      ) : (
+                        (expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
                           <ProductCard
                             key={p.id} product={p} rank={i + 1} onUpvote={handleUpvote}
                             hasUpvoted={votes.has(`${user?.id}_${p.id}`)}
@@ -726,16 +766,27 @@ const App: React.FC = () => {
                             onCommentClick={(prod) => { setSelectedProduct(prod); setShouldScrollToComments(true); updateView(View.DETAIL, `/products/${slugify(prod.name)}`); }}
                             searchQuery={searchQuery}
                           />
-                        ))}
-                      </div>
-                      {!expandedSections[section.id] && section.data.length > 5 && (
-                        <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
-                          See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
-                        </button>
+                        ))
                       )}
-                    </section>
-                  )
+                    </div>
+
+                    {!isLoadingProducts && !expandedSections[section.id] && section.data.length > 5 && (
+                      <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
+                        See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </section>
                 ))}
+
+                {/* Dedicated Loading State when isLoadingProducts is true */}
+                {isLoadingProducts && (
+                  <section>
+                    <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">Top Products Launching Today</h2>
+                    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
+                      {[1, 2, 3, 4, 5].map(i => <ProductCardSkeleton key={i} />)}
+                    </div>
+                  </section>
+                )}
               </div>
             </div>
             <TrendingSidebar user={user} setView={updateView} onSignIn={() => setIsAuthModalOpen(true)} />
@@ -781,9 +832,10 @@ const App: React.FC = () => {
         )}
         {view === View.DETAIL && selectedProduct && (
           <ProductDetail
-            product={selectedProduct} user={user} onBack={() => updateView(View.HOME)}
+            product={selectedProduct} user={user} onBack={() => { updateView(View.HOME); fetchProducts(); }}
             onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
             commentVotes={commentVotes} onCommentUpvote={() => { }} onAddComment={() => { }} onViewProfile={() => { }} scrollToComments={shouldScrollToComments}
+            onCommentAdded={(newComment) => handleCommentAdded(selectedProduct.id, newComment)}
           />
         )}
         {view === View.NOTIFICATIONS && (

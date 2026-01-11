@@ -15,11 +15,11 @@ interface ProductCardProps {
   rank?: number;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onUpvote, 
-  hasUpvoted, 
-  onClick, 
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onUpvote,
+  hasUpvoted,
+  onClick,
   onCommentClick,
   searchQuery = '',
   rank
@@ -33,92 +33,94 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const tags = [product.category, 'Web', 'Free'];
 
   return (
-    <a 
+    <a
       href={`/products/${productSlug}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-center justify-between p-5 bg-white border-b border-gray-50 last:border-0 hover:bg-emerald-50/20 transition-all cursor-pointer no-underline block"
+      className="group flex items-start justify-between p-6 bg-white border-b border-gray-100 last:border-0 hover:bg-emerald-50/10 transition-all cursor-pointer no-underline block"
       onClick={(e) => {
-        // If the user is just clicking the card normally (not cmd/ctrl click), 
-        // we can still trigger the internal onClick if needed, 
-        // but for "New Tab" logic as requested, we let the default <a> behavior win.
+        // Default anchor behavior handles new tab
       }}
     >
-      <div className="flex items-center gap-5 flex-1 min-w-0">
-        {/* Ranking Number */}
-        {rank !== undefined && (
-          <div className="hidden sm:flex w-6 shrink-0 text-lg font-serif italic text-gray-300 group-hover:text-emerald-800/30 transition-colors">
-            {rank}.
-          </div>
-        )}
-
-        {/* Logo Container with High-Fidelity Border */}
-        <div className="w-16 h-16 rounded-xl overflow-hidden border border-emerald-100/50 shadow-sm group-hover:shadow-md transition-all">
-          <SafeImage 
-            src={product.logo_url} 
-            alt={product.name} 
+      <div className="flex items-start gap-5 flex-1 min-w-0">
+        {/* Logo Container */}
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-emerald-100/50 shadow-sm group-hover:shadow-md transition-all shrink-0 mt-1">
+          <SafeImage
+            src={product.logo_url}
+            alt={product.name}
             seed={product.name}
-            className="w-full h-full" 
+            className="w-full h-full object-cover"
           />
         </div>
-        
+
         {/* Info Area */}
-        <div className="min-w-0 flex-1">
-          <h3 
-            className="text-[17px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight"
+        <div className="min-w-0 flex-1 pt-0.5">
+          <h3
+            className="text-[16px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight mb-1"
             dangerouslySetInnerHTML={{ __html: highlightedName }}
           />
-          <p 
-            className="text-gray-500 text-[13px] line-clamp-1 mb-2 font-medium tracking-tight"
+          <p
+            className="text-gray-500 text-[13px] line-clamp-2 sm:line-clamp-1 mb-3 font-medium tracking-tight leading-relaxed"
             dangerouslySetInnerHTML={{ __html: highlightedTagline }}
           />
-          
-          {/* Tags List */}
-          <div className="flex items-center gap-2 overflow-hidden">
-            {tags.map((tag, i) => (
+
+          {/* Tags List (Links) */}
+          <div className="flex items-center gap-2 overflow-hidden flex-wrap">
+            {/* Main Category */}
+            <a
+              href={`/topics/${slugify(product.category)}`}
+              onClick={(e) => e.stopPropagation()}
+              className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-emerald-800 hover:underline transition-colors block"
+            >
+              {product.category}
+            </a>
+
+            {/* Additional Tags */}
+            {['Web', 'Free'].map((tag) => (
               <React.Fragment key={tag}>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter whitespace-nowrap">
+                <span className="text-[8px] text-gray-300">•</span>
+                <a
+                  href={`/topics/${slugify(tag)}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-emerald-800 hover:underline transition-colors block"
+                >
                   {tag}
-                </span>
-                {i < tags.length - 1 && (
-                  <span className="text-[8px] text-gray-300">•</span>
-                )}
+                </a>
               </React.Fragment>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Action Buttons (Right Side) */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-4">
-        {/* Comment Button */}
+      {/* Action Buttons (Right Side) - Vertical Stack */}
+      <div className="flex items-center gap-3 shrink-0 ml-4 pt-1">
+        {/* Comment Button (Vertical) */}
         <button
           onClick={(e) => {
-            e.preventDefault(); // Prevent opening the new tab when clicking specific actions
+            e.preventDefault();
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex flex-col items-center justify-center min-w-[3rem] h-14 rounded-xl border border-transparent hover:border-emerald-100 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95"
+          className="flex flex-col items-center justify-center w-[50px] h-[64px] border border-gray-100 rounded-xl hover:border-emerald-200 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95 bg-transparent"
         >
-          <MessageSquare className="w-4 h-4 mb-0.5" />
-          <span className="text-[10px] font-black tracking-tighter">{commentCount}</span>
+          <MessageSquare className="w-5 h-5 mb-1.5" />
+          <span className="text-[12px] font-bold tracking-tight text-gray-900">{commentCount}</span>
         </button>
 
-        {/* Upvote Button */}
+        {/* Upvote Button (Vertical) */}
         <button
           onClick={(e) => {
-            e.preventDefault(); // Prevent opening the new tab when clicking specific actions
+            e.preventDefault();
             e.stopPropagation();
             onUpvote(product.id);
           }}
-          className={`flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 transition-all shrink-0 active:scale-95 ${
-            hasUpvoted 
-              ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg shadow-emerald-900/20' 
-              : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-800 hover:text-emerald-800 hover:shadow-sm'
-          }`}
+          className={`flex flex-col items-center justify-center w-[50px] h-[64px] border rounded-xl transition-all shrink-0 active:scale-95 ${hasUpvoted
+              ? 'bg-white border-emerald-800 text-emerald-800 shadow-sm'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800'
+            }`}
         >
-          <Triangle className={`w-3.5 h-3.5 mb-0.5 ${hasUpvoted ? 'fill-white' : ''}`} />
-          <span className="text-[11px] font-black tracking-tighter">{product.upvotes_count}</span>
+          <Triangle className={`w-4 h-4 mb-1.5 ${hasUpvoted ? 'fill-emerald-800' : ''}`} />
+          <span className="text-[12px] font-bold tracking-tight">{product.upvotes_count}</span>
         </button>
       </div>
     </a>
