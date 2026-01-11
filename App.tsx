@@ -666,6 +666,27 @@ const App: React.FC = () => {
     return grouped;
   }, [filteredProducts]);
 
+  // Real-time Comment Subscription (Global)
+  useEffect(() => {
+    const channel = supabase
+      .channel('global_comments')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'comments' },
+        (payload) => {
+          const newComment = payload.new as Comment;
+          // We can reuse the handleCommentAdded logic to update the product state
+          // This ensures the feed count updates instantly for ANY user
+          handleCommentAdded(newComment.product_id, newComment);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleCommentAdded = (productId: string, newComment: Comment) => {
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
@@ -675,6 +696,25 @@ const App: React.FC = () => {
       return p;
     }));
   };
+
+  // Real-time Comment Subscription (Global)
+  useEffect(() => {
+    const channel = supabase
+      .channel('global_comments')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'comments' },
+        (payload) => {
+          const newComment = payload.new as Comment;
+          handleCommentAdded(newComment.product_id, newComment);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
 
