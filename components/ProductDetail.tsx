@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  ExternalLink, ArrowLeft, MessageSquare, ShieldCheck, Send, Share2, 
+import {
+  ExternalLink, ArrowLeft, MessageSquare, ShieldCheck, Send, Share2,
   Triangle, Image as ImageIcon, ChevronRight, AtSign, Loader2
 } from 'lucide-react';
 import { Product, Comment } from '../types';
@@ -22,13 +22,13 @@ interface ProductDetailProps {
   scrollToComments?: boolean;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ 
-  product, 
-  user, 
-  onBack, 
-  onUpvote, 
+const ProductDetail: React.FC<ProductDetailProps> = ({
+  product,
+  user,
+  onBack,
+  onUpvote,
   onCommentUpvote,
-  hasUpvoted, 
+  hasUpvoted,
   commentVotes,
   onViewProfile,
   scrollToComments = false
@@ -111,7 +111,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
       }]);
 
       if (error) throw error;
-      
+
       setCommentText('');
       setReplyingTo(null);
     } catch (err) {
@@ -150,7 +150,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
         )}
 
         <div className="flex gap-4 group">
-          <button 
+          <button
             className="w-10 h-10 rounded-full overflow-hidden border border-emerald-50 shrink-0 hover:ring-2 hover:ring-emerald-800 transition-all shadow-sm bg-white"
             onClick={() => onViewProfile(node.user_id)}
           >
@@ -159,13 +159,13 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <button 
+              <button
                 className={`font-bold text-[14px] hover:underline transition-colors ${node.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
                 onClick={() => onViewProfile(node.user_id)}
               >
                 {node.username}
               </button>
-              
+
               {/* Maker Badge */}
               {node.is_maker && (
                 <span className="flex items-center gap-1 text-[9px] px-2 py-0.5 bg-emerald-600 text-white rounded font-black uppercase tracking-[0.1em] shadow-sm">
@@ -177,34 +177,34 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 {formatTimeAgo(node.created_at)}
               </span>
             </div>
-            
+
             <p className="text-gray-700 text-[15px] leading-relaxed break-words font-medium mb-3">
               {node.text}
             </p>
-            
+
             {/* Interaction Bar: Semi-bold links exactly like Product Hunt */}
             <div className="flex items-center gap-6 text-[11px] font-semibold text-gray-400 uppercase tracking-tight">
-              <button 
+              <button
                 onClick={() => onCommentUpvote(product.id, node.id)}
                 className={`flex items-center gap-1 transition-all ${hasUpvotedComment ? 'text-emerald-800 font-bold' : 'hover:text-emerald-800'}`}
               >
                 Upvote {node.upvotes_count > 0 && `(${node.upvotes_count})`}
               </button>
-              
-              <button 
+
+              <button
                 onClick={() => setReplyingTo(isReplying ? null : node.id)}
                 className={`transition-colors ${isReplying ? 'text-emerald-800 font-bold' : 'hover:text-emerald-800'}`}
               >
                 Reply
               </button>
-              
+
               <button className="hover:text-emerald-800 transition-colors">Share</button>
             </div>
 
             {/* Inline Reply Input */}
             {isReplying && user && (
               <div className="mt-4 bg-white border border-emerald-100 rounded-2xl p-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
-                 <textarea 
+                <textarea
                   autoFocus
                   placeholder={`Reply to @${node.username}...`}
                   className="w-full min-h-[80px] outline-none text-sm font-medium resize-none text-gray-700 bg-transparent"
@@ -218,7 +218,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setReplyingTo(null)} className="px-3 py-1.5 text-xs font-bold text-gray-400">Cancel</button>
-                    <button 
+                    <button
                       onClick={() => handleSubmitComment(node.id)}
                       disabled={isSubmitting || !commentText.trim()}
                       className="px-6 py-2 bg-emerald-800 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-emerald-900 transition-all disabled:opacity-50"
@@ -245,7 +245,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-8 animate-in fade-in duration-500">
-      <button 
+      <button
         onClick={onBack}
         className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
       >
@@ -269,13 +269,31 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <h1 className="text-4xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">{product.name}</h1>
               <p className="text-xl text-gray-500 font-medium leading-tight mb-6">{product.tagline}</p>
               <div className="flex items-center gap-4">
-                <a 
-                  href={product.website_url || product.url} 
-                  target="_blank" rel="noopener noreferrer" 
+                <a
+                  href={product.website_url || product.url}
+                  target="_blank" rel="noopener noreferrer"
                   className="px-8 py-3.5 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/10 active:scale-[0.98] flex items-center gap-2"
                 >
                   Visit website <ExternalLink className="w-4 h-4" />
                 </a>
+
+                {/* Comment Count Button (Product Hunt Style) */}
+                <button
+                  onClick={() => discussionRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                  className="flex flex-col items-center justify-center min-w-[3.5rem] h-12 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-emerald-800 hover:border-emerald-200 transition-all shadow-sm active:scale-95 group"
+                >
+                  {isLoadingComments ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-emerald-800" />
+                  ) : (
+                    <>
+                      <MessageSquare className="w-5 h-5 mb-0.5 group-hover:text-emerald-800 transition-colors" />
+                      <span className="text-[11px] font-black tracking-tighter group-hover:text-emerald-800 transition-colors">
+                        {localComments.length}
+                      </span>
+                    </>
+                  )}
+                </button>
+
                 <button className="p-3.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm">
                   <Share2 className="w-5 h-5" />
                 </button>
@@ -288,9 +306,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
               {[1, 2].map((i) => (
                 <div key={i} className="min-w-[450px] aspect-video bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm shrink-0">
-                  <SafeImage 
-                    src={`https://images.unsplash.com/photo-${i === 1 ? ' photo-1584697964400-2af6a2f6204c' : 'photo-1517694712202-14dd9538aa97'}?w=900&q=80`} 
-                    alt="Gallery" className="w-full h-full object-cover" 
+                  <SafeImage
+                    src={`https://images.unsplash.com/photo-${i === 1 ? ' photo-1584697964400-2af6a2f6204c' : 'photo-1517694712202-14dd9538aa97'}?w=900&q=80`}
+                    alt="Gallery" className="w-full h-full object-cover"
                   />
                 </div>
               ))}
@@ -323,7 +341,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100">
                     <SafeImage src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                   </div>
-                  <textarea 
+                  <textarea
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     placeholder="Ask the maker a question or leave feedback..."
@@ -339,7 +357,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                       <ImageIcon className="w-5 h-5" />
                     </button>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleSubmitComment()}
                     disabled={isSubmitting || !commentText.trim()}
                     className="px-10 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
@@ -380,13 +398,12 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="sticky top-24 space-y-6">
             <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col items-center text-center">
               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Support this Launch</h4>
-              <button 
-                onClick={() => onUpvote(product.id)} 
-                className={`w-full py-6 rounded-[1.5rem] font-black text-lg uppercase tracking-widest transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-2 border-2 ${
-                  hasUpvoted 
-                    ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/20' 
-                    : 'bg-white border-emerald-800 text-emerald-800 hover:bg-emerald-50'
-                }`}
+              <button
+                onClick={() => onUpvote(product.id)}
+                className={`w-full py-6 rounded-[1.5rem] font-black text-lg uppercase tracking-widest transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-2 border-2 ${hasUpvoted
+                  ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/20'
+                  : 'bg-white border-emerald-800 text-emerald-800 hover:bg-emerald-50'
+                  }`}
               >
                 <Triangle className={`w-6 h-6 ${hasUpvoted ? 'fill-white' : ''}`} />
                 UPVOTE • {product.upvotes_count || 0}
@@ -401,11 +418,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <p className="text-4xl font-serif font-bold mb-1">Top Tier</p>
                 <p className="text-emerald-300 text-[11px] font-black uppercase tracking-[0.2em] mb-8">Of the Week</p>
                 <div className="flex items-center gap-3 p-4 bg-emerald-800/40 rounded-2xl border border-emerald-700/30">
-                   <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                   <div>
-                     <p className="text-[11px] font-black uppercase tracking-widest">Status</p>
-                     <p className="text-sm font-bold text-emerald-50">{product.halal_status}</p>
-                   </div>
+                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-widest">Status</p>
+                    <p className="text-sm font-bold text-emerald-50">{product.halal_status}</p>
+                  </div>
                 </div>
               </div>
             </div>
