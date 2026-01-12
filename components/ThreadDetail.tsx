@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, MessageSquare, Share2, ThumbsUp, Clock, Triangle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Share2, ThumbsUp, Clock, Triangle, Flag } from 'lucide-react';
 import { View, User, Comment, Thread } from '../types';
 import { supabase } from '../lib/supabase';
 import ThreadDetailSkeleton from './ThreadDetailSkeleton';
