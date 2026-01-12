@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, MessageSquare, Triangle, Clock, MoreHorizontal, Share2, Flag } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Share2, ThumbsUp, Clock } from 'lucide-react';
 import { View, User, Comment } from '../types';
 import { supabase } from '../lib/supabase';
 import ThreadDetailSkeleton from './ThreadDetailSkeleton';
@@ -13,6 +13,7 @@ interface Thread {
     upvotes: number;
     author_id: string;
     category_id: number;
+    is_approved?: boolean;
     profiles?: {
         username: string;
         avatar_url: string;
@@ -118,6 +119,11 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                                 <span className="text-[#004D40] font-bold">@{thread.profiles?.username}</span>
                                 <span>•</span>
                                 <span>{new Date(thread.created_at).toLocaleDateString()}</span>
+                                {thread.is_approved === false && (
+                                    <span className="flex items-center gap-1 text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full text-xs border border-orange-100">
+                                        <Clock size={12} /> Pending Review
+                                    </span>
+                                )}
                                 {thread.profiles?.headline && (
                                     <>
                                         <span>•</span>
