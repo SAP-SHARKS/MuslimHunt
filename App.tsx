@@ -320,6 +320,52 @@ const App: React.FC = () => {
     }
   };
 
+  const handleThreadSubmit = async (data: { category_id: number; title: string; body: string }) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    try {
+      // 1. Generate slug
+      let slug = slugify(data.title);
+      // Append random str to avoid collision
+      slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
+
+      // 2. Insert into Supabase
+      const { data: insertedData, error } = await supabase
+        .from('threads')
+        .insert({
+          title: data.title,
+          body: data.body,
+          category_id: data.category_id,
+          slug: slug,
+          author_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // 3. Navigate to the new thread
+      if (insertedData) {
+        // Find category slug for navigation
+        const category = forumCategories.find(c => c.id === data.category_id);
+        const categorySlug = category ? category.slug : 'general'; // fallback
+
+        setActiveForumCategorySlug(categorySlug);
+        setActiveThreadSlug(slug);
+        updateView(View.FORUM_THREAD, `/p/${categorySlug}/${slug}`);
+      }
+
+    } catch (err) {
+      console.error('Error creating thread:', err);
+      alert('Failed to create thread. Please try again.');
+    }
+  };
+
   const syncStateFromUrl = async () => {
     if (categories.length === 0 && products.length === 0) return;
 
@@ -906,7 +952,7 @@ const App: React.FC = () => {
                 />
               )}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => { }} onSignIn={() => setIsAuthModalOpen(true)} />}
-              {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={updateView} setView={updateView} />}
+              {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={handleThreadSubmit} setView={updateView} />}
             </div>
           </div>
         )}
