@@ -1063,6 +1063,14 @@ const App: React.FC = () => {
             <HelpCenter onBack={() => updateView(View.HOME)} />
           )
         )}
+
+        {view === View.HELP_ARTICLE && (
+          isLoadingHelpArticle ? (
+            <HelpArticleSkeleton />
+          ) : (
+            <HelpArticle setView={updateView} />
+          )
+        )}
       </main>
 
       {/* Mobile-Only Forum Action Section */}
