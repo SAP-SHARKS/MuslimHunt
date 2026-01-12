@@ -807,13 +807,11 @@ const App: React.FC = () => {
 
   const handleDevLogin = () => {
     setUser({
-      id: '00000000-0000-0000-0000-000000000000',
-      email: 'admin@muslimhunt.com',
-      username: 'DevAdmin',
-      avatar_url: 'https://i.pravatar.cc/150?u=dev-admin',
-      is_admin: true,
-      bio: 'Development Admin Account',
-      headline: 'Building the Future of Halal Tech'
+      id: '3ecaa78e-6776-4a0e-8f70-59922e077b21', // Using existing user 'neazmdmorshed99'
+      email: 'neazmdmorshed99@gmail.com',
+      username: 'neazmdmorshed99',
+      avatar_url: 'https://ui-avatars.com/api/?name=Muslim+Hunt&background=004D40&color=fff',
+      headline: 'Community Admin'
     });
     setIsAuthModalOpen(false);
   };
