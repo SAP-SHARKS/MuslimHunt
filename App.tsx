@@ -18,6 +18,8 @@ import LaunchGuide from './components/LaunchGuide.tsx';
 import LaunchGuideSkeleton from './components/LaunchGuideSkeleton.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
+import HelpArticle from './components/HelpArticle.tsx';
+import HelpArticleSkeleton from './components/HelpArticleSkeleton.tsx';
 import Settings from './components/Settings.tsx';
 import SettingsSkeleton from './components/SettingsSkeleton.tsx';
 import ApiDashboard from './components/ApiDashboard.tsx';
@@ -170,6 +172,7 @@ const App: React.FC = () => {
   const [isLoadingApiDashboard, setIsLoadingApiDashboard] = useState(false);
   const [isLoadingLaunchGuide, setIsLoadingLaunchGuide] = useState(false);
   const [isLoadingHelpCenter, setIsLoadingHelpCenter] = useState(false);
+  const [isLoadingHelpArticle, setIsLoadingHelpArticle] = useState(false);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -425,6 +428,11 @@ const App: React.FC = () => {
         setIsLoadingHelpCenter(true);
         setTimeout(() => setIsLoadingHelpCenter(false), 800);
         setView(View.HELP_CENTER);
+      }
+      else if (path.startsWith('/help/articles/')) {
+        setIsLoadingHelpArticle(true);
+        setTimeout(() => setIsLoadingHelpArticle(false), 800);
+        setView(View.HELP_ARTICLE);
       }
       else if (path === '/admin') setView(View.ADMIN_PANEL);
       else if (path === '/my/settings/edit') {
