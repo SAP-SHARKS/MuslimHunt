@@ -1,25 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, MessageSquare, Share2, ThumbsUp, Clock } from 'lucide-react';
-import { View, User, Comment } from '../types';
+import { ArrowLeft, MessageSquare, Share2, ThumbsUp, Clock, Triangle } from 'lucide-react';
+import { View, User, Comment, Thread } from '../types';
 import { supabase } from '../lib/supabase';
 import ThreadDetailSkeleton from './ThreadDetailSkeleton';
-
-interface Thread {
-    id: string;
-    title: string;
-    slug: string;
-    body: string;
-    created_at: string;
-    upvotes: number;
-    author_id: string;
-    category_id: number;
-    is_approved?: boolean;
-    profiles?: {
-        username: string;
-        avatar_url: string;
-        headline?: string;
-    };
-}
 
 interface ThreadDetailProps {
     threadSlug: string;
@@ -27,18 +10,22 @@ interface ThreadDetailProps {
     setView: (view: View, path?: string) => void;
     user: User | null;
     onSignIn: () => void;
+    initialData?: Thread | null;
 }
 
-const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, setView, user, onSignIn }) => {
-    const [loading, setLoading] = useState(true);
-    const [thread, setThread] = useState<Thread | null>(null);
+const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, setView, user, onSignIn, initialData }) => {
+    const [loading, setLoading] = useState(!initialData);
+    const [thread, setThread] = useState<Thread | null>(initialData || null);
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentText, setCommentText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchThread = async () => {
-            setLoading(true);
+            // If we have initialData and it matches the slug, we can skip loading state initially
+            // But we should still verify/update from server in background
+            if (!initialData) setLoading(true);
+
             try {
                 const { data, error } = await supabase
                     .from('threads')
@@ -53,34 +40,25 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                     .eq('slug', threadSlug)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    // If error (like RLS) but we have initialData, stick with initialData
+                    if (initialData) return;
+                    throw error;
+                }
+
                 if (data) {
                     setThread(data as any);
-                    // Fetch comments for this thread? 
-                    // Assuming comments table has thread_id or similar. 
-                    // Current Comment interface has product_id but we might need to adapt it or use a separate table/column for thread comments.
-                    // For now, let's assume comments table has `product_id` used for both products and threads OR a new `thread_id` column.
-                    // Checking schema via artifacts/memory: schema check earlier showed `comments` table. 
-                    // Let's assume for this MVP we might need to add `thread_id` to comments or reuse `product_id` if it's a UUID and threads have UUIDs.
-                    // Threads table has `id` as UUID (likely, based on earlier select). 
-                    // If comments table has `thread_id`, we fetch by that. 
-                    // However, user demand is strict visual replication. 
-                    // Let's postpone comment fetching logic adjustment to strictly follow "visual" first, 
-                    // or use a placeholder comment list if DB isn't ready. 
-                    // Assuming comments schema might NOT support threads yet. 
-                    // I will add a simple local state for comments for true visual replication without breaking DB if column missing.
-                    // But normally we'd want real comments.
-                    // Let's check schema for comments table again? I'll assume standard commenting works for now or just standard UI.
                 }
             } catch (err) {
                 console.error('Error fetching thread:', err);
+                // Keep showing initialData if available on error
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchThread();
-    }, [threadSlug]);
+        if (threadSlug) fetchThread();
+    }, [threadSlug]); // Removing initialData from dependency to avoid loop if it changes
 
     if (loading) return <ThreadDetailSkeleton />;
     if (!thread) return <div className="p-8 text-center text-gray-500">Thread not found</div>;
@@ -90,7 +68,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
             {/* Back to Category */}
             <button
                 onClick={() => setView(View.FORUM_CATEGORY, `/p/${categorySlug}`)}
-                className="flex items-center gap-2 mb-8 text-gray-400 hover:text-[#004D40] transition-colors font-bold text-sm"
+                className="flex items-center gap-2 mb-8 text-gray-400 hover:text-emerald-800 transition-colors font-bold text-sm"
             >
                 <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
                     <ArrowLeft size={16} />
@@ -116,11 +94,11 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                                 {thread.title}
                             </h1>
                             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 font-medium">
-                                <span className="text-[#004D40] font-bold">@{thread.profiles?.username}</span>
+                                <span className="text-emerald-800 font-bold">@{thread.profiles?.username}</span>
                                 <span>•</span>
                                 <span>{new Date(thread.created_at).toLocaleDateString()}</span>
-                                {thread.is_approved === false && (
-                                    <span className="flex items-center gap-1 text-orange-500 font-bold bg-orange-50 px-2 py-0.5 rounded-full text-xs border border-orange-100">
+                                {(thread.is_approved === false) && (
+                                    <span className="flex items-center gap-1 text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded-full text-xs border border-orange-100">
                                         <Clock size={12} /> Pending Review
                                     </span>
                                 )}
@@ -135,8 +113,8 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                     </div>
 
                     <div className="flex flex-col items-center gap-2">
-                        <button className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 border-gray-100 bg-white text-gray-400 hover:border-[#004D40] hover:text-[#004D40] transition-all active:scale-95 shadow-sm">
-                            <Triangle className="w-5 h-5 mb-0.5" />
+                        <button className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 border-gray-100 bg-white text-gray-400 hover:border-emerald-800 hover:text-emerald-800 transition-all active:scale-95 shadow-sm">
+                            <Triangle className="w-5 h-5 mb-0.5 transform group-hover:-translate-y-0.5 transition-transform" />
                             <span className="text-[12px] font-black">{thread.upvotes || 0}</span>
                         </button>
                     </div>

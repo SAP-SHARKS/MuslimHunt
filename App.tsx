@@ -955,6 +955,7 @@ const App: React.FC = () => {
                   setView={updateView}
                   user={user}
                   onSignIn={() => setIsAuthModalOpen(true)}
+                  initialData={activeThreadData}
                 />
               )}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => { }} onSignIn={() => setIsAuthModalOpen(true)} />}
