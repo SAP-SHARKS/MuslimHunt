@@ -3,6 +3,7 @@ import { Triangle, MessageSquare, Clock, Filter, Plus } from 'lucide-react';
 import { View, User, ForumCategory as IForumCategory } from '../types';
 import { supabase } from '../lib/supabase';
 import ForumSidebar from './ForumSidebar';
+import ForumCategorySkeleton from './ForumCategorySkeleton';
 
 interface Thread {
     id: string;
