@@ -181,6 +181,7 @@ const App: React.FC = () => {
   const [forumCategories, setForumCategories] = useState<IForumCategory[]>([]);
   const [activeForumCategorySlug, setActiveForumCategorySlug] = useState<string>('');
   const [activeThreadSlug, setActiveThreadSlug] = useState<string>('');
+  const [activeThreadData, setActiveThreadData] = useState<Thread | null>(null);
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [profileActiveTab, setProfileActiveTab] = useState('About');
@@ -353,10 +354,22 @@ const App: React.FC = () => {
       }
 
       // 3. Navigate to the new thread
+      // 3. Navigate to the new thread
       if (insertedData) {
         // Find category slug for navigation
         const category = forumCategories.find(c => c.id === data.category_id);
         const categorySlug = category ? category.slug : 'general'; // fallback
+
+        // Set optimistic data to bypass RLS delays
+        setActiveThreadData({
+          ...insertedData,
+          profiles: {
+            username: user.username || user.email?.split('@')[0] || 'User',
+            avatar_url: user.avatar_url || '',
+            headline: user.headline
+          },
+          is_approved: false
+        } as Thread);
 
         setActiveForumCategorySlug(categorySlug);
         setActiveThreadSlug(slug);
