@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface ForumSidebarProps {
   currentView: View;
-  setView: (view: View) => void;
+  setView: (view: View, path?: string) => void;
   user: User | null;
   onSignIn: () => void;
 }
@@ -21,7 +21,7 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
         .from('forum_categories')
         .select('*')
         .order('id', { ascending: true });
-      
+
       if (!error && data) {
         setForumCategories(data);
       }
@@ -29,24 +29,23 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
     fetchForumCategories();
   }, []);
 
-  const SidebarLink = ({ 
-    icon: Icon, 
-    label, 
-    isActive = false, 
-    onClick 
-  }: { 
-    icon: any, 
-    label: string, 
-    isActive?: boolean, 
-    onClick: () => void 
+  const SidebarLink = ({
+    icon: Icon,
+    label,
+    isActive = false,
+    onClick
+  }: {
+    icon: any,
+    label: string,
+    isActive?: boolean,
+    onClick: () => void
   }) => (
-    <button 
+    <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-        isActive 
-          ? 'bg-emerald-50 text-[#004D40] font-bold' 
-          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-      }`}
+      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${isActive
+        ? 'bg-emerald-50 text-[#004D40] font-bold'
+        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+        }`}
     >
       <Icon size={18} className={isActive ? 'text-[#004D40]' : 'text-gray-400'} />
       <span className="text-[14px]">{label}</span>
@@ -58,8 +57,8 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
       <div className="space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search all threads..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -68,28 +67,28 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
         </div>
 
         <nav className="space-y-1">
-          <SidebarLink 
-            icon={Home} 
-            label="Home" 
-            isActive={currentView === View.FORUM_HOME} 
-            onClick={() => setView(View.FORUM_HOME)} 
+          <SidebarLink
+            icon={Home}
+            label="Home"
+            isActive={currentView === View.FORUM_HOME}
+            onClick={() => setView(View.FORUM_HOME)}
           />
-          <SidebarLink 
-            icon={MessageSquare} 
-            label="Recent comments" 
+          <SidebarLink
+            icon={MessageSquare}
+            label="Recent comments"
             isActive={currentView === View.RECENT_COMMENTS}
-            onClick={() => setView(View.RECENT_COMMENTS)} 
+            onClick={() => setView(View.RECENT_COMMENTS)}
           />
-          <SidebarLink 
-            icon={Search} 
-            label="Search all threads" 
-            onClick={() => {}} 
+          <SidebarLink
+            icon={Search}
+            label="Search all threads"
+            onClick={() => { }}
           />
-          <SidebarLink 
-            icon={PlusCircle} 
-            label="Start new thread" 
+          <SidebarLink
+            icon={PlusCircle}
+            label="Start new thread"
             isActive={currentView === View.NEW_THREAD}
-            onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} 
+            onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()}
           />
         </nav>
       </div>
@@ -98,11 +97,15 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
         <h3 className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Topic Forums</h3>
         <div className="space-y-0.5">
           {forumCategories.map((cat) => (
-            <button 
-              key={cat.id} 
-              className="w-full flex items-center gap-3 px-3 py-1.5 text-[14px] font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-all text-left"
+            <button
+              key={cat.id}
+              onClick={() => setView(View.FORUM_CATEGORY, `/p/${cat.slug}`)}
+              className={`w-full flex items-center gap-3 px-3 py-1.5 text-[14px] font-medium rounded-lg transition-all text-left ${currentView === View.FORUM_CATEGORY && window.location.pathname === `/p/${cat.slug}`
+                ? 'bg-emerald-50 text-[#004D40] font-bold'
+                : 'text-gray-600 hover:bg-gray-50'
+                }`}
             >
-              <Hash size={14} className="text-gray-300" /> 
+              <Hash size={14} className={currentView === View.FORUM_CATEGORY && window.location.pathname === `/p/${cat.slug}` ? "text-[#004D40]" : "text-gray-300"} />
               <span className="truncate">p/{cat.slug}</span>
             </button>
           ))}

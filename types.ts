@@ -136,5 +136,6 @@ export enum View {
   PROFILE_EDIT = 'profile_edit',
   MY_PRODUCTS = 'my_products',
   FOLLOWED_PRODUCTS = 'followed_products',
-  VERIFICATION = 'verification'
+  VERIFICATION = 'verification',
+  FORUM_CATEGORY = 'forum_category'
 }

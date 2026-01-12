@@ -25,6 +25,8 @@ import ApiDashboardSkeleton from './components/ApiDashboardSkeleton.tsx';
 import NewThreadForm from './components/NewThreadForm.tsx';
 import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
+import ForumCategory from './components/ForumCategory.tsx';
+import ForumCategorySkeleton from './components/ForumCategorySkeleton.tsx';
 import RecentComments from './components/RecentComments.tsx';
 import NotificationsPage from './components/NotificationsPage.tsx';
 import NotificationsSkeleton from './components/NotificationsSkeleton.tsx';
@@ -34,7 +36,7 @@ import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import Footer from './components/Footer.tsx';
-import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category } from './types.ts';
+import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category, ForumCategory as IForumCategory } from './types.ts';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts, slugify, findProductBySlug } from './utils/searchUtils.ts';
@@ -171,6 +173,8 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [forumCategories, setForumCategories] = useState<IForumCategory[]>([]);
+  const [activeForumCategorySlug, setActiveForumCategorySlug] = useState<string>('');
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [profileActiveTab, setProfileActiveTab] = useState('About');
@@ -252,9 +256,26 @@ const App: React.FC = () => {
     fetchProducts();
   };
 
+
+  const fetchForumCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('forum_categories')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (!error && data) {
+        setForumCategories(data);
+      }
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching forum categories:', err);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    fetchForumCategories();
     fetchNavigation();
   }, []);
 
@@ -305,6 +326,13 @@ const App: React.FC = () => {
       const segments = path.split('/').filter(Boolean);
 
       if (path === '/p/new') setView(View.NEW_THREAD);
+      else if (path.startsWith('/p/') && segments.length === 2) {
+        // Check if it's a forum category
+        const slug = segments[1];
+        // We might not have categories loaded yet, but we can set the view and rely on the component to verify or loading state
+        setActiveForumCategorySlug(slug);
+        setView(View.FORUM_CATEGORY);
+      }
       else if (path === '/posts/new') setView(View.POST_SUBMIT);
       else if (path === '/posts/new/submission') setView(View.SUBMISSION);
       else if (path === '/notifications') {
@@ -608,6 +636,7 @@ const App: React.FC = () => {
         path = `/categories/${slugify(activeCategory)}`;
       }
       else if (newView === View.PROFILE && user) path = `/@${user.username}`;
+      else if (newView === View.FORUM_CATEGORY && activeForumCategorySlug) path = `/p/${activeForumCategorySlug}`;
       else if (newView === View.HOME) path = '/';
     }
 
@@ -716,7 +745,7 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD].includes(view);
+  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD, View.FORUM_CATEGORY].includes(view);
 
   const handleDevLogin = () => {
     setUser({
@@ -846,6 +875,15 @@ const App: React.FC = () => {
             </div>
             <div className="flex-1 min-w-0">
               {view === View.FORUM_HOME && <ForumHome setView={updateView} user={user} onSignIn={() => setIsAuthModalOpen(true)} />}
+              {view === View.FORUM_CATEGORY && (
+                <ForumCategory
+                  categorySlug={activeForumCategorySlug}
+                  categories={forumCategories}
+                  setView={updateView}
+                  user={user}
+                  onSignIn={() => setIsAuthModalOpen(true)}
+                />
+              )}
               {view === View.RECENT_COMMENTS && <RecentComments setView={updateView} user={user} onViewProfile={() => { }} onSignIn={() => setIsAuthModalOpen(true)} />}
               {view === View.NEW_THREAD && <NewThreadForm onCancel={() => updateView(View.FORUM_HOME)} onSubmit={updateView} setView={updateView} />}
             </div>
