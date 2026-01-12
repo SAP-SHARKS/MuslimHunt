@@ -27,6 +27,8 @@ import ForumHome from './components/ForumHome.tsx';
 import ForumSidebar from './components/ForumSidebar.tsx';
 import ForumCategory from './components/ForumCategory.tsx';
 import ForumCategorySkeleton from './components/ForumCategorySkeleton.tsx';
+import ThreadDetail from './components/ThreadDetail.tsx';
+import ThreadDetailSkeleton from './components/ThreadDetailSkeleton.tsx';
 import RecentComments from './components/RecentComments.tsx';
 import NotificationsPage from './components/NotificationsPage.tsx';
 import NotificationsSkeleton from './components/NotificationsSkeleton.tsx';
@@ -175,6 +177,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [forumCategories, setForumCategories] = useState<IForumCategory[]>([]);
   const [activeForumCategorySlug, setActiveForumCategorySlug] = useState<string>('');
+  const [activeThreadSlug, setActiveThreadSlug] = useState<string>('');
   const [menuItems, setMenuItems] = useState<NavMenuItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [profileActiveTab, setProfileActiveTab] = useState('About');
@@ -326,12 +329,20 @@ const App: React.FC = () => {
       const segments = path.split('/').filter(Boolean);
 
       if (path === '/p/new') setView(View.NEW_THREAD);
-      else if (path.startsWith('/p/') && segments.length === 2) {
-        // Check if it's a forum category
-        const slug = segments[1];
-        // We might not have categories loaded yet, but we can set the view and rely on the component to verify or loading state
-        setActiveForumCategorySlug(slug);
-        setView(View.FORUM_CATEGORY);
+      else if (path.startsWith('/p/')) {
+        if (segments.length === 2) {
+          // Category View: /p/general
+          const slug = segments[1];
+          setActiveForumCategorySlug(slug);
+          setView(View.FORUM_CATEGORY);
+        } else if (segments.length === 3) {
+          // Thread View: /p/general/my-thread
+          const catSlug = segments[1];
+          const threadSlug = segments[2];
+          setActiveForumCategorySlug(catSlug);
+          setActiveThreadSlug(threadSlug);
+          setView(View.FORUM_THREAD);
+        }
       }
       else if (path === '/posts/new') setView(View.POST_SUBMIT);
       else if (path === '/posts/new/submission') setView(View.SUBMISSION);
@@ -637,6 +648,7 @@ const App: React.FC = () => {
       }
       else if (newView === View.PROFILE && user) path = `/@${user.username}`;
       else if (newView === View.FORUM_CATEGORY && activeForumCategorySlug) path = `/p/${activeForumCategorySlug}`;
+      else if (newView === View.FORUM_THREAD && activeThreadSlug) path = `/p/${activeForumCategorySlug}/${activeThreadSlug}`;
       else if (newView === View.HOME) path = '/';
     }
 
@@ -745,7 +757,7 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD, View.FORUM_CATEGORY].includes(view);
+  const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD, View.FORUM_CATEGORY, View.FORUM_THREAD].includes(view);
 
   const handleDevLogin = () => {
     setUser({
@@ -879,6 +891,15 @@ const App: React.FC = () => {
                 <ForumCategory
                   categorySlug={activeForumCategorySlug}
                   categories={forumCategories}
+                  setView={updateView}
+                  user={user}
+                  onSignIn={() => setIsAuthModalOpen(true)}
+                />
+              )}
+              {view === View.FORUM_THREAD && (
+                <ThreadDetail
+                  threadSlug={activeThreadSlug}
+                  categorySlug={activeForumCategorySlug}
                   setView={updateView}
                   user={user}
                   onSignIn={() => setIsAuthModalOpen(true)}

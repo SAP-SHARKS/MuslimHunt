@@ -132,7 +132,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                         <div
                             key={thread.id}
                             className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-emerald-200 hover:shadow-xl transition-all cursor-pointer"
-                        // Add navigation to thread detail if needed in future
+                            onClick={() => setView(View.FORUM_THREAD, `/p/${currentCategory.slug}/${thread.slug}`)}
                         >
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                                 <div className="flex-1 min-w-0">
