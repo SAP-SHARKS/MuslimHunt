@@ -8,11 +8,14 @@ import { Shield, AlertTriangle, FileCheck } from 'lucide-react';
 interface AdminRouterProps {
   // Optional: Pass in the existing AdminPanel component for the 'products' view
   ProductReviewPanel?: React.ComponentType<any>;
+  // Props to pass to the ProductReviewPanel
+  user?: any;
+  onRefresh?: () => void;
 }
 
-export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel }) => {
+export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, user, onRefresh }) => {
   const [currentView, setCurrentView] = useState<string>('dashboard');
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, user: authUser } = useAuth();
 
   // Show loading state
   if (loading) {
@@ -73,7 +76,13 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel }) 
       case 'products':
         // Use the existing AdminPanel component if provided
         if (ProductReviewPanel) {
-          return <ProductReviewPanel />;
+          return (
+            <ProductReviewPanel
+              user={user || authUser}
+              onBack={() => setCurrentView('dashboard')}
+              onRefresh={onRefresh || (() => {})}
+            />
+          );
         }
         return (
           <div className="max-w-4xl mx-auto p-6">
