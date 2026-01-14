@@ -127,6 +127,12 @@ export const ThemeAdminPanelV2: React.FC = () => {
       saveFontConfig(headingFont, bodyFont);
       console.log('[ThemePanel] Fonts applied:', headingFont, bodyFont);
 
+      // Save menu settings to localStorage
+      localStorage.setItem('muslimhunt_nav_pattern', navPattern);
+      localStorage.setItem('muslimhunt_menu_style', menuStyle);
+      localStorage.setItem('muslimhunt_menu_animation', menuAnimation);
+      console.log('[ThemePanel] Menu settings saved:', { navPattern, menuStyle, menuAnimation });
+
       // Show success message then auto-reload
       alert('✅ Theme applied successfully! The page will reload to show changes.');
       setTimeout(() => {
