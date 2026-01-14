@@ -383,7 +383,7 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                       <h3 className="font-semibold text-gray-900">Primary Color</h3>
                     </div>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
                       {primaryColorOptions.map((option) => (
                         <button
                           key={option.name}
@@ -400,6 +400,26 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                           <span className="text-xs font-medium text-gray-700">{option.name}</span>
                         </button>
                       ))}
+                    </div>
+
+                    {/* Custom Color Picker */}
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-700 mb-2">Or pick custom color:</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="w-16 h-10 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={primaryColor}
+                          onChange={(e) => setPrimaryColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                          placeholder="#10B981"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -435,7 +455,7 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                   </div>
 
                   {/* Accent Color */}
-                  <div>
+                  <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         3
@@ -443,7 +463,7 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                       <h3 className="font-semibold text-gray-900">Accent Color</h3>
                     </div>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-3">
                       {accentColorOptions.map((option) => (
                         <button
                           key={option.name}
@@ -460,6 +480,26 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                           <span className="text-xs font-medium text-gray-700">{option.name}</span>
                         </button>
                       ))}
+                    </div>
+
+                    {/* Custom Color Picker */}
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <label className="block text-xs font-medium text-gray-700 mb-2">Or pick custom accent color:</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={accentColor}
+                          onChange={(e) => setAccentColor(e.target.value)}
+                          className="w-16 h-10 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={accentColor}
+                          onChange={(e) => setAccentColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                          placeholder="#F59E0B"
+                        />
+                      </div>
                     </div>
                   </div>
 
