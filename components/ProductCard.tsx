@@ -82,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <a
                   href={`/topics/${slugify(tag)}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-primary hover:underline transition-colors block"
+                  className="text-[10px] font-bold text-accent uppercase tracking-tighter hover:text-accent-hover hover:underline transition-colors block"
                 >
                   {tag}
                 </a>

@@ -9,7 +9,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
             {/* Header */}
-            <div className="bg-emerald-600 text-white py-24 px-4 flex flex-col items-center justify-center text-center">
+            <div className="bg-primary text-white py-24 px-4 flex flex-col items-center justify-center text-center">
                 <div className="max-w-4xl mx-auto space-y-8 w-full">
                     <div className="flex items-center justify-between w-full absolute top-6 left-0 px-8">
                         <span className="font-bold text-sm opacity-90">Muslim Hunt Help Center</span>

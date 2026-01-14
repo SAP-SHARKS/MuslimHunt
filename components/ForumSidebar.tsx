@@ -43,11 +43,11 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${isActive
-        ? 'bg-primary-light text-[#004D40] font-bold'
+        ? 'bg-primary text-white font-bold'
         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
         }`}
     >
-      <Icon size={18} className={isActive ? 'text-[#004D40]' : 'text-gray-400'} />
+      <Icon size={18} className={isActive ? 'text-white' : 'text-gray-400'} />
       <span className="text-[14px]">{label}</span>
     </button>
   );

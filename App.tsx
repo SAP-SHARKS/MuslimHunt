@@ -125,7 +125,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
             ].map((thread, i) => (
               <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-accent uppercase tracking-widest group-hover:text-accent-hover transition-colors">
                     <thread.icon className="w-3 h-3 opacity-60" />
                     <span>{thread.tag}</span>
                   </div>
