@@ -67,11 +67,16 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
       </button>
 
       {isOpen && (
-        <div className={`absolute top-full left-0 ${label === "Best Products" ? 'w-[520px]' : 'w-80'} bg-white border border-gray-100 shadow-[0_25px_60px_rgba(0,0,0,0.12)] rounded-[1.5rem] py-0 z-[100] animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden`}>
+        <div className={`rich-dropdown-menu ${label === "Best Products" ? 'w-[520px]' : 'w-80'}`}>
           <div className="py-4">{items.map((item, i) => (
-            <button key={i} onClick={item.onClick} className="w-full flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 transition-all text-left group/item">
-              <div className={`w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 group-hover/item:scale-105 transition-transform shadow-sm`}><item.icon className="w-4 h-4" /></div>
-              <div className="flex flex-col pt-0.5 min-w-0 text-left"><p className="text-[13px] font-bold text-gray-900 group-hover/item:text-primary transition-colors leading-none">{item.label}</p>{item.subtext && <p className="text-[10px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>}</div>
+            <button key={i} onClick={item.onClick} className="dropdown-item w-full flex items-start gap-4">
+              <div className={`dropdown-icon w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0`}>
+                <item.icon className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col pt-0.5 min-w-0 text-left">
+                <p className="dropdown-text-primary">{item.label}</p>
+                {item.subtext && <p className="dropdown-text-secondary line-clamp-1">{item.subtext}</p>}
+              </div>
             </button>
           ))}</div>
         </div>
