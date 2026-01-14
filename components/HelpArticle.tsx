@@ -43,9 +43,9 @@ const HelpArticle: React.FC<HelpArticleProps> = ({ setView }) => {
             {/* Content Container - Overlapping Header */}
             <div className="max-w-4xl mx-auto px-4 -mt-8 mb-24 relative z-10">
                 <nav className="flex items-center gap-2 text-sm text-gray-500 mb-8 overflow-x-auto whitespace-nowrap">
-                    <span className="hover:text-emerald-600 cursor-pointer" onClick={() => setView(View.HELP_CENTER, '/help')}>All Collections</span>
+                    <span className="hover:text-primary cursor-pointer" onClick={() => setView(View.HELP_CENTER, '/help')}>All Collections</span>
                     <span>›</span>
-                    <span className="hover:text-emerald-600 cursor-pointer">Muslim Hunt</span>
+                    <span className="hover:text-primary cursor-pointer">Muslim Hunt</span>
                     <span>›</span>
                     <span className="text-gray-900 font-medium">Muslim Hunt Forum Guidelines</span>
                 </nav>
@@ -127,7 +127,7 @@ const HelpArticle: React.FC<HelpArticleProps> = ({ setView }) => {
                         </ul>
 
                         <p className="mt-8 italic text-gray-500">
-                            We want our forums to be valuable for everyone, which means maintaining these standards consistently. If you have questions regarding these guidelines, please reach out to us at <a href="mailto:hello@muslimhunt.com" className="text-emerald-600 hover:underline">hello@muslimhunt.com</a>.
+                            We want our forums to be valuable for everyone, which means maintaining these standards consistently. If you have questions regarding these guidelines, please reach out to us at <a href="mailto:hello@muslimhunt.com" className="text-primary hover:underline">hello@muslimhunt.com</a>.
                         </p>
                     </div>
 
@@ -146,8 +146,8 @@ const HelpArticle: React.FC<HelpArticleProps> = ({ setView }) => {
             {/* Footer */}
             <footer className="bg-white border-t border-gray-100 py-12 text-center">
                 <div className="flex items-center justify-center gap-6 mb-4">
-                    <a href="#" className="text-gray-400 hover:text-emerald-600 font-medium text-sm">Valid Company</a>
-                    <a href="#" className="text-gray-400 hover:text-emerald-600 font-medium text-sm">Muslim Hunt</a>
+                    <a href="#" className="text-gray-400 hover:text-primary font-medium text-sm">Valid Company</a>
+                    <a href="#" className="text-gray-400 hover:text-primary font-medium text-sm">Muslim Hunt</a>
                 </div>
                 <p className="text-xs text-gray-300">© 2026 Muslim Hunt</p>
             </footer>

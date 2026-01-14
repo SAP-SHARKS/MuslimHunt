@@ -43,7 +43,7 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${isActive
-        ? 'bg-emerald-50 text-[#004D40] font-bold'
+        ? 'bg-primary-light text-[#004D40] font-bold'
         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
         }`}
     >
@@ -101,7 +101,7 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
               key={cat.id}
               onClick={() => setView(View.FORUM_CATEGORY, `/p/${cat.slug}`)}
               className={`w-full flex items-center gap-3 px-3 py-1.5 text-[14px] font-medium rounded-lg transition-all text-left ${currentView === View.FORUM_CATEGORY && window.location.pathname === `/p/${cat.slug}`
-                ? 'bg-emerald-50 text-[#004D40] font-bold'
+                ? 'bg-primary-light text-[#004D40] font-bold'
                 : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
@@ -127,7 +127,7 @@ const ForumSidebar: React.FC<ForumSidebarProps> = ({ currentView, setView, user,
       </section>
 
       <div className="p-6 bg-[#004D40] rounded-2xl text-white shadow-lg overflow-hidden relative">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-2">Ummah Voice</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-primary-light mb-2">Ummah Voice</p>
         <p className="text-sm font-semibold leading-relaxed">Join 12,000+ Muslim builders shaping the future of Halal tech.</p>
         <button className="mt-4 flex items-center gap-1 text-[11px] font-bold hover:underline text-emerald-300">
           View Guidelines <ArrowUpRight size={12} />

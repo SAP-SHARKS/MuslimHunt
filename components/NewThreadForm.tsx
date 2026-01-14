@@ -98,7 +98,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
       type="button" 
       onClick={onClick}
       title={tooltip}
-      className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-emerald-50 rounded transition-colors"
+      className="p-1.5 text-gray-400 hover:text-[#004D40] hover:bg-primary-light rounded transition-colors"
     >
       <Icon className="w-4 h-4" />
     </button>
@@ -117,7 +117,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
       </div>
 
       <div className="flex items-center justify-between lg:mb-8 mb-4 px-4 lg:px-0">
-        <h2 className="text-2xl lg:text-3xl font-semibold lg:font-bold text-emerald-900">Start new thread</h2>
+        <h2 className="text-2xl lg:text-3xl font-semibold lg:font-bold text-primary">Start new thread</h2>
         <button onClick={onCancel} className="lg:p-2 p-1 hover:bg-gray-100 rounded-full transition-colors">
           <X className="w-6 h-6 text-gray-400" />
         </button>
@@ -130,7 +130,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             disabled={loading}
-            className="w-full flex items-center justify-between px-4 lg:px-5 py-3 lg:py-3.5 bg-gray-50 lg:bg-white border-transparent lg:border-gray-200 lg:border rounded-xl text-sm font-bold text-gray-900 lg:shadow-sm hover:border-emerald-200 transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-between px-4 lg:px-5 py-3 lg:py-3.5 bg-gray-50 lg:bg-white border-transparent lg:border-gray-200 lg:border rounded-xl text-sm font-bold text-gray-900 lg:shadow-sm hover:border-primary-light transition-all disabled:opacity-50"
           >
             <div className="flex items-center gap-2">
               <Hash className="w-4 h-4 text-[#004D40]" />
@@ -159,7 +159,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
                     key={f.id}
                     type="button"
                     onClick={() => { setFormData({ ...formData, forumCategoryId: f.id }); setIsDropdownOpen(false); }}
-                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-emerald-50 text-left transition-colors"
+                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-primary-light text-left transition-colors"
                   >
                     <span className={`text-sm ${formData.forumCategoryId === f.id ? 'font-bold text-[#004D40]' : 'text-gray-700'}`}>
                       {f.name}
@@ -213,7 +213,7 @@ const NewThreadForm: React.FC<NewThreadFormProps> = ({ onCancel, onSubmit, setVi
           </div>
           <div className="flex gap-4 w-full lg:w-auto justify-end">
             <button type="button" onClick={onCancel} className="hidden lg:block px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>
-            <button type="submit" className="lg:px-10 px-8 lg:py-3.5 py-2.5 bg-white lg:bg-[#004D40] text-[#004D40] lg:text-white rounded-full lg:rounded-xl border border-gray-200 lg:border-transparent font-black text-sm uppercase tracking-widest hover:bg-gray-50 lg:hover:bg-emerald-900 transition-all shadow-sm lg:shadow-lg active:scale-95">
+            <button type="submit" className="lg:px-10 px-8 lg:py-3.5 py-2.5 bg-white lg:bg-[#004D40] text-[#004D40] lg:text-white rounded-full lg:rounded-xl border border-gray-200 lg:border-transparent font-black text-sm uppercase tracking-widest hover:bg-gray-50 lg:hover:bg-primary-dark transition-all shadow-sm lg:shadow-lg active:scale-95">
               <span className="lg:hidden">Submit</span>
               <span className="hidden lg:inline">Post Thread</span>
             </button>

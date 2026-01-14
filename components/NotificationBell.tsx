@@ -75,8 +75,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, onClick, is
       }}
       className={`relative p-2 rounded-xl transition-all duration-200 active:scale-90 group flex items-center justify-center ${
         isOpen 
-          ? 'bg-emerald-50 text-emerald-800' 
-          : 'text-gray-400 hover:bg-emerald-50 hover:text-emerald-800'
+          ? 'bg-primary-light text-primary' 
+          : 'text-gray-400 hover:bg-primary-light hover:text-primary'
       }`}
       aria-label="Notifications"
     >

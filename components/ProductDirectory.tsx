@@ -106,15 +106,15 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
                   onClick={() => onTagSelect(tag.name)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-bold transition-all ${
                     isExpanded
-                      ? 'bg-emerald-50 text-emerald-900' 
+                      ? 'bg-primary-light text-primary' 
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <tag.icon size={16} className={isExpanded ? 'text-emerald-800' : 'text-gray-300'} />
+                    <tag.icon size={16} className={isExpanded ? 'text-primary' : 'text-gray-300'} />
                     {tag.name}
                   </div>
-                  {isExpanded ? <ChevronDown size={14} className="text-emerald-800" /> : <ChevronRight size={14} className="text-gray-300" />}
+                  {isExpanded ? <ChevronDown size={14} className="text-primary" /> : <ChevronRight size={14} className="text-gray-300" />}
                 </button>
                 
                 {isExpanded && (
@@ -125,7 +125,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
                         onClick={() => onTagSelect(sub, tag.name)}
                         className={`w-full text-left py-1 text-[12px] font-medium transition-colors ${
                           slugify(sub) === activeTag 
-                            ? 'text-emerald-800 font-bold' 
+                            ? 'text-primary font-bold' 
                             : 'text-gray-400 hover:text-gray-600'
                         }`}
                       >
@@ -143,11 +143,11 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
       {/* Main Content Area */}
       <div className="w-full space-y-8">
         <header className="border-b border-gray-100 pb-8">
-          <div className="flex items-center gap-3 text-emerald-800 mb-2">
-            <Award size={16} className="fill-emerald-800" />
+          <div className="flex items-center gap-3 text-primary mb-2">
+            <Award size={16} className="fill-primary" />
             <span className="text-[10px] font-black uppercase tracking-widest">Featured Directory</span>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-serif font-bold text-emerald-900 mb-2 tracking-tight capitalize">
+          <h1 className="text-3xl lg:text-4xl font-serif font-bold text-primary mb-2 tracking-tight capitalize">
             Best {activeTagName} products {parentTagName ? `under ${parentTagName}` : ''} of {currentMonth} {currentYear}
           </h1>
           <p className="text-gray-400 text-sm font-medium">
@@ -161,7 +161,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
             <div className="py-24 text-center bg-white border border-dashed border-gray-100 rounded-[3rem]">
               <Hash className="w-12 h-12 text-gray-100 mx-auto mb-4" />
               <p className="text-gray-500 font-bold text-lg">No products found for "{activeTagName}".</p>
-              <button onClick={() => onTagSelect('')} className="mt-4 text-emerald-800 font-black text-xs uppercase tracking-widest hover:underline">
+              <button onClick={() => onTagSelect('')} className="mt-4 text-primary font-black text-xs uppercase tracking-widest hover:underline">
                 View all launches
               </button>
             </div>
@@ -170,11 +170,11 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
               <div 
                 key={p.id}
                 onClick={() => onProductClick(p)}
-                className="group flex items-center justify-between p-6 bg-white border border-gray-100 rounded-[2rem] hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-900/5 transition-all cursor-pointer"
+                className="group flex items-center justify-between p-6 bg-white border border-gray-100 rounded-[2rem] hover:border-primary-light hover:shadow-xl hover:shadow-emerald-900/5 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-6">
                   {/* Rank */}
-                  <span className="w-8 text-[22px] font-serif italic text-gray-200 group-hover:text-emerald-800/20 transition-colors">
+                  <span className="w-8 text-[22px] font-serif italic text-gray-200 group-hover:text-primary/20 transition-colors">
                     {i + 1}.
                   </span>
                   
@@ -184,7 +184,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
                   </div>
                   
                   <div className="min-w-0">
-                    <h3 className="text-[18px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors tracking-tight leading-snug">
+                    <h3 className="text-[18px] font-bold text-gray-900 group-hover:text-primary transition-colors tracking-tight leading-snug">
                       {p.name}
                     </h3>
                     <p className="text-gray-500 text-[14px] line-clamp-1 font-medium tracking-tight mb-2">
@@ -192,7 +192,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
                     </p>
                     <div className="flex items-center gap-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">
                       <div className="flex items-center gap-1.5">
-                        <Users size={12} className="text-emerald-800 opacity-40" />
+                        <Users size={12} className="text-primary opacity-40" />
                         <span>{p.upvotes_count || 0} followers</span>
                       </div>
                       <span className="text-gray-200">•</span>
@@ -207,7 +207,7 @@ const ProductDirectory: React.FC<ProductDirectoryProps> = ({
                 <div className="flex items-center gap-4 shrink-0">
                   <button 
                     onClick={(e) => { e.stopPropagation(); }}
-                    className="px-8 py-3 bg-white border border-gray-200 rounded-2xl text-[13px] font-black text-gray-700 hover:border-emerald-800 hover:text-emerald-800 hover:bg-emerald-50 transition-all active:scale-95 shadow-sm"
+                    className="px-8 py-3 bg-white border border-gray-200 rounded-2xl text-[13px] font-black text-gray-700 hover:border-primary hover:text-primary hover:bg-primary-light transition-all active:scale-95 shadow-sm"
                   >
                     Follow
                   </button>

@@ -68,7 +68,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
             {/* Back to Category */}
             <button
                 onClick={() => setView(View.FORUM_CATEGORY, `/p/${categorySlug}`)}
-                className="flex items-center gap-2 mb-8 text-gray-400 hover:text-emerald-800 transition-colors font-bold text-sm"
+                className="flex items-center gap-2 mb-8 text-gray-400 hover:text-primary transition-colors font-bold text-sm"
             >
                 <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
                     <ArrowLeft size={16} />
@@ -84,7 +84,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                             {thread.profiles?.avatar_url ? (
                                 <img src={thread.profiles.avatar_url} alt={thread.profiles.username} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-sm font-bold text-emerald-800">
+                                <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-sm font-bold text-primary">
                                     {thread.profiles?.username?.[0] || 'A'}
                                 </div>
                             )}
@@ -94,7 +94,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                                 {thread.title}
                             </h1>
                             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 font-medium">
-                                <span className="text-emerald-800 font-bold">@{thread.profiles?.username}</span>
+                                <span className="text-primary font-bold">@{thread.profiles?.username}</span>
                                 <span>•</span>
                                 <span>{new Date(thread.created_at).toLocaleDateString()}</span>
                                 {(thread.is_approved === false) && (
@@ -113,7 +113,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
                     </div>
 
                     <div className="flex flex-col items-center gap-2">
-                        <button className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 border-gray-100 bg-white text-gray-400 hover:border-emerald-800 hover:text-emerald-800 transition-all active:scale-95 shadow-sm">
+                        <button className="flex flex-col items-center justify-center min-w-[3.5rem] h-14 rounded-xl border-2 border-gray-100 bg-white text-gray-400 hover:border-primary hover:text-primary transition-all active:scale-95 shadow-sm">
                             <Triangle className="w-5 h-5 mb-0.5 transform group-hover:-translate-y-0.5 transition-transform" />
                             <span className="text-[12px] font-black">{thread.upvotes || 0}</span>
                         </button>

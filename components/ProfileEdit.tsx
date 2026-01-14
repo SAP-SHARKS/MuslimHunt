@@ -208,8 +208,8 @@ const ProfileEdit: React.FC<ProfileEditProps> = ({ user, onBack, onViewProfile, 
                                 className={`
                                   whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
                                   ${tab === 'My details'
-                                        ? 'border-emerald-600 text-emerald-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-emerald-600'
+                                        ? 'border-emerald-600 text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-primary'
                                     }
                                 `}
                             >

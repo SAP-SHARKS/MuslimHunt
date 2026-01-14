@@ -113,10 +113,10 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-700">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-800 mx-auto mb-6 shadow-inner border border-emerald-100/50">
+          <div className="w-20 h-20 bg-primary-light rounded-[2rem] flex items-center justify-center text-primary mx-auto mb-6 shadow-inner border border-primary-light/50">
             <Sparkles className="w-10 h-10" />
           </div>
-          <h1 className="text-4xl font-serif font-bold text-emerald-900 tracking-tight mb-3">Welcome to Muslim Hunt</h1>
+          <h1 className="text-4xl font-serif font-bold text-primary tracking-tight mb-3">Welcome to Muslim Hunt</h1>
           <p className="text-lg text-gray-500 font-medium">Let's set up your profile to get you started.</p>
         </div>
 
@@ -124,7 +124,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
           {/* Section 1: Profile Details */}
           <section className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-800">
+              <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary">
                 <User className="w-5 h-5" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Profile Details</h2>
@@ -139,7 +139,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                   value={formData.fullName}
                   onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                   placeholder="e.g. Ahmed Ali"
-                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-bold"
+                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-sm font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -151,7 +151,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                     type="text"
                     value={formData.username}
                     onChange={e => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-bold"
+                    className="w-full pl-10 pr-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-sm font-bold"
                   />
                 </div>
               </div>
@@ -162,7 +162,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                   value={formData.linkedinUrl}
                   onChange={e => setFormData({ ...formData, linkedinUrl: e.target.value })}
                   placeholder="linkedin.com/in/..."
-                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-bold"
+                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-sm font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -172,7 +172,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                   value={formData.twitterUrl}
                   onChange={e => setFormData({ ...formData, twitterUrl: e.target.value })}
                   placeholder="x.com/..."
-                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-bold"
+                  className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-sm font-bold"
                 />
               </div>
             </div>
@@ -181,7 +181,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
           {/* Section 2: Professional Headline */}
           <section className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-800">
+              <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary">
                 <Info className="w-5 h-5" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Professional Headline</h2>
@@ -195,7 +195,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                 value={formData.headline}
                 onChange={e => setFormData({ ...formData, headline: e.target.value })}
                 placeholder="e.g. Co-founder and storyteller. Building a social app for the Ummah."
-                className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-sm font-bold resize-none"
+                className="w-full px-5 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-sm font-bold resize-none"
               />
             </div>
           </section>
@@ -203,7 +203,7 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
           {/* Section 3: Newsletter Preferences */}
           <section className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-800">
+              <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary">
                 <Mail className="w-5 h-5" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Newsletter Preferences</h2>
@@ -218,14 +218,14 @@ const Welcome: React.FC<WelcomeProps> = ({ onComplete, userEmail, userId }) => {
                 <div
                   key={news.id}
                   onClick={() => togglePreference(news.id as any)}
-                  className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors group"
+                  className="flex items-center justify-between p-5 bg-gray-50 rounded-2xl cursor-pointer hover:bg-primary-light/50 transition-colors group"
                 >
                   <div>
                     <p className="text-sm font-bold text-gray-900">{news.title}</p>
                     <p className="text-xs font-medium text-gray-500">{news.desc}</p>
                   </div>
                   <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${formData.preferences[news.id as keyof typeof formData.preferences]
-                    ? 'bg-emerald-800 border-emerald-800 text-white'
+                    ? 'bg-primary border-primary text-white'
                     : 'border-gray-200 group-hover:border-emerald-300'
                     }`}>
                     {formData.preferences[news.id as keyof typeof formData.preferences] && <Check className="w-4 h-4" />}

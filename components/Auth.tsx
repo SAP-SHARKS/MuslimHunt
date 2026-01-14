@@ -67,7 +67,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onDevLogin }) => {
       <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-emerald-50 max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300">
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-full transition-all active:scale-95 z-10"
+          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-primary hover:bg-primary-light rounded-full transition-all active:scale-95 z-10"
         >
           <X className="w-6 h-6" />
         </button>
@@ -86,10 +86,10 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onDevLogin }) => {
           </div>
 
           <div className="flex flex-col items-center mb-10">
-            <div className="w-16 h-16 bg-emerald-50 rounded-[1.5rem] flex items-center justify-center mb-6 text-emerald-800 shadow-inner">
+            <div className="w-16 h-16 bg-primary-light rounded-[1.5rem] flex items-center justify-center mb-6 text-primary shadow-inner">
               <Sparkles className="w-8 h-8" />
             </div>
-            <h2 className="text-3xl font-serif font-bold text-emerald-900 mb-3 text-center tracking-tight">Join our community</h2>
+            <h2 className="text-3xl font-serif font-bold text-primary mb-3 text-center tracking-tight">Join our community</h2>
             <p className="text-gray-500 text-center font-medium leading-relaxed max-w-xs">
               Sign up to discover and share the latest products in the Muslim tech ecosystem.
             </p>
@@ -136,7 +136,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onDevLogin }) => {
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-emerald-800 rounded-2xl outline-none transition-all text-md font-medium"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-transparent focus:bg-white focus:border-primary rounded-2xl outline-none transition-all text-md font-medium"
                 type="email"
                 placeholder="yourname@email.com"
                 value={email}
@@ -147,7 +147,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onDevLogin }) => {
             </div>
 
             <button
-              className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-black py-4 px-6 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-md flex items-center justify-center gap-2 group"
+              className="w-full bg-primary hover:bg-primary-dark text-white font-black py-4 px-6 rounded-2xl transition-all shadow-lg active:scale-[0.98] text-md flex items-center justify-center gap-2 group"
               disabled={loading}
             >
               {loading ? (
@@ -162,7 +162,7 @@ const Auth: React.FC<AuthProps> = ({ isOpen, onClose, onDevLogin }) => {
           </form>
 
           {message && (
-            <div className={`mt-6 p-4 rounded-xl text-center font-bold text-[13px] w-full animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' : 'bg-red-50 text-red-800 border border-red-100'
+            <div className={`mt-6 p-4 rounded-xl text-center font-bold text-[13px] w-full animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-primary-light text-primary border border-primary-light' : 'bg-red-50 text-red-800 border border-red-100'
               }`}>
               {message.text}
             </div>

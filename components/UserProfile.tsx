@@ -69,7 +69,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                     <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#1DA1F2] transition-colors"><Twitter className="w-4 h-4" /></a>
                   )}
                   {profile.website_url && (
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-emerald-800 transition-colors"><Globe className="w-4 h-4" /></a>
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors"><Globe className="w-4 h-4" /></a>
                   )}
                 </div>
               </div>

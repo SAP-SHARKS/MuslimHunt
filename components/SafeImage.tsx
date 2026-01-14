@@ -27,7 +27,7 @@ const SafeImage: React.FC<SafeImageProps> = ({ src, alt, className, seed }) => {
   };
 
   return (
-    <div className={`${className} bg-emerald-900/5 flex items-center justify-center overflow-hidden`}>
+    <div className={`${className} bg-primary-dark/5 flex items-center justify-center overflow-hidden`}>
       <img
         src={imgSrc}
         alt={alt}

@@ -94,13 +94,13 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
     <aside className="hidden xl:block w-80 shrink-0">
       <div className="sticky top-24 space-y-8">
         {isAdmin && (
-          <section className="bg-emerald-900 rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-emerald-800">
-            <div className="flex items-center gap-2 mb-4 text-emerald-400">
+          <section className="bg-primary-dark rounded-[2rem] p-8 text-white shadow-xl shadow-emerald-900/10 mb-8 border border-primary">
+            <div className="flex items-center gap-2 mb-4 text-primary-light">
               <ShieldCheck className="w-5 h-5" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Moderator Access</span>
             </div>
             <h3 className="text-xl font-bold mb-4">Review Queue</h3>
-            <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-emerald-900 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-50 transition-all shadow-sm active:scale-[0.98]">
+            <button onClick={() => setView(View.ADMIN_PANEL)} className="w-full py-3 bg-white text-primary rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary-light transition-all shadow-sm active:scale-[0.98]">
               Open Admin Panel
             </button>
           </section>
@@ -109,12 +109,12 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
         <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
             <h3
-              className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-emerald-800 transition-colors"
+              className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-primary transition-colors"
               onClick={() => setView(View.FORUM_HOME)}
             >
               Trending Forum Threads
             </h3>
-            <TrendingUp className="w-4 h-4 text-emerald-800 opacity-50" />
+            <TrendingUp className="w-4 h-4 text-primary opacity-50" />
           </div>
 
           <div className="space-y-7">
@@ -125,14 +125,14 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
             ].map((thread, i) => (
               <div key={i} className="group cursor-pointer" onClick={() => setView(View.FORUM_HOME)}>
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-emerald-800 transition-colors">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-primary transition-colors">
                     <thread.icon className="w-3 h-3 opacity-60" />
                     <span>{thread.tag}</span>
                   </div>
-                  <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight">{thread.title}</h4>
+                  <h4 className="text-[13px] font-bold text-gray-900 group-hover:text-primary transition-colors leading-snug tracking-tight">{thread.title}</h4>
                   <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
                     <div className="flex items-center gap-1">
-                      <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-emerald-800 transition-colors" />
+                      <Triangle className="w-2.5 h-2.5 fill-gray-400 group-hover:fill-primary transition-colors" />
                       {thread.upvotes}
                     </div>
                     <span>•</span>
@@ -141,8 +141,8 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
                       {thread.comments}
                     </div>
                     <span>•</span>
-                    <div className="flex items-center gap-1.5 text-emerald-600/70 font-black">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className="flex items-center gap-1.5 text-primary/70 font-black">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary-light0 animate-pulse" />
                       {thread.online} online
                     </div>
                   </div>
@@ -152,10 +152,10 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
           </div>
 
           <div className="mt-10 space-y-4 pt-8 border-t border-gray-50">
-            <button onClick={() => setView(View.FORUM_HOME)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-emerald-800 transition-colors uppercase tracking-[0.2em]">
+            <button onClick={() => setView(View.FORUM_HOME)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black text-gray-400 hover:text-primary transition-colors uppercase tracking-[0.2em]">
               View all discussions <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <button onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-100 py-4 rounded-2xl text-xs font-black text-emerald-800 uppercase tracking-widest hover:bg-emerald-800 hover:text-white transition-all shadow-sm active:scale-[0.98]">
+            <button onClick={() => user ? setView(View.NEW_THREAD) : onSignIn()} className="w-full flex items-center justify-center gap-2 bg-primary-light border border-primary-light py-4 rounded-2xl text-xs font-black text-primary uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm active:scale-[0.98]">
               <Plus className="w-4 h-4" /> Start new thread
             </button>
           </div>
@@ -844,14 +844,14 @@ const App: React.FC = () => {
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#fdfcf0]">
-        <Loader2 className="w-10 h-10 text-emerald-800 animate-spin mb-4" />
-        <p className="text-emerald-900 font-serif italic">Bismillah... Loading Muslim Hunt</p>
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+        <p className="text-primary font-serif italic">Bismillah... Loading Muslim Hunt</p>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen selection:bg-emerald-100 selection:text-emerald-900 ${isForumView ? 'bg-white lg:bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
+    <div className={`min-h-screen selection:bg-emerald-100 selection:text-primary ${isForumView ? 'bg-white lg:bg-[#F9F9F1]' : 'bg-[#fdfcf0]/30'}`}>
       {view !== View.WELCOME && view !== View.POST_SUBMIT && view !== View.SUBMISSION && (
         <Navbar
           user={user}
@@ -881,11 +881,11 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 flex flex-col lg:flex-row gap-12">
             <div className="flex-1">
               <header className="mb-6">
-                <div className="flex items-center gap-2 text-emerald-800 mb-2">
-                  <Sparkles className="w-4 h-4 fill-emerald-800" />
+                <div className="flex items-center gap-2 text-primary mb-2">
+                  <Sparkles className="w-4 h-4 fill-primary" />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Curation for the Ummah</span>
                 </div>
-                <h1 className="text-4xl font-serif font-bold text-emerald-900">The Discovery Feed</h1>
+                <h1 className="text-4xl font-serif font-bold text-primary">The Discovery Feed</h1>
               </header>
               <div className="space-y-16">
                 {[
@@ -896,7 +896,7 @@ const App: React.FC = () => {
                 ].map((section) => (
                   section.data.length > 0 && (
                     <section key={section.id}>
-                      <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
+                      <h2 className="text-2xl font-serif font-bold text-primary mb-6 border-b border-emerald-50 pb-4">{section.title}</h2>
 
                       <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
                         {(expandedSections[section.id] ? section.data : section.data.slice(0, 5)).map((p, i) => (
@@ -911,7 +911,7 @@ const App: React.FC = () => {
                       </div>
 
                       {!expandedSections[section.id] && section.data.length > 5 && (
-                        <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-emerald-800 transition-all flex items-center justify-center gap-2">
+                        <button onClick={() => toggleSection(section.id)} className="w-full py-4 bg-white border border-gray-100 rounded-2xl text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] hover:text-primary transition-all flex items-center justify-center gap-2">
                           See all of {section.buttonLabel} <ArrowRight className="w-4 h-4" />
                         </button>
                       )}
@@ -922,7 +922,7 @@ const App: React.FC = () => {
                 {/* Dedicated Loading State when isLoadingProducts is true */}
                 {isLoadingProducts && (
                   <section>
-                    <h2 className="text-2xl font-serif font-bold text-emerald-900 mb-6 border-b border-emerald-50 pb-4">Top Products Launching Today</h2>
+                    <h2 className="text-2xl font-serif font-bold text-primary mb-6 border-b border-emerald-50 pb-4">Top Products Launching Today</h2>
                     <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden mb-6">
                       {[1, 2, 3, 4, 5].map(i => <ProductCardSkeleton key={i} />)}
                     </div>

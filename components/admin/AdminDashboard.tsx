@@ -99,7 +99,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, stat
       label: 'Total Products',
       value: stats?.totalProducts || 0,
       icon: TrendingUp,
-      color: 'text-emerald-600',
+      color: 'text-primary',
       bgColor: 'bg-emerald-100',
     },
     {
@@ -173,7 +173,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, stat
                   <div className={`w-12 h-12 ${card.bgColor} rounded-lg flex items-center justify-center`}>
                     <Icon className={`w-6 h-6 ${card.color}`} />
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 transition" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary transition" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">{card.label}</h3>
                 <p className="text-sm text-gray-600 mb-3">{card.description}</p>

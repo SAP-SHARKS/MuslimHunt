@@ -91,7 +91,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
         <div className="flex flex-col items-center justify-center py-20 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Category not found</h2>
             <p className="text-gray-500">The forum category "p/{categorySlug}" does not exist.</p>
-            <button onClick={() => setView(View.FORUM_HOME)} className="mt-6 text-emerald-600 font-bold hover:underline">
+            <button onClick={() => setView(View.FORUM_HOME)} className="mt-6 text-primary font-bold hover:underline">
                 Go back to Forums
             </button>
         </div>
@@ -104,7 +104,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                     <div className="flex items-center gap-2 text-[#004D40] mb-2">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-emerald-100/50 px-2 py-1 rounded">p/{currentCategory.slug}</span>
                     </div>
-                    <h1 className="text-4xl font-serif font-bold text-emerald-900 leading-none mb-2">{currentCategory.name}</h1>
+                    <h1 className="text-4xl font-serif font-bold text-primary leading-none mb-2">{currentCategory.name}</h1>
                     <p className="text-gray-500 font-medium max-w-2xl">
                         Discussion, questions, and sharing for {currentCategory.name}.
                     </p>
@@ -131,7 +131,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                     threads.map((thread) => (
                         <div
                             key={thread.id}
-                            className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-emerald-200 hover:shadow-xl transition-all cursor-pointer"
+                            className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-primary-light hover:shadow-xl transition-all cursor-pointer"
                             onClick={() => setView(View.FORUM_THREAD, `/p/${currentCategory.slug}/${thread.slug}`)}
                         >
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
@@ -142,7 +142,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                                                 {thread.profiles?.avatar_url ? (
                                                     <img src={thread.profiles.avatar_url} alt={thread.profiles.username} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-800">
+                                                    <div className="w-full h-full bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-primary">
                                                         {thread.profiles?.username?.[0] || 'A'}
                                                     </div>
                                                 )}
@@ -171,7 +171,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                                 </div>
 
                                 <div className="flex sm:flex-col items-center gap-2 shrink-0">
-                                    <div className="flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-emerald-50 group-hover:text-[#004D40] transition-all">
+                                    <div className="flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-primary-light group-hover:text-[#004D40] transition-all">
                                         <MessageSquare className="w-4 h-4 mb-0.5" />
                                         <span className="text-[11px] font-black">0</span> {/* Placeholder for comment count if not in table */}
                                     </div>

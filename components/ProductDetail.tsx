@@ -166,7 +166,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <button
-                className={`font-bold text-[14px] hover:underline transition-colors ${node.is_maker ? 'text-emerald-800' : 'text-gray-900'}`}
+                className={`font-bold text-[14px] hover:underline transition-colors ${node.is_maker ? 'text-primary' : 'text-gray-900'}`}
                 onClick={() => onViewProfile(node.user_id)}
               >
                 {node.username}
@@ -192,24 +192,24 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <div className="flex items-center gap-6 text-[11px] font-semibold text-gray-400 uppercase tracking-tight">
               <button
                 onClick={() => onCommentUpvote(product.id, node.id)}
-                className={`flex items-center gap-1 transition-all ${hasUpvotedComment ? 'text-emerald-800 font-bold' : 'hover:text-emerald-800'}`}
+                className={`flex items-center gap-1 transition-all ${hasUpvotedComment ? 'text-primary font-bold' : 'hover:text-primary'}`}
               >
                 Upvote {node.upvotes_count > 0 && `(${node.upvotes_count})`}
               </button>
 
               <button
                 onClick={() => setReplyingTo(isReplying ? null : node.id)}
-                className={`transition-colors ${isReplying ? 'text-emerald-800 font-bold' : 'hover:text-emerald-800'}`}
+                className={`transition-colors ${isReplying ? 'text-primary font-bold' : 'hover:text-primary'}`}
               >
                 Reply
               </button>
 
-              <button className="hover:text-emerald-800 transition-colors">Share</button>
+              <button className="hover:text-primary transition-colors">Share</button>
             </div>
 
             {/* Inline Reply Input */}
             {isReplying && user && (
-              <div className="mt-4 bg-white border border-emerald-100 rounded-2xl p-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
+              <div className="mt-4 bg-white border border-primary-light rounded-2xl p-4 shadow-lg animate-in slide-in-from-top-2 duration-200">
                 <textarea
                   autoFocus
                   placeholder={`Reply to @${node.username}...`}
@@ -218,7 +218,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 />
                 <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-50">
                   <div className="flex gap-2">
-                    <button className="p-1.5 text-gray-400 hover:text-emerald-800 transition-colors">
+                    <button className="p-1.5 text-gray-400 hover:text-primary transition-colors">
                       <AtSign className="w-4 h-4" />
                     </button>
                   </div>
@@ -227,7 +227,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                     <button
                       onClick={() => handleSubmitComment(node.id)}
                       disabled={isSubmitting || !commentText.trim()}
-                      className="px-6 py-2 bg-emerald-800 text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-emerald-900 transition-all disabled:opacity-50"
+                      className="px-6 py-2 bg-primary text-white rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-primary-dark transition-all disabled:opacity-50"
                     >
                       {isSubmitting ? 'Posting...' : 'Reply'}
                     </button>
@@ -253,7 +253,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-8 animate-in fade-in duration-500">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-emerald-800 transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
+        className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
         Back to discovery feed
@@ -268,17 +268,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded-md font-black uppercase tracking-widest border border-emerald-100/50">
+                <span className="text-[10px] px-2 py-0.5 bg-primary-light text-primary rounded-md font-black uppercase tracking-widest border border-primary-light/50">
                   {product.category}
                 </span>
               </div>
-              <h1 className="text-4xl font-serif font-bold text-emerald-900 mb-2 tracking-tight">{product.name}</h1>
+              <h1 className="text-4xl font-serif font-bold text-primary mb-2 tracking-tight">{product.name}</h1>
               <p className="text-xl text-gray-500 font-medium leading-tight mb-6">{product.tagline}</p>
               <div className="flex items-center gap-4">
                 <a
                   href={product.website_url || product.url}
                   target="_blank" rel="noopener noreferrer"
-                  className="px-8 py-3.5 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/10 active:scale-[0.98] flex items-center gap-2"
+                  className="px-8 py-3.5 bg-primary text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl shadow-emerald-900/10 active:scale-[0.98] flex items-center gap-2"
                 >
                   Visit website <ExternalLink className="w-4 h-4" />
                 </a>
@@ -286,21 +286,21 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 {/* Comment Count Button (Product Hunt Style) */}
                 <button
                   onClick={() => discussionRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                  className="flex flex-col items-center justify-center min-w-[3.5rem] h-12 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-emerald-800 hover:border-emerald-200 transition-all shadow-sm active:scale-95 group"
+                  className="flex flex-col items-center justify-center min-w-[3.5rem] h-12 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-primary hover:border-primary-light transition-all shadow-sm active:scale-95 group"
                 >
                   {isLoadingComments ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-emerald-800" />
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
                   ) : (
                     <>
-                      <MessageSquare className="w-5 h-5 mb-0.5 group-hover:text-emerald-800 transition-colors" />
-                      <span className="text-[11px] font-black tracking-tighter group-hover:text-emerald-800 transition-colors">
+                      <MessageSquare className="w-5 h-5 mb-0.5 group-hover:text-primary transition-colors" />
+                      <span className="text-[11px] font-black tracking-tighter group-hover:text-primary transition-colors">
                         {localComments.length}
                       </span>
                     </>
                   )}
                 </button>
 
-                <button className="p-3.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-emerald-800 transition-all shadow-sm">
+                <button className="p-3.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-primary transition-all shadow-sm">
                   <Share2 className="w-5 h-5" />
                 </button>
               </div>
@@ -331,7 +331,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           {/* Discussion Section */}
           <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-12 shadow-sm scroll-mt-20">
             <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-6">
-              <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-3 uppercase tracking-tight">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-3 uppercase tracking-tight">
                 <MessageSquare className="w-5 h-5 text-emerald-700" />
                 Discussion
               </h3>
@@ -342,7 +342,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
             {/*參與狀態 participação: Auth States */}
             {user ? (
-              <div className="mb-12 bg-white border border-gray-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-within:border-emerald-800 transition-all">
+              <div className="mb-12 bg-white border border-gray-100 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-within:border-primary transition-all">
                 <div className="flex gap-4">
                   <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-100">
                     <SafeImage src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
@@ -356,17 +356,17 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
                   <div className="flex gap-1">
-                    <button className="p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all">
+                    <button className="p-2 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-all">
                       <AtSign className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-all">
+                    <button className="p-2 text-gray-400 hover:text-primary hover:bg-primary-light rounded-lg transition-all">
                       <ImageIcon className="w-5 h-5" />
                     </button>
                   </div>
                   <button
                     onClick={() => handleSubmitComment()}
                     disabled={isSubmitting || !commentText.trim()}
-                    className="px-10 py-3 bg-emerald-800 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                    className="px-10 py-3 bg-primary text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary-dark transition-all shadow-lg shadow-emerald-900/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
                   >
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     Comment
@@ -387,7 +387,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
             <div className="space-y-2">
               {isLoadingComments ? (
                 <div className="flex flex-col items-center py-10 gap-4">
-                  <Loader2 className="w-6 h-6 text-emerald-800 animate-spin" />
+                  <Loader2 className="w-6 h-6 text-primary animate-spin" />
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loading discussion...</p>
                 </div>
               ) : commentTree.length === 0 ? (
@@ -407,8 +407,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               <button
                 onClick={() => onUpvote(product.id)}
                 className={`w-full py-6 rounded-[1.5rem] font-black text-lg uppercase tracking-widest transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-2 border-2 ${hasUpvoted
-                  ? 'bg-emerald-800 border-emerald-800 text-white shadow-xl shadow-emerald-900/20'
-                  : 'bg-white border-emerald-800 text-emerald-800 hover:bg-emerald-50'
+                  ? 'bg-primary border-primary text-white shadow-xl shadow-emerald-900/20'
+                  : 'bg-white border-primary text-primary hover:bg-primary-light'
                   }`}
               >
                 <Triangle className={`w-6 h-6 ${hasUpvoted ? 'fill-white' : ''}`} />
@@ -416,15 +416,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
               </button>
             </div>
 
-            <div className="bg-emerald-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
+            <div className="bg-primary-dark rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
               <div className="relative z-10">
                 <div className="inline-block px-3 py-1 bg-emerald-400 text-[#064e3b] rounded-md text-[10px] font-black uppercase tracking-widest mb-4">
                   PERFORMANCE
                 </div>
                 <p className="text-4xl font-serif font-bold mb-1">Top Tier</p>
                 <p className="text-emerald-300 text-[11px] font-black uppercase tracking-[0.2em] mb-8">Of the Week</p>
-                <div className="flex items-center gap-3 p-4 bg-emerald-800/40 rounded-2xl border border-emerald-700/30">
-                  <ShieldCheck className="w-6 h-6 text-emerald-400" />
+                <div className="flex items-center gap-3 p-4 bg-primary/40 rounded-2xl border border-emerald-700/30">
+                  <ShieldCheck className="w-6 h-6 text-primary-light" />
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-widest">Status</p>
                     <p className="text-sm font-bold text-emerald-50">{product.halal_status}</p>
@@ -440,10 +440,10 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                   <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-gray-900 group-hover:text-emerald-800 transition-colors truncate">View Profile</p>
+                  <p className="font-bold text-gray-900 group-hover:text-primary transition-colors truncate">View Profile</p>
                   <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">Maker of {product.name}</p>
                 </div>
-                <ChevronRight className="ml-auto w-5 h-5 text-gray-300 group-hover:text-emerald-800 transition-colors" />
+                <ChevronRight className="ml-auto w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
               </div>
             </div>
           </div>

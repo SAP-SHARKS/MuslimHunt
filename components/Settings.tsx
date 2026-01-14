@@ -272,7 +272,7 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                                     type="checkbox"
                                     checked={hideProfile}
                                     onChange={(e) => setHideProfile(e.target.checked)}
-                                    className="mt-1 w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-600"
+                                    className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-emerald-600"
                                 />
                                 <div>
                                     <label className="text-sm font-bold text-gray-900 block mb-1">Hide my profile from search engines</label>
@@ -283,7 +283,7 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                             <div className="mb-8">
                                 <h4 className="text-sm text-gray-900 mb-2">Data</h4>
                                 <p className="text-xs text-gray-500 mb-4">
-                                    If you would like access to your personal data please <a href="#" className="text-emerald-600 hover:underline">email us</a>. Please view our <a href="#" className="text-emerald-600 hover:underline">Private Policy</a> and <a href="#" className="text-emerald-600 hover:underline">Terms of Service</a>.
+                                    If you would like access to your personal data please <a href="#" className="text-primary hover:underline">email us</a>. Please view our <a href="#" className="text-primary hover:underline">Private Policy</a> and <a href="#" className="text-primary hover:underline">Terms of Service</a>.
                                 </p>
                                 <button className="px-6 py-2 bg-emerald-600 text-white text-sm font-bold rounded-full hover:bg-emerald-700 transition-colors shadow-sm">
                                     Save changes
@@ -321,8 +321,8 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                                 className={`
                                   whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
                   ${activeTab === tab.name || (loadingTab === tab.name)
-                                        ? 'border-emerald-600 text-emerald-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-emerald-600'
+                                        ? 'border-emerald-600 text-primary'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-primary'
                                     }
 `}
                             >
@@ -335,7 +335,7 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                 {/* Content */}
                 {loadingTab ? (
                     <div className="py-20 flex flex-col items-center justify-center">
-                        <div className="w-8 h-8 text-emerald-600 animate-spin mb-4" />
+                        <div className="w-8 h-8 text-primary animate-spin mb-4" />
                         <p className="text-sm text-gray-500">Loading {loadingTab.toLowerCase()}...</p>
                     </div>
                 ) : (

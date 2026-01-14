@@ -58,7 +58,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user, onSignIn }) => {
             <Sparkles className="w-4 h-4 fill-[#004D40]" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Community Feed</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold text-emerald-900 leading-none">Discussions</h1>
+          <h1 className="text-4xl font-serif font-bold text-primary leading-none">Discussions</h1>
         </div>
         <div className="flex items-center gap-3">
            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
@@ -72,12 +72,12 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user, onSignIn }) => {
         {threads.map((thread) => (
           <div 
             key={thread.id} 
-            className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-emerald-200 hover:shadow-xl transition-all cursor-pointer"
+            className="group bg-white border border-gray-100 rounded-[2rem] p-5 sm:p-8 hover:border-primary-light hover:shadow-xl transition-all cursor-pointer"
           >
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <span className="text-[10px] font-black text-[#004D40] uppercase tracking-[0.15em] bg-emerald-50 px-2 py-0.5 rounded-md">
+                  <span className="text-[10px] font-black text-[#004D40] uppercase tracking-[0.15em] bg-primary-light px-2 py-0.5 rounded-md">
                     {thread.forum}
                   </span>
                   <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user, onSignIn }) => {
               </div>
 
               <div className="flex sm:flex-col items-center gap-2 shrink-0">
-                <div className="flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-emerald-50 group-hover:text-[#004D40] transition-all">
+                <div className="flex flex-col items-center justify-center min-w-[3rem] h-12 rounded-xl bg-gray-50 text-gray-400 group-hover:bg-primary-light group-hover:text-[#004D40] transition-all">
                   <MessageSquare className="w-4 h-4 mb-0.5" />
                   <span className="text-[11px] font-black">{thread.comments}</span>
                 </div>

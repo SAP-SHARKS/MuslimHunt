@@ -58,7 +58,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = ({ notifications, on
                       {/* Icon/Avatar */}
                       <div className="shrink-0">
                         {n.type === 'streak' ? (
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${n.streak_days && n.streak_days >= 5 ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${n.streak_days && n.streak_days >= 5 ? 'bg-emerald-100 text-primary' : 'bg-amber-100 text-amber-600'}`}>
                             <Flame className={`w-6 h-6 ${n.streak_days && n.streak_days >= 5 ? 'fill-emerald-600' : 'fill-amber-600'}`} />
                             {n.streak_days && <span className="absolute text-[10px] font-bold text-white mt-1">{n.streak_days}</span>}
                           </div>
@@ -67,7 +67,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = ({ notifications, on
                             {n.avatar_url ? (
                               <img src={n.avatar_url} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <div className={`w-full h-full flex items-center justify-center ${n.type === 'approval' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-gray-400'}`}>
+                              <div className={`w-full h-full flex items-center justify-center ${n.type === 'approval' ? 'bg-primary-light text-primary' : 'bg-gray-50 text-gray-400'}`}>
                                 {n.type === 'approval' ? <ShieldCheck className="w-6 h-6" /> : <Bell className="w-5 h-5" />}
                               </div>
                             )}

@@ -57,7 +57,7 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
             <MessageSquare className="w-4 h-4" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live Interactions</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold text-emerald-900 leading-none">Recent Comments</h1>
+          <h1 className="text-4xl font-serif font-bold text-primary leading-none">Recent Comments</h1>
         </div>
       </header>
 
@@ -65,14 +65,14 @@ const RecentComments: React.FC<RecentCommentsProps> = ({ setView, user, onViewPr
         {recentComments.map((comment) => (
           <div 
             key={comment.id} 
-            className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-emerald-200 hover:shadow-xl transition-all cursor-pointer"
+            className="group bg-white border border-gray-100 rounded-[2rem] p-6 hover:border-primary-light hover:shadow-xl transition-all cursor-pointer"
           >
             <div className="flex flex-col space-y-4">
               <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest">
                 <span className="text-gray-400 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> {formatTimeAgo(comment.created_at)}
                 </span>
-                <span className="text-[#004D40] bg-emerald-50 px-2 py-0.5 rounded-md">
+                <span className="text-[#004D40] bg-primary-light px-2 py-0.5 rounded-md">
                   {comment.forum}
                 </span>
               </div>

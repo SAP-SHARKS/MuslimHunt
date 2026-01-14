@@ -37,14 +37,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
       href={`/products/${productSlug}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-start justify-between p-6 bg-white border-b border-gray-100 last:border-0 hover:bg-emerald-50/10 transition-all cursor-pointer no-underline block"
+      className="group flex items-start justify-between p-6 bg-white border-b border-gray-100 last:border-0 hover:bg-primary-light/10 transition-all cursor-pointer no-underline block"
       onClick={(e) => {
         // Default anchor behavior handles new tab
       }}
     >
       <div className="flex items-start gap-5 flex-1 min-w-0">
         {/* Logo Container */}
-        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-emerald-100/50 shadow-sm group-hover:shadow-md transition-all shrink-0 mt-1">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-primary-light/50 shadow-sm group-hover:shadow-md transition-all shrink-0 mt-1">
           <SafeImage
             src={product.logo_url}
             alt={product.name}
@@ -56,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Info Area */}
         <div className="min-w-0 flex-1 pt-0.5">
           <h3
-            className="text-[16px] font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-snug tracking-tight mb-1"
+            className="text-[16px] font-bold text-gray-900 group-hover:text-primary transition-colors leading-snug tracking-tight mb-1"
             dangerouslySetInnerHTML={{ __html: highlightedName }}
           />
           <p
@@ -70,7 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <a
               href={`/topics/${slugify(product.category)}`}
               onClick={(e) => e.stopPropagation()}
-              className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-emerald-800 hover:underline transition-colors block"
+              className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-primary hover:underline transition-colors block"
             >
               {product.category}
             </a>
@@ -82,7 +82,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <a
                   href={`/topics/${slugify(tag)}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-emerald-800 hover:underline transition-colors block"
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter hover:text-primary hover:underline transition-colors block"
                 >
                   {tag}
                 </a>
@@ -101,7 +101,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             e.stopPropagation();
             onCommentClick(product);
           }}
-          className="flex flex-col items-center justify-center w-[50px] h-[64px] border border-gray-100 rounded-xl hover:border-emerald-200 hover:bg-white text-gray-400 hover:text-emerald-800 transition-all active:scale-95 bg-transparent"
+          className="flex flex-col items-center justify-center w-[50px] h-[64px] border border-gray-100 rounded-xl hover:border-primary-light hover:bg-white text-gray-400 hover:text-primary transition-all active:scale-95 bg-transparent"
         >
           <MessageSquare className="w-5 h-5 mb-1.5" />
           <span className="text-[12px] font-bold tracking-tight text-gray-900">{commentCount}</span>
@@ -115,11 +115,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             onUpvote(product.id);
           }}
           className={`flex flex-col items-center justify-center w-[50px] h-[64px] border rounded-xl transition-all shrink-0 active:scale-95 ${hasUpvoted
-              ? 'bg-white border-emerald-800 text-emerald-800 shadow-sm'
-              : 'bg-white border-gray-200 text-gray-500 hover:border-emerald-800 hover:text-emerald-800'
+              ? 'bg-white border-primary text-primary shadow-sm'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-primary hover:text-primary'
             }`}
         >
-          <Triangle className={`w-4 h-4 mb-1.5 ${hasUpvoted ? 'fill-emerald-800' : ''}`} />
+          <Triangle className={`w-4 h-4 mb-1.5 ${hasUpvoted ? 'fill-primary' : ''}`} />
           <span className="text-[12px] font-bold tracking-tight">{product.upvotes_count}</span>
         </button>
       </div>

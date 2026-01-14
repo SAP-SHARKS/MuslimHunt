@@ -106,7 +106,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <div className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-emerald-600" />
+              <Shield className="w-6 h-6 text-primary" />
               <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
             </div>
             <button
@@ -139,18 +139,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   onClick={() => handleNavigation(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition ${
                     isActive
-                      ? 'bg-emerald-50 text-emerald-700'
+                      ? 'bg-primary-light text-emerald-700'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : item.color}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : item.color}`} />
                   <div className="flex-1 text-left">
                     <div className="font-medium text-sm">{item.label}</div>
                     {item.description && (
                       <div className="text-xs text-gray-500">{item.description}</div>
                     )}
                   </div>
-                  {isActive && <ChevronRight className="w-4 h-4 text-emerald-600" />}
+                  {isActive && <ChevronRight className="w-4 h-4 text-primary" />}
                 </button>
               );
             })}

@@ -95,7 +95,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onBack }) => {
                     ].map((item) => (
                         <div key={item.id} className="bg-white rounded-lg border border-gray-100 p-6 flex items-start gap-6 hover:shadow-md transition-shadow cursor-pointer">
                             <div className="shrink-0 pt-1">
-                                <item.icon className="w-8 h-8 text-emerald-600" />
+                                <item.icon className="w-8 h-8 text-primary" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-bold text-gray-900 mb-1">{item.title}</h3>
@@ -120,7 +120,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onBack }) => {
                     <span>✖</span>
                     <span>in</span>
                 </div>
-                <div className="mt-4 text-emerald-600 hover:underline cursor-pointer">
+                <div className="mt-4 text-primary hover:underline cursor-pointer">
                     Contact us: hello@muslimhunt.com
                 </div>
             </footer>

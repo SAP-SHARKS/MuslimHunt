@@ -57,7 +57,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-[13px] hover:text-emerald-400 transition-colors">
+                    <a href="#" className="text-[13px] hover:text-primary-light transition-colors">
                       {link}
                     </a>
                   </li>
@@ -76,7 +76,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
               <ul className="space-y-3">
                 {group.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-[13px] hover:text-emerald-400 transition-colors">
+                    <a href="#" className="text-[13px] hover:text-primary-light transition-colors">
                       {link}
                     </a>
                   </li>
@@ -91,39 +91,39 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
             <span className="text-gray-500 font-black tracking-widest">© 2025 MUSLIM HUNT</span>
             <button 
               onClick={() => setView?.(View.NEWSLETTER)}
-              className="hover:text-emerald-400 transition-colors"
+              className="hover:text-primary-light transition-colors"
             >
               Newsletter
             </button>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Apps</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">About</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">FAQ</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Terms</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a>
+            <a href="#" className="hover:text-primary-light transition-colors">Apps</a>
+            <a href="#" className="hover:text-primary-light transition-colors">About</a>
+            <a href="#" className="hover:text-primary-light transition-colors">FAQ</a>
+            <a href="#" className="hover:text-primary-light transition-colors">Terms</a>
+            <a href="#" className="hover:text-primary-light transition-colors">Privacy</a>
             <button 
               onClick={() => setView?.(View.SPONSOR)}
-              className="hover:text-emerald-400 transition-colors"
+              className="hover:text-primary-light transition-colors"
             >
               Advertise
             </button>
-            <a href="#" className="hover:text-emerald-400 transition-colors italic">llms.txt</a>
-            <a href="#" className="hover:text-emerald-400 transition-colors">Contact us</a>
+            <a href="#" className="hover:text-primary-light transition-colors italic">llms.txt</a>
+            <a href="#" className="hover:text-primary-light transition-colors">Contact us</a>
           </div>
 
           <div className="flex items-center gap-6">
-            <a href="#" className="text-gray-500 hover:text-emerald-400 transition-colors">
+            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
               <Twitter className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-emerald-400 transition-colors">
+            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
               <Linkedin className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-emerald-400 transition-colors">
+            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-emerald-400 transition-colors">
+            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
               <Instagram className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-emerald-400 transition-colors">
+            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
               <Github className="w-4 h-4" />
             </a>
           </div>

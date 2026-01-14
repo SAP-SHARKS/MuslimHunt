@@ -45,10 +45,10 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                             <div className="group cursor-pointer">
                                 <div className="aspect-video bg-gray-50 rounded-xl border border-gray-100 mb-4 overflow-hidden relative">
                                     <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 group-hover:bg-gray-100/30 transition-colors">
-                                        <Rocket className="w-12 h-12 text-emerald-600" />
+                                        <Rocket className="w-12 h-12 text-primary" />
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-lg mb-2 group-hover:text-emerald-600 transition-colors">Getting started</h3>
+                                <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">Getting started</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">The mechanics of the site, how the platform works, and how to prep everything you need to know before you hunt.</p>
                             </div>
 
@@ -58,7 +58,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                                         <Rocket className="w-12 h-12 text-blue-500" />
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-lg mb-2 group-hover:text-emerald-600 transition-colors">Launching a product</h3>
+                                <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">Launching a product</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">Set up the background images, text that you have to make it essential you pass the "Is it huntable?" test, and other tips for the big moment.</p>
                             </div>
 
@@ -68,7 +68,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                                         <Users className="w-12 h-12 text-purple-500" />
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-lg mb-2 group-hover:text-emerald-600 transition-colors">Growing a community</h3>
+                                <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">Growing a community</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">Learn how to leverage your launch to acquire users, get feedback and grow your goals post-launch day.</p>
                             </div>
 
@@ -78,7 +78,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                                         <BookOpen className="w-12 h-12 text-orange-500" />
                                     </div>
                                 </div>
-                                <h3 className="font-bold text-lg mb-2 group-hover:text-emerald-600 transition-colors">Definitions</h3>
+                                <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">Definitions</h3>
                                 <p className="text-sm text-gray-500 leading-relaxed">A glossary for navigating Product Hunt and common terminology.</p>
                             </div>
                         </div>
@@ -100,7 +100,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                                         {study.icon}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg mb-1 group-hover:text-emerald-600 transition-colors">{study.title}</h3>
+                                        <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">{study.title}</h3>
                                         <p className="text-gray-500 text-sm leading-relaxed">{study.desc}</p>
                                     </div>
                                 </div>
@@ -148,7 +148,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                                 { icon: '🎬', label: 'Maker stories & studios' }
                             ].map((link, i) => (
                                 <li key={i}>
-                                    <a href="#" className="flex items-center gap-3 text-sm text-gray-600 hover:text-emerald-600 transition-colors group">
+                                    <a href="#" className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors group">
                                         <span className="shrink-0 w-5 text-center">{link.icon}</span>
                                         <span className="font-medium">{link.label}</span>
                                     </a>
@@ -161,7 +161,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                         <h3 className="font-bold text-gray-900 mb-4">Other maker resources</h3>
                         <ul className="space-y-3">
                             <li>
-                                <a href="#" className="flex items-center gap-3 text-sm text-gray-600 hover:text-emerald-600 transition-colors">
+                                <a href="#" className="flex items-center gap-3 text-sm text-gray-600 hover:text-primary transition-colors">
                                     <span className="shrink-0 w-5 text-center">👋</span>
                                     <span className="font-medium">Maker community (Coming Soon)</span>
                                 </a>

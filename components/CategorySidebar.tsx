@@ -29,18 +29,18 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ activeCategory = "", 
         </div>
         <div className="space-y-6">
           <div className="group cursor-pointer">
-            <h4 className="text-sm font-bold text-gray-900 group-hover:text-emerald-800 transition-colors leading-relaxed mb-2 tracking-tight">Favorite {activeCategory} tools for the Ummah?</h4>
+            <h4 className="text-sm font-bold text-gray-900 group-hover:text-primary transition-colors leading-relaxed mb-2 tracking-tight">Favorite {activeCategory} tools for the Ummah?</h4>
             <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]"><span>1.2K VIEWS</span><span className="text-gray-200">•</span><span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 2D AGO</span></div>
           </div>
         </div>
       </section>
 
       <section className="bg-[#052e16] rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl">
-        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none"><Sparkles className="w-24 h-24 text-emerald-400 rotate-12" /></div>
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none"><Sparkles className="w-24 h-24 text-primary-light rotate-12" /></div>
         <div className="relative z-10">
           <div className="inline-block px-2.5 py-1 bg-emerald-400 text-[#052e16] rounded-md text-[9px] font-black uppercase tracking-widest mb-6">PRO INSIGHT</div>
           <h4 className="text-lg font-bold leading-relaxed mb-8 text-emerald-50">Early adoption of {activeCategory} is trending in the ecosystem.</h4>
-          <button className="flex items-center gap-2 text-xs font-black text-emerald-400 hover:text-white transition-colors group/link uppercase tracking-widest">Explore the Directory<ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" /></button>
+          <button className="flex items-center gap-2 text-xs font-black text-primary-light hover:text-white transition-colors group/link uppercase tracking-widest">Explore the Directory<ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" /></button>
         </div>
       </section>
       
@@ -48,7 +48,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({ activeCategory = "", 
         <h3 className="text-sm font-bold text-gray-900 mb-6 tracking-tight">More in {currentCategoryData?.parent_category || 'This Section'}</h3>
         <div className="flex flex-col space-y-3.5">
           {siblingLinks.map((link) => (
-            <button key={link} onClick={() => onCategorySelect?.(link)} className={`text-sm text-left transition-all duration-200 hover:underline decoration-1 underline-offset-4 ${activeCategory.toLowerCase() === link.toLowerCase() ? 'text-emerald-800 font-bold' : 'text-gray-500 hover:text-emerald-800 font-medium'}`}>{link}</button>
+            <button key={link} onClick={() => onCategorySelect?.(link)} className={`text-sm text-left transition-all duration-200 hover:underline decoration-1 underline-offset-4 ${activeCategory.toLowerCase() === link.toLowerCase() ? 'text-primary font-bold' : 'text-gray-500 hover:text-primary font-medium'}`}>{link}</button>
           ))}
         </div>
       </section>

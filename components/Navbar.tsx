@@ -61,7 +61,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
 
   return (
     <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
-      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-emerald-900 py-4 transition-colors">
+      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-primary py-4 transition-colors">
         {label}
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -71,7 +71,7 @@ const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ labe
           <div className="py-4">{items.map((item, i) => (
             <button key={i} onClick={item.onClick} className="w-full flex items-start gap-4 px-5 py-3.5 hover:bg-gray-50 transition-all text-left group/item">
               <div className={`w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0 group-hover/item:scale-105 transition-transform shadow-sm`}><item.icon className="w-4 h-4" /></div>
-              <div className="flex flex-col pt-0.5 min-w-0 text-left"><p className="text-[13px] font-bold text-gray-900 group-hover/item:text-emerald-800 transition-colors leading-none">{item.label}</p>{item.subtext && <p className="text-[10px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>}</div>
+              <div className="flex flex-col pt-0.5 min-w-0 text-left"><p className="text-[13px] font-bold text-gray-900 group-hover/item:text-primary transition-colors leading-none">{item.label}</p>{item.subtext && <p className="text-[10px] text-gray-500 font-medium leading-relaxed mt-1.5 line-clamp-1">{item.subtext}</p>}</div>
             </button>
           ))}</div>
         </div>
@@ -145,24 +145,24 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="p-1 -ml-1 text-gray-600 hover:text-emerald-900 transition-all active:scale-90"
+                className="p-1 -ml-1 text-gray-600 hover:text-primary transition-all active:scale-90"
                 aria-label="Open menu"
               >
                 <Menu className="w-6 h-6" />
               </button>
 
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNavigate(View.HOME)}>
-                <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-md">
                   <span className="font-serif text-lg font-bold">M</span>
                 </div>
-                <h1 className="font-serif text-lg font-bold text-emerald-900 tracking-tight">Muslim Hunt</h1>
+                <h1 className="font-serif text-lg font-bold text-primary tracking-tight">Muslim Hunt</h1>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleNavigate(View.NEWSLETTER)}
-                className="px-3 py-1 text-sm font-bold text-emerald-800 border border-emerald-800 rounded-xl hover:bg-emerald-50 transition-all whitespace-nowrap"
+                className="px-3 py-1 text-sm font-bold text-primary border border-primary rounded-xl hover:bg-primary-light transition-all whitespace-nowrap"
               >
                 Subscribe
               </button>
@@ -170,13 +170,13 @@ const Navbar: React.FC<NavbarProps> = ({
               {!user ? (
                 <button
                   onClick={onSignInClick}
-                  className="px-3 py-1 bg-emerald-800 text-white font-bold text-sm rounded-xl hover:bg-emerald-900 transition-all active:scale-95 shadow-sm whitespace-nowrap"
+                  className="px-3 py-1 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-sm whitespace-nowrap"
                 >
                   Sign In
                 </button>
               ) : (
                 <div
-                  className="w-8 h-8 rounded-full overflow-hidden border border-emerald-800 p-0.5 cursor-pointer"
+                  className="w-8 h-8 rounded-full overflow-hidden border border-primary p-0.5 cursor-pointer"
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
                 >
                   <img src={user.avatar_url} className="w-full h-full object-cover rounded-full" alt="User profile" />
@@ -188,8 +188,8 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Desktop Logo (> 1024px) */}
           <div className="hidden lg:flex items-center gap-4">
             <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setView(View.HOME)}>
-              <div className="w-9 h-9 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md"><span className="font-serif text-xl font-bold">M</span></div>
-              <h1 className="font-serif text-xl font-bold text-emerald-900 tracking-tight text-nowrap">Muslim Hunt</h1>
+              <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center text-white shadow-md"><span className="font-serif text-xl font-bold">M</span></div>
+              <h1 className="font-serif text-xl font-bold text-primary tracking-tight text-nowrap">Muslim Hunt</h1>
             </div>
           </div>
 
@@ -205,8 +205,8 @@ const Navbar: React.FC<NavbarProps> = ({
                   }))} />
                 ) : (
                   <button onClick={() => { const tv = (menu.view || (menu as any).view_name); if (tv) { setView(tv as View); } }}
-                    className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'text-emerald-900 font-black' : 'text-gray-600 hover:text-emerald-900'}`}>
-                    {menu.label}{(menu.view || (menu as any).view_name) === currentView && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-900 rounded-full" />}
+                    className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'text-primary font-black' : 'text-gray-600 hover:text-primary'}`}>
+                    {menu.label}{(menu.view || (menu as any).view_name) === currentView && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-hover rounded-full" />}
                   </button>
                 )}
               </React.Fragment>
@@ -228,9 +228,9 @@ const Navbar: React.FC<NavbarProps> = ({
               <div className="relative" ref={submitDropdownRef}>
                 <button
                   onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
-                  className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2 group"
+                  className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-primary transition-colors px-2 py-2 group"
                 >
-                  <Plus className={`w-4 h-4 transition-transform duration-200 ${showSubmitDropdown ? 'rotate-45 text-emerald-800' : 'group-hover:text-emerald-800'}`} />
+                  <Plus className={`w-4 h-4 transition-transform duration-200 ${showSubmitDropdown ? 'rotate-45 text-primary' : 'group-hover:text-primary'}`} />
                   <span>Submit</span>
                 </button>
 
@@ -238,21 +238,21 @@ const Navbar: React.FC<NavbarProps> = ({
                   <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-[0_15px_45px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
                     <button
                       onClick={() => handleNavigate(View.POST_SUBMIT)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-light transition-colors group/item"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover/item:scale-105 transition-transform">
+                      <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center text-primary group-hover/item:scale-105 transition-transform">
                         <Rocket className="w-4 h-4" />
                       </div>
-                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-emerald-900">Launch a product</span>
+                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-primary">Launch a product</span>
                     </button>
                     <button
                       onClick={() => handleNavigate(View.NEW_THREAD)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors group/item"
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-light transition-colors group/item"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 group-hover/item:scale-105 transition-transform">
+                      <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center text-primary group-hover/item:scale-105 transition-transform">
                         <MessageSquare className="w-4 h-4" />
                       </div>
-                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-emerald-900">Start a thread</span>
+                      <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-primary">Start a thread</span>
                     </button>
                   </div>
                 )}
@@ -261,7 +261,7 @@ const Navbar: React.FC<NavbarProps> = ({
               /* Subscribe Button: For Logged Out Users */
               <button
                 onClick={() => setView(View.NEWSLETTER)}
-                className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-emerald-800 transition-colors px-2 py-2"
+                className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-primary transition-colors px-2 py-2"
               >
                 <Mail className="w-4 h-4" />
                 <span>Subscribe</span>
@@ -269,7 +269,7 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
 
             {!user && (
-              <button onClick={onSignInClick} className="text-emerald-900 font-black text-[13px] px-5 py-2.5 hover:bg-emerald-50 rounded-2xl transition-all active:scale-95 border border-emerald-100 shadow-sm">Sign In</button>
+              <button onClick={onSignInClick} className="text-primary font-black text-[13px] px-5 py-2.5 hover:bg-primary-light rounded-2xl transition-all active:scale-95 border border-primary-light shadow-sm">Sign In</button>
             )}
 
             {user && (
@@ -280,7 +280,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-100 shadow-2xl rounded-2xl p-6 z-[110] animate-in fade-in slide-in-from-top-2">
                       <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
                         <h4 className="text-[11px] font-black text-gray-900 uppercase tracking-widest">Recent Notifications</h4>
-                        <Bell className="w-3 h-3 text-emerald-800 opacity-50" />
+                        <Bell className="w-3 h-3 text-primary opacity-50" />
                       </div>
                       <div className="space-y-4 mb-6">
                         {notifications.length === 0 ? (
@@ -288,7 +288,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         ) : (
                           notifications.slice(0, 3).map((n) => (
                             <div key={n.id} className="flex gap-3 group/notif cursor-pointer">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-emerald-50 border-emerald-100 text-emerald-900'}`}>
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border shadow-sm ${n.is_read ? 'bg-gray-50 border-gray-100 text-gray-400' : 'bg-primary-light border-primary-light text-primary'}`}>
                                 {n.type === 'upvote' ? <Triangle className="w-4 h-4 fill-current" /> : n.type === 'approval' ? <ShieldCheck className="w-4 h-4" /> : n.type === 'streak' ? <Flame className="w-4 h-4 fill-amber-500 text-amber-500" /> : <MessageSquare className="w-4 h-4" />}
                               </div>
                               <div className="min-w-0">
@@ -299,13 +299,13 @@ const Navbar: React.FC<NavbarProps> = ({
                           ))
                         )}
                       </div>
-                      <button onClick={() => { setView(View.NOTIFICATIONS); setShowNotificationDropdown(false); }} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-emerald-800 hover:bg-emerald-50 transition-all uppercase tracking-widest shadow-sm">View full history</button>
+                      <button onClick={() => { setView(View.NOTIFICATIONS); setShowNotificationDropdown(false); }} className="w-full py-3 bg-white border border-gray-100 rounded-xl text-xs font-black text-primary hover:bg-primary-light transition-all uppercase tracking-widest shadow-sm">View full history</button>
                     </div>
                   )}
                 </div>
 
                 <div className="relative flex items-center" ref={userDropdownRef}>
-                  <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-emerald-800 p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
+                  <button onClick={() => setShowUserDropdown(!showUserDropdown)} className="w-9 h-9 rounded-full overflow-hidden border-2 border-primary p-0.5 hover:ring-2 hover:ring-emerald-200 transition-all active:scale-95 shadow-sm"><img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover rounded-full" /></button>
                   {showUserDropdown && (
                     <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-gray-100 shadow-2xl rounded-xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
                       <button onClick={() => { setView(View.PROFILE, '/@' + user.username); setShowUserDropdown(false); }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-bold text-gray-700"><UserIcon className="w-4 h-4 text-gray-400" /> Profile</button>
@@ -329,12 +329,12 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className={`absolute top-0 left-0 bottom-0 w-[85%] max-w-sm bg-[#F9F9F1] shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-6 flex items-center justify-between bg-white border-b border-gray-100">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-800 rounded-lg flex items-center justify-center text-white shadow-md">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-md">
                 <span className="font-serif text-lg font-bold">M</span>
               </div>
-              <span className="font-serif font-bold text-emerald-900 text-lg">Muslim Hunt</span>
+              <span className="font-serif font-bold text-primary text-lg">Muslim Hunt</span>
             </div>
-            <button onClick={closeDrawer} className="p-2 text-gray-400 hover:text-emerald-800 transition-colors">
+            <button onClick={closeDrawer} className="p-2 text-gray-400 hover:text-primary transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -347,7 +347,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 placeholder="Search community..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-emerald-800 transition-all text-sm font-medium"
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-primary transition-all text-sm font-medium"
               />
             </div>
 
@@ -355,10 +355,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <button
                   onClick={() => toggleAccordion('best_products')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'best_products' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'best_products' ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Star className={`w-5 h-5 ${expandedAccordion === 'best_products' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    <Star className={`w-5 h-5 ${expandedAccordion === 'best_products' ? 'text-primary' : 'text-gray-400'}`} />
                     Best Products
                   </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'best_products' ? 'rotate-180' : ''}`} />
@@ -366,7 +366,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 {expandedAccordion === 'best_products' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {BEST_PRODUCTS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left">
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-primary rounded-lg text-left">
                         <item.icon className="w-4 h-4 opacity-50" />
                         {item.label}
                       </button>
@@ -378,10 +378,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <button
                   onClick={() => toggleAccordion('launches')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'launches' ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Rocket className={`w-5 h-5 ${expandedAccordion === 'launches' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    <Rocket className={`w-5 h-5 ${expandedAccordion === 'launches' ? 'text-primary' : 'text-gray-400'}`} />
                     Launches
                   </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'launches' ? 'rotate-180' : ''}`} />
@@ -389,7 +389,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 {expandedAccordion === 'launches' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {LAUNCHES_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-emerald-800 rounded-lg text-left">
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-primary rounded-lg text-left">
                         {item.label}
                       </button>
                     ))}
@@ -400,10 +400,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <button
                   onClick={() => toggleAccordion('news')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'news' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'news' ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Mail className={`w-5 h-5 ${expandedAccordion === 'news' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    <Mail className={`w-5 h-5 ${expandedAccordion === 'news' ? 'text-primary' : 'text-gray-400'}`} />
                     News
                   </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'news' ? 'rotate-180' : ''}`} />
@@ -411,7 +411,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 {expandedAccordion === 'news' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {NEWS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left">
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-primary-light rounded-lg text-left">
                         <p className="text-[14px] font-bold text-gray-900">{item.label}</p>
                         <p className="text-[11px] text-gray-500 font-medium">{item.sub}</p>
                       </button>
@@ -423,10 +423,10 @@ const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <button
                   onClick={() => toggleAccordion('forums')}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'forums' ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] transition-all ${expandedAccordion === 'forums' ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-100/50'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <MessageSquare className={`w-5 h-5 ${expandedAccordion === 'forums' ? 'text-emerald-800' : 'text-gray-400'}`} />
+                    <MessageSquare className={`w-5 h-5 ${expandedAccordion === 'forums' ? 'text-primary' : 'text-gray-400'}`} />
                     Forums
                   </div>
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expandedAccordion === 'forums' ? 'rotate-180' : ''}`} />
@@ -434,7 +434,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 {expandedAccordion === 'forums' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {FORUMS_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-emerald-50 rounded-lg text-left">
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-primary-light rounded-lg text-left">
                         <p className="text-[14px] font-bold text-gray-900">{item.label}</p>
                         <p className="text-[11px] text-gray-500 font-medium">{item.sub}</p>
                       </button>
@@ -443,8 +443,8 @@ const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
 
-              <button onClick={() => handleNavigate(View.SPONSOR)} className={`w-full flex items-center gap-3 p-4 rounded-xl font-bold text-[16px] transition-all ${currentView === View.SPONSOR ? 'bg-emerald-50 text-emerald-900' : 'text-gray-700 hover:bg-gray-100/50'}`}>
-                <Megaphone className={`w-5 h-5 ${currentView === View.SPONSOR ? 'text-emerald-800' : 'text-gray-400'}`} />
+              <button onClick={() => handleNavigate(View.SPONSOR)} className={`w-full flex items-center gap-3 p-4 rounded-xl font-bold text-[16px] transition-all ${currentView === View.SPONSOR ? 'bg-primary-light text-primary' : 'text-gray-700 hover:bg-gray-100/50'}`}>
+                <Megaphone className={`w-5 h-5 ${currentView === View.SPONSOR ? 'text-primary' : 'text-gray-400'}`} />
                 Advertise
               </button>
 
@@ -458,7 +458,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     <ChevronRight className="w-4 h-4 text-gray-300" />
                   </button>
                 ) : (
-                  <button onClick={() => { onSignInClick(); closeDrawer(); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-emerald-800 hover:bg-emerald-50 transition-all">
+                  <button onClick={() => { onSignInClick(); closeDrawer(); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-primary hover:bg-primary-light transition-all">
                     <div className="flex items-center gap-3">
                       <UserIcon className="w-5 h-5" />
                       Sign In

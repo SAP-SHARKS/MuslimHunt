@@ -232,7 +232,7 @@ export const ThemeAdminPanel: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Palette className="w-8 h-8 text-emerald-600" />
+          <Palette className="w-8 h-8 text-primary" />
           <h1 className="text-3xl font-bold text-gray-900">Theme Settings</h1>
         </div>
         <p className="text-gray-600">Customize the look and feel of your application</p>
@@ -249,7 +249,7 @@ export const ThemeAdminPanel: React.FC = () => {
                 <button
                   key={presetName}
                   onClick={() => applyPreset(presetName as keyof typeof THEME_PRESETS)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition capitalize text-sm font-medium"
+                  className="px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-primary-light transition capitalize text-sm font-medium"
                 >
                   {presetName}
                 </button>
@@ -315,7 +315,7 @@ export const ThemeAdminPanel: React.FC = () => {
                   onClick={() => setBackgroundStyle(option.value)}
                   className={`p-4 border-2 rounded-lg text-left transition ${
                     backgroundColor === option.value
-                      ? 'border-emerald-500 bg-emerald-50'
+                      ? 'border-emerald-500 bg-primary-light'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -336,7 +336,7 @@ export const ThemeAdminPanel: React.FC = () => {
                   onClick={() => setRoundness(option.value)}
                   className={`p-4 border-2 rounded-lg text-center transition ${
                     roundness === option.value
-                      ? 'border-emerald-500 bg-emerald-50'
+                      ? 'border-emerald-500 bg-primary-light'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >

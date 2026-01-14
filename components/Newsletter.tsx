@@ -111,13 +111,13 @@ const TESTIMONIALS: Testimonial[] = [
 ];
 
 const ArchiveCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
-  <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all group flex flex-col h-full text-left">
+  <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-primary-light transition-all group flex flex-col h-full text-left">
     <div className="flex justify-end mb-4">
-      <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] group-hover:text-emerald-400 transition-colors">
+      <span className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] group-hover:text-primary-light transition-colors">
         {item.date}
       </span>
     </div>
-    <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-emerald-800 transition-colors">
+    <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-primary transition-colors">
       {item.title}
     </h3>
     <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium">
@@ -140,9 +140,9 @@ const ArchiveCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
 );
 
 const FrontierCard: React.FC<{ item: ArchiveItem }> = ({ item }) => (
-  <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all group flex flex-col h-full text-left">
+  <div className="bg-white border border-gray-100 rounded-[1.5rem] p-8 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-primary-light transition-all group flex flex-col h-full text-left">
     <div className="flex items-start justify-between mb-2">
-      <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-emerald-800 transition-colors">
+      <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-primary transition-colors">
         {item.title}
       </h3>
       <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest shrink-0 mt-1">
@@ -186,13 +186,13 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto py-24 sm:py-32 px-4 text-center">
         <div className="flex justify-center mb-10">
-          <div className="w-24 h-24 bg-emerald-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-inner border border-emerald-100/50">
+          <div className="w-24 h-24 bg-primary-light rounded-[2.5rem] flex items-center justify-center text-5xl shadow-inner border border-primary-light/50">
             📬
           </div>
         </div>
 
         <div className="space-y-6 mb-12">
-          <h1 className="text-5xl sm:text-6xl font-serif font-bold text-emerald-900 tracking-tight">
+          <h1 className="text-5xl sm:text-6xl font-serif font-bold text-primary tracking-tight">
             The best products in your inbox
           </h1>
           <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto">
@@ -210,11 +210,11 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 px-8 py-5 bg-gray-50 border border-gray-100 focus:bg-white focus:border-emerald-800 rounded-[1.5rem] outline-none transition-all text-lg font-medium shadow-sm"
+                className="flex-1 px-8 py-5 bg-gray-50 border border-gray-100 focus:bg-white focus:border-primary rounded-[1.5rem] outline-none transition-all text-lg font-medium shadow-sm"
               />
               <button
                 type="submit"
-                className="px-12 py-5 bg-emerald-800 text-white rounded-[1.5rem] font-black text-lg hover:bg-emerald-900 transition-all shadow-xl shadow-emerald-900/10 active:scale-95 whitespace-nowrap"
+                className="px-12 py-5 bg-primary text-white rounded-[1.5rem] font-black text-lg hover:bg-primary-dark transition-all shadow-xl shadow-emerald-900/10 active:scale-95 whitespace-nowrap"
               >
                 Sign me up
               </button>
@@ -225,7 +225,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
               </p>
               <button 
                 onClick={(e) => { e.preventDefault(); onSponsorClick(); }}
-                className="group inline-flex items-center gap-2 text-[11px] font-black text-emerald-800 hover:text-emerald-900 transition-colors uppercase tracking-[0.2em]"
+                className="group inline-flex items-center gap-2 text-[11px] font-black text-primary hover:text-primary transition-colors uppercase tracking-[0.2em]"
               >
                 WANT TO SPONSOR A NEWSLETTER? FIND OUT MORE
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -233,10 +233,10 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
             </div>
           </div>
         ) : (
-          <div className="p-12 bg-emerald-50 rounded-[3rem] border border-emerald-100 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300 max-w-xl mx-auto">
-            <CheckCircle2 className="w-16 h-16 text-emerald-600" />
+          <div className="p-12 bg-primary-light rounded-[3rem] border border-primary-light flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300 max-w-xl mx-auto">
+            <CheckCircle2 className="w-16 h-16 text-primary" />
             <div className="text-center">
-              <h3 className="text-2xl font-bold text-emerald-900 mb-2">You're on the list!</h3>
+              <h3 className="text-2xl font-bold text-primary mb-2">You're on the list!</h3>
               <p className="text-emerald-700 font-medium text-lg">Bismillah! Welcome to the family. Expect magic in your inbox soon.</p>
             </div>
           </div>
@@ -247,7 +247,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
       <section className="bg-gray-50/50 pt-24 pb-10 border-t border-gray-100">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-24">
-            <h2 className="text-5xl font-serif font-bold text-emerald-900 mb-4 tracking-tight">
+            <h2 className="text-5xl font-serif font-bold text-primary mb-4 tracking-tight">
               See for yourself
             </h2>
             <p className="text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
@@ -260,7 +260,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
             <div className="space-y-10">
               <div className="flex items-center justify-between border-b border-gray-100 pb-6">
                 <h3 className="text-2xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2 group cursor-pointer">
-                  The Leaderboard <ArrowRight className="w-6 h-6 text-emerald-800 group-hover:translate-x-1 transition-transform" />
+                  The Leaderboard <ArrowRight className="w-6 h-6 text-primary group-hover:translate-x-1 transition-transform" />
                 </h3>
                 <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Weekly Recap</span>
               </div>
@@ -273,7 +273,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
             <div className="space-y-10">
               <div className="flex items-center justify-between border-b border-gray-100 pb-6">
                 <h3 className="text-2xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2 group cursor-pointer">
-                  The Roundup <ArrowRight className="w-6 h-6 text-emerald-800 group-hover:translate-x-1 transition-transform" />
+                  The Roundup <ArrowRight className="w-6 h-6 text-primary group-hover:translate-x-1 transition-transform" />
                 </h3>
                 <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Global Insights</span>
               </div>
@@ -286,7 +286,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
             <div className="space-y-10">
               <div className="flex items-center justify-between border-b border-gray-100 pb-6">
                 <h3 className="text-2xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-2 group cursor-pointer">
-                  The Frontier <ArrowRight className="w-6 h-6 text-emerald-800 group-hover:translate-x-1 transition-transform" />
+                  The Frontier <ArrowRight className="w-6 h-6 text-primary group-hover:translate-x-1 transition-transform" />
                 </h3>
                 <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Technical Deep Dives</span>
               </div>
@@ -299,7 +299,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
           {/* Social Proof Section */}
           <div className="mt-24 text-center">
             <div className="mb-20">
-              <h2 className="text-5xl font-serif font-bold text-emerald-900 mb-6 tracking-tight">
+              <h2 className="text-5xl font-serif font-bold text-primary mb-6 tracking-tight">
                 The people who know products
               </h2>
               <p className="text-xl text-gray-500 font-medium max-w-2xl mx-auto leading-relaxed">
@@ -323,7 +323,7 @@ const Newsletter: React.FC<NewsletterProps> = ({ onSponsorClick }) => {
           </div>
 
           <div className="mt-12 pb-0 text-center">
-            <button className="px-10 py-4 bg-white border border-gray-200 rounded-full font-black text-[11px] uppercase tracking-[0.2em] text-emerald-800 hover:bg-emerald-50 hover:border-emerald-800 transition-all shadow-sm active:scale-95">
+            <button className="px-10 py-4 bg-white border border-gray-200 rounded-full font-black text-[11px] uppercase tracking-[0.2em] text-primary hover:bg-primary-light hover:border-primary transition-all shadow-sm active:scale-95">
               Load More Archives
             </button>
           </div>
