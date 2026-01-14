@@ -62,6 +62,7 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [buttonStyle, setButtonStyle] = useState<'filled' | 'soft' | 'outline'>('filled');
   const [roundness, setRoundness] = useState<'sharp' | 'rounded' | 'pill'>('rounded');
   const [bannerStyle, setBannerStyle] = useState<'dark' | 'primary' | 'light'>('primary');
+  const [navPattern, setNavPattern] = useState<'standard' | 'floating-dock' | 'sidebar' | 'minimal-scroll' | 'mega-menu' | 'bottom-mobile' | 'horizontal-dropdown'>('standard');
 
   // Advanced color states
   const [secondaryColor, setSecondaryColor] = useState('#10B981');
@@ -616,6 +617,107 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                         <div className="w-full h-12 rounded-lg mb-2" style={{ backgroundColor: primaryColor, opacity: 0.2 }} />
                         <div className="text-sm font-semibold text-gray-900">Light</div>
                         <div className="text-xs text-gray-500">Subtle</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Navigation Pattern */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        7
+                      </span>
+                      <h3 className="font-semibold text-gray-900">Navigation Pattern</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setNavPattern('standard')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'standard' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-2 bg-gray-300 rounded" />
+                          <div className="h-8 bg-gray-200 rounded" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Standard</div>
+                        <div className="text-xs text-gray-500">Classic horizontal</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('horizontal-dropdown')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'horizontal-dropdown' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-2 bg-gray-300 rounded" />
+                          <div className="h-8 bg-gray-200 rounded" />
+                          <div className="h-6 bg-gray-100 rounded ml-4" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Dropdown Menu</div>
+                        <div className="text-xs text-gray-500">Hover to expand</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('floating-dock')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'floating-dock' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-1" />
+                          <div className="h-8 bg-gray-200 rounded-full mx-4" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Floating Dock</div>
+                        <div className="text-xs text-gray-500">Modern centered</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('sidebar')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'sidebar' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex gap-1 mb-2">
+                          <div className="w-1/4 bg-gray-300 rounded h-12" />
+                          <div className="flex-1 bg-gray-100 rounded h-12" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Left Sidebar</div>
+                        <div className="text-xs text-gray-500">Fixed navigation</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('mega-menu')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'mega-menu' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-2 bg-gray-300 rounded" />
+                          <div className="grid grid-cols-3 gap-1">
+                            <div className="h-6 bg-gray-200 rounded" />
+                            <div className="h-6 bg-gray-200 rounded" />
+                            <div className="h-6 bg-gray-200 rounded" />
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Mega Menu</div>
+                        <div className="text-xs text-gray-500">Grid layout</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('minimal-scroll')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'minimal-scroll' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-1 bg-gray-200 rounded" />
+                          <div className="h-8 bg-gray-200 rounded" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Minimal Scroll</div>
+                        <div className="text-xs text-gray-500">Shrinks on scroll</div>
+                      </button>
+
+                      <button
+                        onClick={() => setNavPattern('bottom-mobile')}
+                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'bottom-mobile' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full space-y-2 mb-2">
+                          <div className="h-8 bg-gray-100 rounded" />
+                          <div className="h-2 bg-gray-300 rounded" />
+                        </div>
+                        <div className="text-sm font-semibold text-gray-900">Bottom Bar</div>
+                        <div className="text-xs text-gray-500">Mobile-first</div>
                       </button>
                     </div>
                   </div>
