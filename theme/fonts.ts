@@ -21,6 +21,12 @@ export const HEADING_FONTS: FontOption[] = [
   { name: 'Libre Baskerville', family: 'Libre Baskerville', category: 'serif', googleFont: true },
   { name: 'Georgia', family: 'Georgia', category: 'serif', googleFont: false },
   { name: 'Noto Serif', family: 'Noto Serif', category: 'serif', googleFont: true },
+  { name: 'Cormorant Garamond', family: 'Cormorant Garamond', category: 'serif', googleFont: true },
+  { name: 'Spectral', family: 'Spectral', category: 'serif', googleFont: true },
+  { name: 'Cardo', family: 'Cardo', category: 'serif', googleFont: true },
+  { name: 'Vollkorn', family: 'Vollkorn', category: 'serif', googleFont: true },
+  { name: 'Bitter', family: 'Bitter', category: 'serif', googleFont: true },
+  { name: 'Alegreya', family: 'Alegreya', category: 'serif', googleFont: true },
 
   // Sans-Serif Fonts (Modern, Clean)
   { name: 'Inter', family: 'Inter', category: 'sans-serif', googleFont: true },
@@ -31,12 +37,24 @@ export const HEADING_FONTS: FontOption[] = [
   { name: 'Raleway', family: 'Raleway', category: 'sans-serif', googleFont: true },
   { name: 'Nunito', family: 'Nunito', category: 'sans-serif', googleFont: true },
   { name: 'Work Sans', family: 'Work Sans', category: 'sans-serif', googleFont: true },
+  { name: 'DM Sans', family: 'DM Sans', category: 'sans-serif', googleFont: true },
+  { name: 'Space Grotesk', family: 'Space Grotesk', category: 'sans-serif', googleFont: true },
+  { name: 'Manrope', family: 'Manrope', category: 'sans-serif', googleFont: true },
+  { name: 'Plus Jakarta Sans', family: 'Plus Jakarta Sans', category: 'sans-serif', googleFont: true },
+  { name: 'Sora', family: 'Sora', category: 'sans-serif', googleFont: true },
+  { name: 'Outfit', family: 'Outfit', category: 'sans-serif', googleFont: true },
 
   // Display Fonts (Bold, Unique)
   { name: 'Bebas Neue', family: 'Bebas Neue', category: 'display', googleFont: true },
   { name: 'Righteous', family: 'Righteous', category: 'display', googleFont: true },
   { name: 'Archivo Black', family: 'Archivo Black', category: 'display', googleFont: true },
   { name: 'Oswald', family: 'Oswald', category: 'display', googleFont: true },
+  { name: 'Anton', family: 'Anton', category: 'display', googleFont: true },
+  { name: 'Russo One', family: 'Russo One', category: 'display', googleFont: true },
+  { name: 'Alfa Slab One', family: 'Alfa Slab One', category: 'display', googleFont: true },
+  { name: 'Bungee', family: 'Bungee', category: 'display', googleFont: true },
+  { name: 'Exo 2', family: 'Exo 2', category: 'display', googleFont: true },
+  { name: 'Syncopate', family: 'Syncopate', category: 'display', googleFont: true },
 ];
 
 export const BODY_FONTS: FontOption[] = [
@@ -56,6 +74,15 @@ export const BODY_FONTS: FontOption[] = [
   { name: 'PT Sans', family: 'PT Sans', category: 'sans-serif', googleFont: true },
   { name: 'Karla', family: 'Karla', category: 'sans-serif', googleFont: true },
   { name: 'Rubik', family: 'Rubik', category: 'sans-serif', googleFont: true },
+  { name: 'DM Sans', family: 'DM Sans', category: 'sans-serif', googleFont: true },
+  { name: 'Manrope', family: 'Manrope', category: 'sans-serif', googleFont: true },
+  { name: 'Plus Jakarta Sans', family: 'Plus Jakarta Sans', category: 'sans-serif', googleFont: true },
+  { name: 'Sora', family: 'Sora', category: 'sans-serif', googleFont: true },
+  { name: 'Outfit', family: 'Outfit', category: 'sans-serif', googleFont: true },
+  { name: 'Space Grotesk', family: 'Space Grotesk', category: 'sans-serif', googleFont: true },
+  { name: 'IBM Plex Sans', family: 'IBM Plex Sans', category: 'sans-serif', googleFont: true },
+  { name: 'Lexend', family: 'Lexend', category: 'sans-serif', googleFont: true },
+  { name: 'Public Sans', family: 'Public Sans', category: 'sans-serif', googleFont: true },
 
   // Serif (Readable body fonts)
   { name: 'Merriweather', family: 'Merriweather', category: 'serif', googleFont: true },
@@ -64,11 +91,18 @@ export const BODY_FONTS: FontOption[] = [
   { name: 'Crimson Text', family: 'Crimson Text', category: 'serif', googleFont: true },
   { name: 'Noto Serif', family: 'Noto Serif', category: 'serif', googleFont: true },
   { name: 'PT Serif', family: 'PT Serif', category: 'serif', googleFont: true },
+  { name: 'Spectral', family: 'Spectral', category: 'serif', googleFont: true },
+  { name: 'Cardo', family: 'Cardo', category: 'serif', googleFont: true },
+  { name: 'Vollkorn', family: 'Vollkorn', category: 'serif', googleFont: true },
+  { name: 'Bitter', family: 'Bitter', category: 'serif', googleFont: true },
 
   // Monospace (Code/Technical)
   { name: 'JetBrains Mono', family: 'JetBrains Mono', category: 'monospace', googleFont: true },
   { name: 'Fira Code', family: 'Fira Code', category: 'monospace', googleFont: true },
   { name: 'Source Code Pro', family: 'Source Code Pro', category: 'monospace', googleFont: true },
+  { name: 'IBM Plex Mono', family: 'IBM Plex Mono', category: 'monospace', googleFont: true },
+  { name: 'Roboto Mono', family: 'Roboto Mono', category: 'monospace', googleFont: true },
+  { name: 'Space Mono', family: 'Space Mono', category: 'monospace', googleFont: true },
 ];
 
 /**
@@ -99,9 +133,27 @@ export function generateGoogleFontsURL(headingFont: string, bodyFont: string): s
 export function applyFonts(headingFont: string, bodyFont: string): void {
   console.log(`[Fonts] Applying fonts - Heading: ${headingFont}, Body: ${bodyFont}`);
 
-  // Update CSS variables
-  document.documentElement.style.setProperty('--font-heading', headingFont);
-  document.documentElement.style.setProperty('--font-body', bodyFont);
+  // Get font categories for proper fallback
+  const heading = HEADING_FONTS.find(f => f.family === headingFont);
+  const body = BODY_FONTS.find(f => f.family === bodyFont);
+
+  // Create proper CSS font family strings with fallbacks
+  const headingFallback = heading?.category === 'serif' ? 'serif' :
+                         heading?.category === 'monospace' ? 'monospace' : 'sans-serif';
+  const bodyFallback = body?.category === 'serif' ? 'serif' :
+                       body?.category === 'monospace' ? 'monospace' : 'sans-serif';
+
+  const headingFontFamily = `'${headingFont}', ${headingFallback}`;
+  const bodyFontFamily = `'${bodyFont}', ${bodyFallback}`;
+
+  // Update CSS variables with proper format
+  document.documentElement.style.setProperty('--font-heading', headingFontFamily);
+  document.documentElement.style.setProperty('--font-body', bodyFontFamily);
+
+  console.log('[Fonts] CSS Variables set:', {
+    '--font-heading': headingFontFamily,
+    '--font-body': bodyFontFamily
+  });
 
   // Load Google Fonts dynamically
   const googleFontsURL = generateGoogleFontsURL(headingFont, bodyFont);
