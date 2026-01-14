@@ -57,6 +57,11 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [headingFont, setHeadingFont] = useState('Playfair Display');
   const [bodyFont, setBodyFont] = useState('Inter');
 
+  // Additional customization state
+  const [buttonStyle, setButtonStyle] = useState<'filled' | 'soft' | 'outline'>('filled');
+  const [roundness, setRoundness] = useState<'sharp' | 'rounded' | 'pill'>('rounded');
+  const [bannerStyle, setBannerStyle] = useState<'dark' | 'primary' | 'light'>('primary');
+
   // Modal State
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [migrationSql, setMigrationSql] = useState('');
@@ -434,6 +439,123 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                       ))}
                     </div>
                   </div>
+
+                  {/* Button Style */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        4
+                      </span>
+                      <h3 className="font-semibold text-gray-900">Button Style</h3>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => setButtonStyle('filled')}
+                        className={`p-4 rounded-lg border-2 transition ${buttonStyle === 'filled' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 rounded-lg mb-2" style={{ backgroundColor: primaryColor }} />
+                        <div className="text-sm font-semibold text-gray-900">Filled</div>
+                        <div className="text-xs text-gray-500">Bold</div>
+                      </button>
+
+                      <button
+                        onClick={() => setButtonStyle('soft')}
+                        className={`p-4 rounded-lg border-2 transition ${buttonStyle === 'soft' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 rounded-lg mb-2" style={{ backgroundColor: primaryColor, opacity: 0.2 }} />
+                        <div className="text-sm font-semibold text-gray-900">Soft</div>
+                        <div className="text-xs text-gray-500">Light</div>
+                      </button>
+
+                      <button
+                        onClick={() => setButtonStyle('outline')}
+                        className={`p-4 rounded-lg border-2 transition ${buttonStyle === 'outline' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 rounded-lg mb-2 border-2" style={{ borderColor: primaryColor }} />
+                        <div className="text-sm font-semibold text-gray-900">Outline</div>
+                        <div className="text-xs text-gray-500">Minimal</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Roundness */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        5
+                      </span>
+                      <h3 className="font-semibold text-gray-900">Roundness</h3>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => setRoundness('sharp')}
+                        className={`p-4 rounded-lg border-2 transition ${roundness === 'sharp' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-20 h-20 bg-gray-200 mx-auto mb-2" />
+                        <div className="text-sm font-semibold text-gray-900">Sharp</div>
+                        <div className="text-xs text-gray-500">4px</div>
+                      </button>
+
+                      <button
+                        onClick={() => setRoundness('rounded')}
+                        className={`p-4 rounded-lg border-2 transition ${roundness === 'rounded' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-20 h-20 bg-gray-200 rounded-xl mx-auto mb-2" />
+                        <div className="text-sm font-semibold text-gray-900">Rounded</div>
+                        <div className="text-xs text-gray-500">12px</div>
+                      </button>
+
+                      <button
+                        onClick={() => setRoundness('pill')}
+                        className={`p-4 rounded-lg border-2 transition ${roundness === 'pill' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-20 h-20 bg-gray-200 rounded-full mx-auto mb-2" />
+                        <div className="text-sm font-semibold text-gray-900">Pill</div>
+                        <div className="text-xs text-gray-500">9999px</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Banner Style */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        6
+                      </span>
+                      <h3 className="font-semibold text-gray-900">Banner Style</h3>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => setBannerStyle('dark')}
+                        className={`p-4 rounded-lg border-2 transition ${bannerStyle === 'dark' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 bg-gray-800 rounded-lg mb-2" />
+                        <div className="text-sm font-semibold text-gray-900">Dark</div>
+                        <div className="text-xs text-gray-500">Forest</div>
+                      </button>
+
+                      <button
+                        onClick={() => setBannerStyle('primary')}
+                        className={`p-4 rounded-lg border-2 transition ${bannerStyle === 'primary' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 rounded-lg mb-2" style={{ backgroundColor: primaryColor }} />
+                        <div className="text-sm font-semibold text-gray-900">Primary</div>
+                        <div className="text-xs text-gray-500">Brand</div>
+                      </button>
+
+                      <button
+                        onClick={() => setBannerStyle('light')}
+                        className={`p-4 rounded-lg border-2 transition ${bannerStyle === 'light' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="w-full h-12 rounded-lg mb-2" style={{ backgroundColor: primaryColor, opacity: 0.2 }} />
+                        <div className="text-sm font-semibold text-gray-900">Light</div>
+                        <div className="text-xs text-gray-500">Subtle</div>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </>
             ) : (
@@ -631,15 +753,27 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                       This is how cards will look with this theme.
                     </p>
 
-                    {/* Buttons */}
+                    {/* Buttons - with dynamic styles */}
                     <div className="flex gap-2 mb-3">
                       <button
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium text-white shadow-sm hover:opacity-90 transition"
-                        style={{ backgroundColor: primaryColor }}
+                        className={`px-3 py-1.5 text-xs font-medium shadow-sm hover:opacity-90 transition ${
+                          roundness === 'sharp' ? 'rounded' : roundness === 'rounded' ? 'rounded-lg' : 'rounded-full'
+                        } ${
+                          buttonStyle === 'filled' ? 'text-white' : buttonStyle === 'soft' ? '' : 'bg-transparent border-2'
+                        }`}
+                        style={
+                          buttonStyle === 'filled'
+                            ? { backgroundColor: primaryColor }
+                            : buttonStyle === 'soft'
+                            ? { backgroundColor: primaryColor, opacity: 0.2, color: primaryColor }
+                            : { borderColor: primaryColor, color: primaryColor }
+                        }
                       >
                         Primary
                       </button>
-                      <button className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                      <button className={`px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition ${
+                        roundness === 'sharp' ? 'rounded' : roundness === 'rounded' ? 'rounded-lg' : 'rounded-full'
+                      }`}>
                         Secondary
                       </button>
                     </div>
@@ -664,6 +798,20 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                         Inactive
                       </span>
                     </div>
+                  </div>
+
+                  {/* Banner Preview */}
+                  <div
+                    className={`p-3 mb-3 ${roundness === 'sharp' ? 'rounded' : roundness === 'rounded' ? 'rounded-lg' : 'rounded-full'}`}
+                    style={
+                      bannerStyle === 'dark'
+                        ? { backgroundColor: '#1f2937', color: 'white' }
+                        : bannerStyle === 'primary'
+                        ? { backgroundColor: primaryColor, color: 'white' }
+                        : { backgroundColor: primaryColor, opacity: 0.2, color: primaryColor }
+                    }
+                  >
+                    <p className="text-xs font-medium">Banner Style Preview</p>
                   </div>
 
                   {/* Semantic Colors */}
