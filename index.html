@@ -96,15 +96,38 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         serif: ['Playfair Display', 'serif'],
+                        heading: 'var(--font-heading, "Playfair Display", serif)',
+                        body: 'var(--font-body, "Inter", sans-serif)',
                     }
                 }
             }
         }
     </script>
     <style>
+        /* Default font variables (fallback) */
+        :root {
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
         body {
             background-color: #fdfcf0;
             color: #1a1a1a;
+            font-family: var(--font-body, 'Inter', sans-serif);
+        }
+
+        /* Apply heading font to all heading elements */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading, 'Playfair Display', serif);
+        }
+
+        /* Override Tailwind's font classes to use CSS variables */
+        .font-serif {
+            font-family: var(--font-heading, 'Playfair Display', serif) !important;
+        }
+
+        .font-sans {
+            font-family: var(--font-body, 'Inter', sans-serif) !important;
         }
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;

@@ -254,20 +254,36 @@ export async function loadGlobalTheme(): Promise<{ config: SimpleThemeConfig; to
 }
 
 /**
- * Initialize theme on app load (checks database first, then localStorage)
+ * Initialize theme on app load (checks localStorage first for personal theme, then database)
  */
 export async function initializeThemeFromDatabase(): Promise<void> {
-  // First, try to load from database (global theme for all users)
+  console.log('[Theme] 🚀 Initializing theme...');
+
+  // PRIORITY 1: Check localStorage first (user's personal customization via "Apply Theme")
+  const localConfig = loadThemeConfig();
+  const localTokens = loadThemeTokens();
+
+  if (localConfig && localTokens) {
+    console.log('[Theme] ✅ Using personal theme from localStorage');
+    applyTheme(localTokens);
+    return;
+  }
+
+  console.log('[Theme] ℹ️ No personal theme, checking database for global theme...');
+
+  // PRIORITY 2: Try database (admin published theme via "Publish to All Users")
   const globalTheme = await loadGlobalTheme();
 
   if (globalTheme) {
+    console.log('[Theme] ✅ Using global theme from database');
     applyTheme(globalTheme.tokens);
-    // Also save to localStorage as cache
+    // Save to localStorage as cache
     saveThemeConfig(globalTheme.config);
     saveThemeTokens(globalTheme.tokens);
     return;
   }
 
-  // Fallback to localStorage or defaults
+  console.log('[Theme] ℹ️ No theme found, using defaults');
+  // PRIORITY 3: Use defaults
   initializeTheme();
 }

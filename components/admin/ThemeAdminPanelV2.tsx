@@ -15,6 +15,7 @@ import {
   loadThemeConfig,
   publishThemeToAllUsers,
 } from '../../theme/apply';
+import { HEADING_FONTS, BODY_FONTS, applyFonts, saveFontConfig } from '../../theme/fonts';
 import { MigrationModal } from './MigrationModal';
 
 type ViewMode = 'simple' | 'advanced';
@@ -62,6 +63,21 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [roundness, setRoundness] = useState<'sharp' | 'rounded' | 'pill'>('rounded');
   const [bannerStyle, setBannerStyle] = useState<'dark' | 'primary' | 'light'>('primary');
 
+  // Advanced color states
+  const [secondaryColor, setSecondaryColor] = useState('#10B981');
+  const [sidebarIconColor, setSidebarIconColor] = useState(primaryColor);
+  const [sidebarIconHoverColor, setSidebarIconHoverColor] = useState(primaryColor);
+  const [textPrimaryColor, setTextPrimaryColor] = useState('#111827');
+  const [textSecondaryColor, setTextSecondaryColor] = useState('#6B7280');
+  const [textMutedColor, setTextMutedColor] = useState('#9CA3AF');
+  const [buttonBgColor, setButtonBgColor] = useState(primaryColor);
+  const [buttonHoverColor, setButtonHoverColor] = useState(primaryColor);
+  const [navBgColor, setNavBgColor] = useState('#FFFFFF');
+  const [navTextColor, setNavTextColor] = useState('#111827');
+  const [successColor, setSuccessColor] = useState('#10B981');
+  const [warningColor, setWarningColor] = useState('#F59E0B');
+  const [errorColor, setErrorColor] = useState('#EF4444');
+
   // Modal State
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [migrationSql, setMigrationSql] = useState('');
@@ -99,8 +115,15 @@ export const ThemeAdminPanelV2: React.FC = () => {
     console.log('[ThemePanel] Config:', config);
 
     try {
+      // Apply theme colors
       updateTheme(config);
       console.log('[ThemePanel] updateTheme() called successfully');
+
+      // Apply fonts
+      applyFonts(headingFont, bodyFont);
+      saveFontConfig(headingFont, bodyFont);
+      console.log('[ThemePanel] Fonts applied:', headingFont, bodyFont);
+
       // Show success message then auto-reload
       alert('✅ Theme applied successfully! The page will reload to show changes.');
       setTimeout(() => {
@@ -655,58 +678,300 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                         {section.id === 'fonts' && (
                           <>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Heading Font</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Heading Font ({HEADING_FONTS.length} options)
+                              </label>
                               <select
                                 value={headingFont}
                                 onChange={(e) => setHeadingFont(e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               >
-                                <option value="Playfair Display">Playfair Display (Serif)</option>
-                                <option value="Georgia">Georgia (Serif)</option>
-                                <option value="Merriweather">Merriweather (Serif)</option>
-                                <option value="Inter">Inter (Sans-serif)</option>
-                                <option value="Roboto">Roboto (Sans-serif)</option>
-                                <option value="Poppins">Poppins (Sans-serif)</option>
-                                <option value="Montserrat">Montserrat (Sans-serif)</option>
-                                <option value="Open Sans">Open Sans (Sans-serif)</option>
+                                {HEADING_FONTS.map((font) => (
+                                  <option key={font.family} value={font.family}>
+                                    {font.name} ({font.category})
+                                  </option>
+                                ))}
                               </select>
                               <div className="mt-2 p-3 bg-white rounded border" style={{ fontFamily: headingFont }}>
                                 <p className="text-2xl font-bold">Sample Heading Text</p>
+                                <p className="text-xs text-gray-500 mt-1">Font: {headingFont}</p>
                               </div>
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">Body Font</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Body Font ({BODY_FONTS.length} options)
+                              </label>
                               <select
                                 value={bodyFont}
                                 onChange={(e) => setBodyFont(e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                               >
-                                <option value="Inter">Inter (Sans-serif)</option>
-                                <option value="Roboto">Roboto (Sans-serif)</option>
-                                <option value="Open Sans">Open Sans (Sans-serif)</option>
-                                <option value="Lato">Lato (Sans-serif)</option>
-                                <option value="Poppins">Poppins (Sans-serif)</option>
-                                <option value="Montserrat">Montserrat (Sans-serif)</option>
-                                <option value="Georgia">Georgia (Serif)</option>
-                                <option value="Merriweather">Merriweather (Serif)</option>
+                                {BODY_FONTS.map((font) => (
+                                  <option key={font.family} value={font.family}>
+                                    {font.name} ({font.category})
+                                  </option>
+                                ))}
                               </select>
                               <div className="mt-2 p-3 bg-white rounded border" style={{ fontFamily: bodyFont }}>
                                 <p className="text-sm">This is sample body text. The quick brown fox jumps over the lazy dog.</p>
+                                <p className="text-xs text-gray-500 mt-1">Font: {bodyFont}</p>
                               </div>
                             </div>
                             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <p className="text-xs text-blue-800">
-                                💡 Font changes will be applied when you click "Apply Theme". Make sure the fonts are loaded via Google Fonts or your CDN.
+                                💡 <strong>Font changes will apply globally!</strong> All headings and body text across the entire website will use your selected fonts. Google Fonts are loaded automatically.
                               </p>
                             </div>
                           </>
                         )}
 
-                        {(section.id === 'sidebar' || section.id === 'text' || section.id === 'buttons' || section.id === 'navigation' || section.id === 'status') && (
-                          <p className="text-sm text-gray-600">
-                            🎨 These colors are automatically generated from your Primary and Accent colors.
-                            Change the Brand Colors above to customize these elements.
-                          </p>
+                        {section.id === 'sidebar' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Icon Color</label>
+                              <input
+                                type="color"
+                                value={sidebarIconColor}
+                                onChange={(e) => setSidebarIconColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={sidebarIconColor}
+                                onChange={(e) => setSidebarIconColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#10B981"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Icon Hover Color</label>
+                              <input
+                                type="color"
+                                value={sidebarIconHoverColor}
+                                onChange={(e) => setSidebarIconHoverColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={sidebarIconHoverColor}
+                                onChange={(e) => setSidebarIconHoverColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#059669"
+                              />
+                            </div>
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                💡 Sidebar icon colors affect navigation icons, trending section icons, and moderator panel icons.
+                              </p>
+                            </div>
+                          </>
+                        )}
+
+                        {section.id === 'text' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Primary Text</label>
+                              <input
+                                type="color"
+                                value={textPrimaryColor}
+                                onChange={(e) => setTextPrimaryColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={textPrimaryColor}
+                                onChange={(e) => setTextPrimaryColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#111827"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">Main headings and important text</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Text</label>
+                              <input
+                                type="color"
+                                value={textSecondaryColor}
+                                onChange={(e) => setTextSecondaryColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={textSecondaryColor}
+                                onChange={(e) => setTextSecondaryColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#6B7280"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">Body text and descriptions</p>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Muted Text</label>
+                              <input
+                                type="color"
+                                value={textMutedColor}
+                                onChange={(e) => setTextMutedColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={textMutedColor}
+                                onChange={(e) => setTextMutedColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#9CA3AF"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">Subtle text and captions</p>
+                            </div>
+                          </>
+                        )}
+
+                        {section.id === 'buttons' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Button Background</label>
+                              <input
+                                type="color"
+                                value={buttonBgColor}
+                                onChange={(e) => setButtonBgColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={buttonBgColor}
+                                onChange={(e) => setButtonBgColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#10B981"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Button Hover</label>
+                              <input
+                                type="color"
+                                value={buttonHoverColor}
+                                onChange={(e) => setButtonHoverColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={buttonHoverColor}
+                                onChange={(e) => setButtonHoverColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#059669"
+                              />
+                            </div>
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                💡 Button colors affect all primary action buttons, submit buttons, and CTA buttons across the site.
+                              </p>
+                            </div>
+                          </>
+                        )}
+
+                        {section.id === 'navigation' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Navigation Background</label>
+                              <input
+                                type="color"
+                                value={navBgColor}
+                                onChange={(e) => setNavBgColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={navBgColor}
+                                onChange={(e) => setNavBgColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#FFFFFF"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Navigation Text</label>
+                              <input
+                                type="color"
+                                value={navTextColor}
+                                onChange={(e) => setNavTextColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={navTextColor}
+                                onChange={(e) => setNavTextColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#111827"
+                              />
+                            </div>
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                💡 Navigation colors affect the navbar, menu items, and top navigation bar.
+                              </p>
+                            </div>
+                          </>
+                        )}
+
+                        {section.id === 'status' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Success Color</label>
+                              <input
+                                type="color"
+                                value={successColor}
+                                onChange={(e) => setSuccessColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={successColor}
+                                onChange={(e) => setSuccessColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#10B981"
+                              />
+                              <div className="mt-2 px-3 py-2 rounded-lg text-white text-sm" style={{ backgroundColor: successColor }}>
+                                ✓ Success Message
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Warning Color</label>
+                              <input
+                                type="color"
+                                value={warningColor}
+                                onChange={(e) => setWarningColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={warningColor}
+                                onChange={(e) => setWarningColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#F59E0B"
+                              />
+                              <div className="mt-2 px-3 py-2 rounded-lg text-white text-sm" style={{ backgroundColor: warningColor }}>
+                                ⚠ Warning Message
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Error Color</label>
+                              <input
+                                type="color"
+                                value={errorColor}
+                                onChange={(e) => setErrorColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={errorColor}
+                                onChange={(e) => setErrorColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#EF4444"
+                              />
+                              <div className="mt-2 px-3 py-2 rounded-lg text-white text-sm" style={{ backgroundColor: errorColor }}>
+                                ✗ Error Message
+                              </div>
+                            </div>
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                💡 Status colors are used for success messages, warnings, errors, and notification badges.
+                              </p>
+                            </div>
+                          </>
                         )}
                       </div>
                     )}

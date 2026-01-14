@@ -4,9 +4,11 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import { initializeThemeFromDatabase } from './theme/apply.ts';
+import { initializeFonts } from './theme/fonts.ts';
 
-// Initialize theme from database before React renders
+// Initialize theme and fonts from database before React renders
 initializeThemeFromDatabase();
+initializeFonts();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
