@@ -35,6 +35,7 @@ const presetThemes = [
 const advancedSections = [
   { id: 'brand', name: 'Brand Colors', description: 'Primary, secondary, and accent colors' },
   { id: 'backgrounds', name: 'Backgrounds', description: 'Background colors for different surfaces' },
+  { id: 'fonts', name: 'Typography', description: 'Font families and text styles' },
   { id: 'sidebar', name: 'Sidebar Icons', description: 'Icon colors and hover states' },
   { id: 'text', name: 'Text Colors', description: 'Primary, secondary, and muted text' },
   { id: 'buttons', name: 'Buttons', description: 'Button styles and hover states' },
@@ -51,6 +52,10 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [primaryColor, setPrimaryColor] = useState('#10B981');
   const [accentColor, setAccentColor] = useState('#F59E0B');
   const [backgroundColor, setBackgroundStyle] = useState<BackgroundStyle>('clean-white');
+
+  // Font state
+  const [headingFont, setHeadingFont] = useState('Playfair Display');
+  const [bodyFont, setBodyFont] = useState('Inter');
 
   // Modal State
   const [showMigrationModal, setShowMigrationModal] = useState(false);
@@ -79,18 +84,27 @@ export const ThemeAdminPanelV2: React.FC = () => {
 
   // Apply theme (save to localStorage and reload)
   const handleApplyTheme = () => {
+    console.log('[ThemePanel] Apply Theme clicked!');
     const config: SimpleThemeConfig = {
       primaryColor,
       accentColor,
       backgroundColor,
       roundness: 'rounded',
     };
-    updateTheme(config);
-    // Show success message then auto-reload
-    alert('✅ Theme applied successfully! The page will reload to show changes.');
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+    console.log('[ThemePanel] Config:', config);
+
+    try {
+      updateTheme(config);
+      console.log('[ThemePanel] updateTheme() called successfully');
+      // Show success message then auto-reload
+      alert('✅ Theme applied successfully! The page will reload to show changes.');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('[ThemePanel] Error applying theme:', error);
+      alert('❌ Error applying theme. Check console for details.');
+    }
   };
 
   // Publish to all users (saves to database)
@@ -447,11 +461,131 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
 
                     {/* Expanded Content */}
                     {expandedSection === section.id && (
-                      <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-600">
-                          🎨 Advanced color customization for <strong>{section.name}</strong> coming soon!
-                          For now, use the Simple mode to customize your theme.
-                        </p>
+                      <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+                        {section.id === 'brand' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+                              <input
+                                type="color"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#10B981"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
+                              <input
+                                type="color"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#10B981"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Accent Color</label>
+                              <input
+                                type="color"
+                                value={accentColor}
+                                onChange={(e) => setAccentColor(e.target.value)}
+                                className="w-full h-12 rounded border border-gray-300 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={accentColor}
+                                onChange={(e) => setAccentColor(e.target.value)}
+                                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                                placeholder="#F59E0B"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {section.id === 'backgrounds' && (
+                          <div className="grid grid-cols-2 gap-3">
+                            {backgroundOptions.map((option) => (
+                              <button
+                                key={option.name}
+                                onClick={() => setBackgroundStyle(option.value)}
+                                className={`p-3 rounded-lg border-2 transition ${backgroundColor === option.value ? 'border-gray-900 bg-white' : 'border-gray-200'}`}
+                              >
+                                <div className="w-full h-12 rounded mb-2" style={{ backgroundColor: option.color }} />
+                                <span className="text-xs font-medium">{option.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {section.id === 'fonts' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Heading Font</label>
+                              <select
+                                value={headingFont}
+                                onChange={(e) => setHeadingFont(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              >
+                                <option value="Playfair Display">Playfair Display (Serif)</option>
+                                <option value="Georgia">Georgia (Serif)</option>
+                                <option value="Merriweather">Merriweather (Serif)</option>
+                                <option value="Inter">Inter (Sans-serif)</option>
+                                <option value="Roboto">Roboto (Sans-serif)</option>
+                                <option value="Poppins">Poppins (Sans-serif)</option>
+                                <option value="Montserrat">Montserrat (Sans-serif)</option>
+                                <option value="Open Sans">Open Sans (Sans-serif)</option>
+                              </select>
+                              <div className="mt-2 p-3 bg-white rounded border" style={{ fontFamily: headingFont }}>
+                                <p className="text-2xl font-bold">Sample Heading Text</p>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Body Font</label>
+                              <select
+                                value={bodyFont}
+                                onChange={(e) => setBodyFont(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              >
+                                <option value="Inter">Inter (Sans-serif)</option>
+                                <option value="Roboto">Roboto (Sans-serif)</option>
+                                <option value="Open Sans">Open Sans (Sans-serif)</option>
+                                <option value="Lato">Lato (Sans-serif)</option>
+                                <option value="Poppins">Poppins (Sans-serif)</option>
+                                <option value="Montserrat">Montserrat (Sans-serif)</option>
+                                <option value="Georgia">Georgia (Serif)</option>
+                                <option value="Merriweather">Merriweather (Serif)</option>
+                              </select>
+                              <div className="mt-2 p-3 bg-white rounded border" style={{ fontFamily: bodyFont }}>
+                                <p className="text-sm">This is sample body text. The quick brown fox jumps over the lazy dog.</p>
+                              </div>
+                            </div>
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-800">
+                                💡 Font changes will be applied when you click "Apply Theme". Make sure the fonts are loaded via Google Fonts or your CDN.
+                              </p>
+                            </div>
+                          </>
+                        )}
+
+                        {(section.id === 'sidebar' || section.id === 'text' || section.id === 'buttons' || section.id === 'navigation' || section.id === 'status') && (
+                          <p className="text-sm text-gray-600">
+                            🎨 These colors are automatically generated from your Primary and Accent colors.
+                            Change the Brand Colors above to customize these elements.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
