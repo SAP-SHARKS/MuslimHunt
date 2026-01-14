@@ -293,18 +293,18 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
       />
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between max-w-7xl mx-auto gap-3 sm:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Theme Settings</h1>
-            <p className="text-sm text-gray-600 mt-1">Customize the look and feel of your app</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Theme Settings</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Customize the look and feel of your app</p>
           </div>
 
           {/* Mode Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 rounded-lg p-1 w-full sm:w-auto">
             <button
               onClick={() => setMode('simple')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${mode === 'simple'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition ${mode === 'simple'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -313,7 +313,7 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
             </button>
             <button
               onClick={() => setMode('advanced')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${mode === 'advanced'
+              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition ${mode === 'advanced'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -324,18 +324,18 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {/* Main Content - 2 columns */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
             {mode === 'simple' ? (
               <>
                 {/* Quick Themes */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Quick Themes</h2>
-                  <p className="text-sm text-gray-600 mb-6">Click any theme to instantly apply it.</p>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Quick Themes</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 lg:mb-6">Click any theme to instantly apply it.</p>
 
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
                     {presetThemes.map((preset) => (
                       <button
                         key={preset.id}
@@ -379,53 +379,53 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                 </div>
 
                 {/* Build Custom Theme */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">Build Custom Theme</h2>
-                  <p className="text-sm text-gray-600 mb-6">Or customize your own theme below.</p>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 lg:p-6">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Build Custom Theme</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 lg:mb-6">Or customize your own theme below.</p>
 
                   {/* Primary Color */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         1
                       </span>
-                      <h3 className="font-semibold text-gray-900">Primary Color</h3>
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">Primary Color</h3>
                     </div>
 
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-2 sm:mb-3">
                       {primaryColorOptions.map((option) => (
                         <button
                           key={option.name}
                           onClick={() => setPrimaryColor(option.color)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${primaryColor === option.color
+                          className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 transition ${primaryColor === option.color
                             ? 'border-gray-900 bg-gray-50 shadow-sm'
                             : 'border-gray-200 hover:border-gray-300'
                             }`}
                         >
                           <div
-                            className="w-12 h-12 rounded-full shadow-md"
+                            className="w-8 h-8 sm:w-12 sm:h-12 rounded-full shadow-md"
                             style={{ backgroundColor: option.color }}
                           />
-                          <span className="text-xs font-medium text-gray-700">{option.name}</span>
+                          <span className="text-[10px] sm:text-xs font-medium text-gray-700">{option.name}</span>
                         </button>
                       ))}
                     </div>
 
                     {/* Custom Color Picker */}
-                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <label className="block text-xs font-medium text-gray-700 mb-2">Or pick custom color:</label>
+                    <div className="p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">Or pick custom color:</label>
                       <div className="flex gap-2">
                         <input
                           type="color"
                           value={primaryColor}
                           onChange={(e) => setPrimaryColor(e.target.value)}
-                          className="w-16 h-10 rounded border border-gray-300 cursor-pointer"
+                          className="w-12 h-8 sm:w-16 sm:h-10 rounded border border-gray-300 cursor-pointer"
                         />
                         <input
                           type="text"
                           value={primaryColor}
                           onChange={(e) => setPrimaryColor(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm font-mono"
+                          className="flex-1 px-2 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded text-xs sm:text-sm font-mono"
                           placeholder="#10B981"
                         />
                       </div>
@@ -433,29 +433,29 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                   </div>
 
                   {/* Background Style */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         2
                       </span>
-                      <h3 className="font-semibold text-gray-900">Background Style</h3>
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">Background Style</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
                       {backgroundOptions.map((option) => (
                         <button
                           key={option.name}
                           onClick={() => setBackgroundStyle(option.value)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${backgroundColor === option.value
+                          className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 transition ${backgroundColor === option.value
                             ? 'border-gray-900 bg-gray-50 shadow-sm'
                             : 'border-gray-200 hover:border-gray-300'
                             }`}
                         >
                           <div
-                            className="w-full h-16 rounded shadow-md border border-gray-200"
+                            className="w-full h-10 sm:h-16 rounded shadow-md border border-gray-200"
                             style={{ backgroundColor: option.color }}
                           />
-                          <span className="text-xs font-medium text-gray-700 text-center">
+                          <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">
                             {option.name}
                           </span>
                         </button>
@@ -630,25 +630,25 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                   </div>
 
                   {/* Navigation Pattern */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         7
                       </span>
-                      <h3 className="font-semibold text-gray-900">Navigation Pattern</h3>
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-900">Navigation Pattern</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       <button
                         onClick={() => setNavPattern('standard')}
-                        className={`p-4 rounded-lg border-2 transition ${navPattern === 'standard' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-3 sm:p-4 rounded-lg border-2 transition ${navPattern === 'standard' ? 'border-gray-900 bg-gray-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="w-full space-y-2 mb-2">
-                          <div className="h-2 bg-gray-300 rounded" />
-                          <div className="h-8 bg-gray-200 rounded" />
+                        <div className="w-full space-y-1 sm:space-y-2 mb-2">
+                          <div className="h-1.5 sm:h-2 bg-gray-300 rounded" />
+                          <div className="h-6 sm:h-8 bg-gray-200 rounded" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Standard</div>
-                        <div className="text-xs text-gray-500">Classic horizontal</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Standard</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Classic horizontal</div>
                       </button>
 
                       <button
@@ -731,196 +731,196 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                   </div>
 
                   {/* Menu Style */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         8
                       </span>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Menu Design</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">Select menu button style</p>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">Menu Design</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Select menu button style</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button
                         onClick={() => setMenuStyle('default')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'default' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'default' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-1 mb-2 justify-center">
-                          <div className="w-12 h-6 bg-gray-300 rounded" />
-                          <div className="w-12 h-6 bg-gray-300 rounded" />
-                          <div className="w-12 h-6 bg-gray-300 rounded" />
+                        <div className="flex gap-0.5 sm:gap-1 mb-1 sm:mb-2 justify-center">
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Default</div>
-                        <div className="text-xs text-gray-500">Simple buttons</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Default</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Simple buttons</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('rounded')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'rounded' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'rounded' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-1 mb-2 justify-center">
-                          <div className="w-12 h-6 bg-gray-300 rounded-lg" />
-                          <div className="w-12 h-6 bg-gray-300 rounded-lg" />
-                          <div className="w-12 h-6 bg-gray-300 rounded-lg" />
+                        <div className="flex gap-0.5 sm:gap-1 mb-1 sm:mb-2 justify-center">
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-lg" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-lg" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-lg" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Rounded</div>
-                        <div className="text-xs text-gray-500">Soft edges</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Rounded</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Soft edges</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('pill')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'pill' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'pill' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-1 mb-2 justify-center">
-                          <div className="w-12 h-6 bg-gray-300 rounded-full" />
-                          <div className="w-12 h-6 bg-gray-300 rounded-full" />
-                          <div className="w-12 h-6 bg-gray-300 rounded-full" />
+                        <div className="flex gap-0.5 sm:gap-1 mb-1 sm:mb-2 justify-center">
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-full" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-full" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded-full" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Pill</div>
-                        <div className="text-xs text-gray-500">Full rounded</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Pill</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Full rounded</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('underline')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'underline' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'underline' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="space-y-1 mb-2">
-                          <div className="flex gap-1 justify-center">
-                            <div className="w-12 h-5 bg-gray-200" />
-                            <div className="w-12 h-5 bg-gray-200" />
-                            <div className="w-12 h-5 bg-gray-200" />
+                        <div className="space-y-0.5 sm:space-y-1 mb-1 sm:mb-2">
+                          <div className="flex gap-0.5 sm:gap-1 justify-center">
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200" />
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200" />
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200" />
                           </div>
-                          <div className="w-12 h-1 bg-primary mx-auto" />
+                          <div className="w-8 sm:w-12 h-0.5 sm:h-1 bg-primary mx-auto" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Underline</div>
-                        <div className="text-xs text-gray-500">Bottom border</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Underline</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Bottom border</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('filled')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'filled' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'filled' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-1 mb-2 justify-center">
-                          <div className="w-12 h-6 bg-primary rounded" />
-                          <div className="w-12 h-6 bg-gray-300 rounded" />
-                          <div className="w-12 h-6 bg-gray-300 rounded" />
+                        <div className="flex gap-0.5 sm:gap-1 mb-1 sm:mb-2 justify-center">
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-primary rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 bg-gray-300 rounded" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Filled</div>
-                        <div className="text-xs text-gray-500">Solid active</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Filled</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Solid active</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('outlined')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'outlined' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'outlined' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-1 mb-2 justify-center">
-                          <div className="w-12 h-6 border-2 border-primary rounded" />
-                          <div className="w-12 h-6 border-2 border-gray-300 rounded" />
-                          <div className="w-12 h-6 border-2 border-gray-300 rounded" />
+                        <div className="flex gap-0.5 sm:gap-1 mb-1 sm:mb-2 justify-center">
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 border-2 border-primary rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 border-2 border-gray-300 rounded" />
+                          <div className="w-8 h-4 sm:w-12 sm:h-6 border-2 border-gray-300 rounded" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Outlined</div>
-                        <div className="text-xs text-gray-500">Border style</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Outlined</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Border style</div>
                       </button>
 
                       <button
                         onClick={() => setMenuStyle('minimal')}
-                        className={`p-4 rounded-lg border-2 transition ${menuStyle === 'minimal' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'minimal' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex gap-2 mb-2 justify-center text-xs">
+                        <div className="flex gap-1 sm:gap-2 mb-1 sm:mb-2 justify-center text-[10px] sm:text-xs">
                           <span className="text-primary font-bold">Home</span>
                           <span className="text-gray-400">About</span>
                           <span className="text-gray-400">Contact</span>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Minimal</div>
-                        <div className="text-xs text-gray-500">Text only</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Minimal</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Text only</div>
                       </button>
                     </div>
                   </div>
 
                   {/* Menu Animation */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         9
                       </span>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Menu Animation</h3>
-                        <p className="text-xs text-gray-500 mt-0.5">Add animation to menu items on page load</p>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">Menu Animation</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Add animation to menu items on page load</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                       <button
                         onClick={() => setMenuAnimation('none')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'none' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'none' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="w-12 h-12 bg-gray-300 rounded mx-auto mb-2" />
-                        <div className="text-sm font-semibold text-gray-900">None</div>
-                        <div className="text-xs text-gray-500">No animation</div>
+                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-300 rounded mx-auto mb-1 sm:mb-2" />
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">None</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">No animation</div>
                       </button>
 
                       <button
                         onClick={() => setMenuAnimation('fade')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'fade' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'fade' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="relative w-12 h-12 mx-auto mb-2">
+                        <div className="relative w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-1 sm:mb-2">
                           <div className="absolute inset-0 bg-gray-300 rounded opacity-30" />
                           <div className="absolute inset-0 bg-gray-300 rounded opacity-100" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Fade</div>
-                        <div className="text-xs text-gray-500">Opacity</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Fade</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Opacity</div>
                       </button>
 
                       <button
                         onClick={() => setMenuAnimation('slide')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'slide' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'slide' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex items-center justify-center h-12 mb-2">
-                          <div className="w-8 h-8 bg-gray-300 rounded">
-                            <svg className="w-full h-full p-1" viewBox="0 0 20 20" fill="currentColor">
+                        <div className="flex items-center justify-center h-8 sm:h-12 mb-1 sm:mb-2">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded">
+                            <svg className="w-full h-full p-0.5 sm:p-1" viewBox="0 0 20 20" fill="currentColor">
                               <path d="M10 3l7 7-7 7" stroke="currentColor" strokeWidth="2" fill="none" />
                             </svg>
                           </div>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Slide</div>
-                        <div className="text-xs text-gray-500">From side</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Slide</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">From side</div>
                       </button>
 
                       <button
                         onClick={() => setMenuAnimation('scale')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'scale' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'scale' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="relative w-12 h-12 mx-auto mb-2">
+                        <div className="relative w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-1 sm:mb-2">
                           <div className="absolute inset-2 bg-gray-200 rounded" />
                           <div className="absolute inset-0 bg-gray-300 rounded" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Scale</div>
-                        <div className="text-xs text-gray-500">Zoom in</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Scale</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Zoom in</div>
                       </button>
 
                       <button
                         onClick={() => setMenuAnimation('bounce')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'bounce' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'bounce' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="flex flex-col items-center justify-center h-12 mb-2">
-                          <div className="w-8 h-8 bg-gray-300 rounded" />
-                          <div className="text-gray-400 text-xs mt-1">↕</div>
+                        <div className="flex flex-col items-center justify-center h-8 sm:h-12 mb-1 sm:mb-2">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-300 rounded" />
+                          <div className="text-gray-400 text-[10px] sm:text-xs mt-0.5 sm:mt-1">↕</div>
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Bounce</div>
-                        <div className="text-xs text-gray-500">Spring</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Bounce</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Spring</div>
                       </button>
 
                       <button
                         onClick={() => setMenuAnimation('flip')}
-                        className={`p-4 rounded-lg border-2 transition ${menuAnimation === 'flip' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuAnimation === 'flip' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
                       >
-                        <div className="relative w-12 h-12 mx-auto mb-2 perspective">
+                        <div className="relative w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-1 sm:mb-2 perspective">
                           <div className="w-full h-full bg-gray-300 rounded transform rotate-y-15" />
                         </div>
-                        <div className="text-sm font-semibold text-gray-900">Flip</div>
-                        <div className="text-xs text-gray-500">3D rotate</div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Flip</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">3D rotate</div>
                       </button>
                     </div>
                   </div>
@@ -1334,9 +1334,9 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
 
           {/* Live Preview - Right Sidebar (Sticky) */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <h3 className="font-semibold text-gray-700 text-sm mb-4">Live Preview</h3>
+            <div className="lg:sticky lg:top-6">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                <h3 className="font-semibold text-gray-700 text-xs sm:text-sm mb-3 sm:mb-4">Live Preview</h3>
 
                 {/* App Preview Container */}
                 <div
@@ -1433,10 +1433,10 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-4 space-y-2">
+                <div className="mt-3 sm:mt-4 space-y-2">
                   <button
                     onClick={handleApplyTheme}
-                    className="w-full py-2.5 rounded-lg text-white font-medium transition hover:opacity-90 shadow-sm text-sm"
+                    className="w-full py-2 sm:py-2.5 rounded-lg text-white font-medium transition hover:opacity-90 shadow-sm text-xs sm:text-sm"
                     style={{ backgroundColor: primaryColor }}
                   >
                     Apply Theme
@@ -1444,35 +1444,37 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
 
                   <button
                     onClick={handlePublishToAll}
-                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition shadow-sm text-sm flex items-center justify-center gap-2"
+                    className="w-full py-2 sm:py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition shadow-sm text-xs sm:text-sm flex items-center justify-center gap-2"
                   >
-                    <Upload className="w-4 h-4" />
-                    Publish to All Users
+                    <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Publish to All Users</span>
+                    <span className="sm:hidden">Publish</span>
                   </button>
 
                   <div className="flex gap-2">
                     <button
                       onClick={handleReset}
-                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1"
+                      className="flex-1 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] sm:text-xs font-medium transition flex items-center justify-center gap-1"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      Reset
+                      <span className="hidden sm:inline">Reset</span>
                     </button>
                     <button
                       onClick={handleExport}
-                      className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1"
+                      className="flex-1 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] sm:text-xs font-medium transition flex items-center justify-center gap-1"
                     >
                       <Download className="w-3 h-3" />
-                      Export
+                      <span className="hidden sm:inline">Export</span>
                     </button>
                   </div>
 
                   <button
                     onClick={handleImport}
-                    className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1"
+                    className="w-full py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[10px] sm:text-xs font-medium transition flex items-center justify-center gap-1"
                   >
                     <Upload className="w-3 h-3" />
-                    Import Theme
+                    <span className="hidden sm:inline">Import Theme</span>
+                    <span className="sm:hidden">Import</span>
                   </button>
                 </div>
               </div>
