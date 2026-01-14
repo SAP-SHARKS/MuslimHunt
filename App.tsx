@@ -39,12 +39,15 @@ import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
+import { AdminRouter } from './components/admin/AdminRouter.tsx';
+import { DevAuthButtons } from './components/admin/DevAuthButtons.tsx';
 import Footer from './components/Footer.tsx';
 import { Product, User, View, Comment, Profile, Notification, NavMenuItem, Category, ForumCategory as IForumCategory } from './types.ts';
 import { Sparkles, MessageSquare, TrendingUp, Users, ArrowRight, Triangle, Plus, Hash, Layout, ChevronRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { supabase } from './lib/supabase.ts';
 import { searchProducts, slugify, findProductBySlug } from './utils/searchUtils.ts';
 import ProductCardSkeleton from './components/ProductCardSkeleton.tsx';
+import { useAuth } from './contexts/AuthContext.tsx';
 
 const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
 
@@ -163,6 +166,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
 };
 
 const App: React.FC = () => {
+  const { user: authUser, isAdmin } = useAuth();
   const [view, setView] = useState<View>(View.HOME);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
@@ -999,7 +1003,7 @@ const App: React.FC = () => {
         )}
         {view === View.POST_SUBMIT && <PostSubmit onCancel={() => updateView(View.HOME)} onNext={(url) => { setPendingUrl(url); updateView(View.SUBMISSION); }} />}
         {view === View.WELCOME && user && <Welcome userEmail={user.email} userId={user.id} onComplete={() => updateView(View.HOME)} />}
-        {view === View.ADMIN_PANEL && <AdminPanel user={user} onBack={() => updateView(View.HOME)} onRefresh={fetchProducts} />}
+        {view === View.ADMIN_PANEL && <AdminRouter ProductReviewPanel={AdminPanel} />}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
 
@@ -1099,6 +1103,9 @@ const App: React.FC = () => {
       </div>
 
       <Footer setView={updateView} />
+
+      {/* Dev Authentication Buttons - Only visible in development */}
+      <DevAuthButtons />
     </div>
   );
 };
