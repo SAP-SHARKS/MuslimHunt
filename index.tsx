@@ -7,17 +7,19 @@ import { initializeThemeFromDatabase } from './theme/apply.ts';
 import { initializeFonts } from './theme/fonts.ts';
 
 /**
- * Apply menu settings from localStorage
+ * Apply menu and dropdown settings from localStorage
  */
 function applyMenuSettings() {
   const navPattern = localStorage.getItem('muslimhunt_nav_pattern') || 'standard';
   const menuStyle = localStorage.getItem('muslimhunt_menu_style') || 'default';
   const menuAnimation = localStorage.getItem('muslimhunt_menu_animation') || 'none';
+  const dropdownStyle = localStorage.getItem('muslimhunt_dropdown_style') || 'classic';
+  const dropdownAnimation = localStorage.getItem('muslimhunt_dropdown_animation') || 'slide-down';
 
-  // Remove any existing menu classes
+  // Remove any existing menu and dropdown classes
   const classesToRemove: string[] = [];
   document.body.classList.forEach(className => {
-    if (className.startsWith('nav-') || className.startsWith('menu-')) {
+    if (className.startsWith('nav-') || className.startsWith('menu-') || className.startsWith('dropdown-')) {
       classesToRemove.push(className);
     }
   });
@@ -28,7 +30,11 @@ function applyMenuSettings() {
   document.body.classList.add(`menu-${menuStyle}`);
   document.body.classList.add(`menu-anim-${menuAnimation}`);
 
-  console.log('[Menu] Applied settings:', { navPattern, menuStyle, menuAnimation });
+  // Apply dropdown classes to body
+  document.body.classList.add(`dropdown-${dropdownStyle}`);
+  document.body.classList.add(`dropdown-anim-${dropdownAnimation}`);
+
+  console.log('[Menu] Applied settings:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation });
 }
 
 // Initialize theme and fonts from database before React renders

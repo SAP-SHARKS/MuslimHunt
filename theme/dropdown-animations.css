@@ -1,0 +1,152 @@
+/* Dropdown Animation Styles - Muslim Hunt Theme System */
+
+/* ===============================================
+   FADE ANIMATION - Simple Opacity
+   =============================================== */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dropdownFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.dropdown-anim-fade .rich-dropdown-menu {
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+/* ===============================================
+   SLIDE DOWN ANIMATION - From Top
+   =============================================== */
+@keyframes dropdownSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-anim-slide-down .rich-dropdown-menu {
+  animation: dropdownSlideDown 0.25s ease-out;
+}
+
+/* ===============================================
+   SLIDE UP ANIMATION - From Bottom
+   =============================================== */
+@keyframes dropdownSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-anim-slide-up .rich-dropdown-menu {
+  animation: dropdownSlideUp 0.25s ease-out;
+}
+
+/* ===============================================
+   SCALE ANIMATION - Zoom Effect
+   =============================================== */
+@keyframes dropdownScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dropdown-anim-scale .rich-dropdown-menu {
+  animation: dropdownScale 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top left;
+}
+
+/* ===============================================
+   FLIP ANIMATION - 3D Rotate Effect
+   =============================================== */
+@keyframes dropdownFlip {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateX(-15deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(600px) rotateX(0deg);
+  }
+}
+
+.dropdown-anim-flip .rich-dropdown-menu {
+  animation: dropdownFlip 0.3s ease-out;
+  transform-style: preserve-3d;
+  transform-origin: top center;
+}
+
+/* ===============================================
+   ACCESSIBILITY - Respect User Preferences
+   =============================================== */
+
+/* Disable all animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-anim-fade .rich-dropdown-menu,
+  .dropdown-anim-slide-down .rich-dropdown-menu,
+  .dropdown-anim-slide-up .rich-dropdown-menu,
+  .dropdown-anim-scale .rich-dropdown-menu,
+  .dropdown-anim-flip .rich-dropdown-menu {
+    animation: none !important;
+  }
+}
+
+/* ===============================================
+   ITEM STAGGER ANIMATIONS
+   =============================================== */
+
+/* Stagger effect for dropdown items */
+.dropdown-anim-slide-down .dropdown-item,
+.dropdown-anim-slide-up .dropdown-item {
+  animation: dropdownItemFadeIn 0.3s ease-out backwards;
+}
+
+.dropdown-anim-slide-down .dropdown-item:nth-child(1) { animation-delay: 0.05s; }
+.dropdown-anim-slide-down .dropdown-item:nth-child(2) { animation-delay: 0.08s; }
+.dropdown-anim-slide-down .dropdown-item:nth-child(3) { animation-delay: 0.11s; }
+.dropdown-anim-slide-down .dropdown-item:nth-child(4) { animation-delay: 0.14s; }
+.dropdown-anim-slide-down .dropdown-item:nth-child(5) { animation-delay: 0.17s; }
+.dropdown-anim-slide-down .dropdown-item:nth-child(6) { animation-delay: 0.20s; }
+
+@keyframes dropdownItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Disable item stagger for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-item {
+    animation: none !important;
+    animation-delay: 0s !important;
+  }
+}

@@ -65,6 +65,8 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [navPattern, setNavPattern] = useState<'standard' | 'floating-dock' | 'sidebar' | 'minimal-scroll' | 'mega-menu' | 'bottom-mobile' | 'horizontal-dropdown'>('standard');
   const [menuStyle, setMenuStyle] = useState<'default' | 'rounded' | 'pill' | 'underline' | 'filled' | 'outlined' | 'minimal'>('default');
   const [menuAnimation, setMenuAnimation] = useState<'none' | 'fade' | 'slide' | 'scale' | 'bounce' | 'flip'>('none');
+  const [dropdownStyle, setDropdownStyle] = useState<'classic' | 'modern' | 'minimal' | 'card' | 'mega'>('classic');
+  const [dropdownAnimation, setDropdownAnimation] = useState<'fade' | 'slide-down' | 'slide-up' | 'scale' | 'flip'>('slide-down');
 
   // Advanced color states
   const [secondaryColor, setSecondaryColor] = useState('#10B981');
@@ -131,7 +133,9 @@ export const ThemeAdminPanelV2: React.FC = () => {
       localStorage.setItem('muslimhunt_nav_pattern', navPattern);
       localStorage.setItem('muslimhunt_menu_style', menuStyle);
       localStorage.setItem('muslimhunt_menu_animation', menuAnimation);
-      console.log('[ThemePanel] Menu settings saved:', { navPattern, menuStyle, menuAnimation });
+      localStorage.setItem('muslimhunt_dropdown_style', dropdownStyle);
+      localStorage.setItem('muslimhunt_dropdown_animation', dropdownAnimation);
+      console.log('[ThemePanel] Menu settings saved:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation });
 
       // Show success message then auto-reload
       alert('✅ Theme applied successfully! The page will reload to show changes.');
@@ -839,11 +843,211 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                     </div>
                   </div>
 
-                  {/* Menu Animation */}
+                  {/* Dropdown Menu Style */}
                   <div className="mb-4 sm:mb-6">
                     <div className="flex items-center gap-2 mb-2 sm:mb-3">
                       <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         9
+                      </span>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">Dropdown Menu Style</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">How dropdown menus appear on hover</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                      <button
+                        onClick={() => setDropdownStyle('classic')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownStyle === 'classic' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-1 mb-1 sm:mb-2">
+                          <div className="w-full h-4 sm:h-5 bg-gray-300 rounded" />
+                          <div className="w-full h-12 sm:h-16 bg-gray-100 rounded border border-gray-300 p-1">
+                            <div className="space-y-0.5">
+                              <div className="h-2 bg-gray-300 rounded w-3/4" />
+                              <div className="h-2 bg-gray-300 rounded w-1/2" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Classic</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Traditional</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownStyle('modern')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownStyle === 'modern' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-1 mb-1 sm:mb-2">
+                          <div className="w-full h-4 sm:h-5 bg-gray-300 rounded-lg" />
+                          <div className="w-full h-12 sm:h-16 bg-white rounded-xl border border-gray-200 p-1.5 shadow-md">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-primary rounded" />
+                                <div className="h-1.5 bg-gray-300 rounded flex-1" />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-gray-300 rounded" />
+                                <div className="h-1.5 bg-gray-300 rounded flex-1" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Modern</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">With icons</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownStyle('minimal')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownStyle === 'minimal' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-1 mb-1 sm:mb-2">
+                          <div className="w-full h-4 sm:h-5 bg-gray-300 rounded" />
+                          <div className="w-full h-12 sm:h-16 bg-white rounded p-1.5">
+                            <div className="space-y-1.5">
+                              <div className="h-1.5 bg-gray-300 rounded" />
+                              <div className="h-1.5 bg-gray-200 rounded" />
+                              <div className="h-1.5 bg-gray-200 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Minimal</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Text only</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownStyle('card')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownStyle === 'card' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-1 mb-1 sm:mb-2">
+                          <div className="w-full h-4 sm:h-5 bg-gray-300 rounded-xl" />
+                          <div className="grid grid-cols-2 gap-1">
+                            <div className="h-10 sm:h-12 bg-white rounded-lg border border-gray-200 p-1">
+                              <div className="w-3 h-3 bg-primary rounded mb-0.5" />
+                              <div className="h-1 bg-gray-300 rounded" />
+                            </div>
+                            <div className="h-10 sm:h-12 bg-white rounded-lg border border-gray-200 p-1">
+                              <div className="w-3 h-3 bg-gray-300 rounded mb-0.5" />
+                              <div className="h-1 bg-gray-300 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Card Grid</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Cards layout</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownStyle('mega')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownStyle === 'mega' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-1 mb-1 sm:mb-2">
+                          <div className="w-full h-4 sm:h-5 bg-gray-300 rounded" />
+                          <div className="w-full h-12 sm:h-16 bg-white rounded-lg border border-gray-200 p-1">
+                            <div className="grid grid-cols-3 gap-0.5">
+                              <div className="space-y-0.5">
+                                <div className="h-1 bg-primary rounded" />
+                                <div className="h-1 bg-gray-300 rounded" />
+                                <div className="h-1 bg-gray-300 rounded" />
+                              </div>
+                              <div className="space-y-0.5">
+                                <div className="h-1 bg-gray-300 rounded" />
+                                <div className="h-1 bg-gray-300 rounded" />
+                              </div>
+                              <div className="space-y-0.5">
+                                <div className="h-1 bg-gray-300 rounded" />
+                                <div className="h-1 bg-gray-300 rounded" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Mega Menu</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Multi-column</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dropdown Animation */}
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        10
+                      </span>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">Dropdown Animation</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">How dropdowns appear and disappear</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                      <button
+                        onClick={() => setDropdownAnimation('fade')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownAnimation === 'fade' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex flex-col items-center h-8 sm:h-12 mb-1 sm:mb-2 justify-center">
+                          <div className="relative w-10 sm:w-12">
+                            <div className="h-6 sm:h-8 bg-gray-200 rounded opacity-50" />
+                            <div className="absolute inset-0 h-6 sm:h-8 bg-gray-300 rounded" />
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Fade</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Opacity</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownAnimation('slide-down')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownAnimation === 'slide-down' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex flex-col items-center h-8 sm:h-12 mb-1 sm:mb-2 justify-end">
+                          <div className="w-10 sm:w-12 h-1 bg-gray-300 rounded mb-0.5" />
+                          <div className="w-10 sm:w-12 h-5 sm:h-6 bg-gray-300 rounded" />
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Slide Down</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">From top</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownAnimation('slide-up')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownAnimation === 'slide-up' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex flex-col items-center h-8 sm:h-12 mb-1 sm:mb-2 justify-start">
+                          <div className="w-10 sm:w-12 h-5 sm:h-6 bg-gray-300 rounded mb-0.5" />
+                          <div className="w-10 sm:w-12 h-1 bg-gray-300 rounded" />
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Slide Up</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">From bottom</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownAnimation('scale')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownAnimation === 'scale' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex items-center justify-center h-8 sm:h-12 mb-1 sm:mb-2">
+                          <div className="relative w-8 sm:w-10">
+                            <div className="absolute inset-2 bg-gray-200 rounded" />
+                            <div className="w-8 sm:w-10 h-6 sm:h-8 bg-gray-300 rounded" />
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Scale</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Zoom effect</div>
+                      </button>
+
+                      <button
+                        onClick={() => setDropdownAnimation('flip')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${dropdownAnimation === 'flip' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="flex items-center justify-center h-8 sm:h-12 mb-1 sm:mb-2">
+                          <div className="w-8 sm:w-10 h-6 sm:h-8 bg-gray-300 rounded transform rotate-12" />
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Flip</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">3D rotate</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Menu Animation */}
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        11
                       </span>
                       <div>
                         <h3 className="text-sm sm:text-base font-semibold text-gray-900">Menu Animation</h3>
