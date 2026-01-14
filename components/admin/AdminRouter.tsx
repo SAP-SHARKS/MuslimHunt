@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { AdminDashboard } from './AdminDashboard';
-import { ThemeAdminPanel } from './ThemeAdminPanel';
+import { ThemeAdminPanelV2 } from './ThemeAdminPanelV2';
 import { useAuth } from '../../contexts/AuthContext';
 import { Shield, AlertTriangle, FileCheck } from 'lucide-react';
 
@@ -71,7 +71,7 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
         );
 
       case 'theme':
-        return <ThemeAdminPanel />;
+        return <ThemeAdminPanelV2 />;
 
       case 'products':
         // Use the existing AdminPanel component if provided
