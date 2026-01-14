@@ -13,6 +13,7 @@ import {
   exportTheme,
   importTheme,
   loadThemeConfig,
+  publishThemeToAllUsers,
 } from '../../theme/apply';
 
 type ViewMode = 'simple' | 'advanced';
@@ -87,20 +88,27 @@ export const ThemeAdminPanelV2: React.FC = () => {
     }, 500);
   };
 
-  // Publish to all users (in production would save to DB)
-  const handlePublishToAll = () => {
-    if (confirm('🚀 Publish this theme for all users?')) {
+  // Publish to all users (saves to database)
+  const handlePublishToAll = async () => {
+    if (confirm('🚀 Publish this theme for all users? This will change the theme for everyone publicly.')) {
       const config: SimpleThemeConfig = {
         primaryColor,
         accentColor,
         backgroundColor,
         roundness: 'rounded',
       };
-      updateTheme(config);
-      alert('✅ Theme published! In production, this would update the database.');
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+
+      // Publish to database
+      const success = await publishThemeToAllUsers(config);
+
+      if (success) {
+        alert('✅ Theme published successfully to all users! The page will reload.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        alert('❌ Failed to publish theme to database. Please check console for errors.');
+      }
     }
   };
 

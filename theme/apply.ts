@@ -6,6 +6,7 @@
 
 import { ThemeTokens, DEFAULT_TOKENS } from './tokens';
 import { SimpleThemeConfig, generateTheme } from './utils';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'muslimhunt_theme_config';
 const STORAGE_KEY_TOKENS = 'muslimhunt_theme_tokens';
@@ -174,4 +175,92 @@ export function getCurrentTheme(): {
   const tokens = loadThemeTokens() || DEFAULT_TOKENS;
 
   return { config, tokens };
+}
+
+/**
+ * Publish theme to database for all users
+ */
+export async function publishThemeToAllUsers(config: SimpleThemeConfig): Promise<boolean> {
+  try {
+    const tokens = generateTheme(config);
+
+    // Save to database (upsert to 'app_settings' table with id='global_theme')
+    const { error } = await supabase
+      .from('app_settings')
+      .upsert({
+        id: 'global_theme',
+        config: config,
+        tokens: tokens,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      });
+
+    if (error) {
+      console.error('[Theme] Failed to publish theme to database:', error);
+      return false;
+    }
+
+    console.log('[Theme] Published theme to database for all users');
+
+    // Also apply locally
+    applyTheme(tokens);
+    saveThemeConfig(config);
+    saveThemeTokens(tokens);
+
+    return true;
+  } catch (error) {
+    console.error('[Theme] Error publishing theme:', error);
+    return false;
+  }
+}
+
+/**
+ * Load global theme from database
+ */
+export async function loadGlobalTheme(): Promise<{ config: SimpleThemeConfig; tokens: ThemeTokens } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('config, tokens')
+      .eq('id', 'global_theme')
+      .single();
+
+    if (error) {
+      console.error('[Theme] Failed to load global theme:', error);
+      return null;
+    }
+
+    if (data && data.config && data.tokens) {
+      console.log('[Theme] Loaded global theme from database');
+      return {
+        config: data.config as SimpleThemeConfig,
+        tokens: data.tokens as ThemeTokens,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('[Theme] Error loading global theme:', error);
+    return null;
+  }
+}
+
+/**
+ * Initialize theme on app load (checks database first, then localStorage)
+ */
+export async function initializeThemeFromDatabase(): Promise<void> {
+  // First, try to load from database (global theme for all users)
+  const globalTheme = await loadGlobalTheme();
+
+  if (globalTheme) {
+    applyTheme(globalTheme.tokens);
+    // Also save to localStorage as cache
+    saveThemeConfig(globalTheme.config);
+    saveThemeTokens(globalTheme.tokens);
+    return;
+  }
+
+  // Fallback to localStorage or defaults
+  initializeTheme();
 }
