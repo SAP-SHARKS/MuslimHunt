@@ -107,18 +107,27 @@ export const ThemeAdminPanelV2: React.FC = () => {
           window.location.reload();
         }, 500);
       } else {
-        alert(`❌ Failed to publish theme to database!
+        // SQL for user to copy
+        const sql = `CREATE TABLE IF NOT EXISTS app_settings (
+  id TEXT PRIMARY KEY,
+  config JSONB NOT NULL,
+  tokens JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read app_settings" ON app_settings FOR SELECT TO public USING (true);
+CREATE POLICY "Only admins can update app_settings" ON app_settings FOR ALL TO authenticated USING (auth.jwt() ->> 'email' IN ('admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'));
+INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.stringify(config)}', '{}') ON CONFLICT (id) DO NOTHING;`;
 
-The "app_settings" table doesn't exist in Supabase.
+        console.error('Migration SQL:', sql);
 
-To fix this:
-1. Open Supabase Dashboard
-2. Go to SQL Editor
-3. Run the SQL from: supabase_migration_app_settings.sql
+        prompt(
+          '⚠️ Database table missing! Please copy and run this SQL in Supabase Dashboard > SQL Editor:',
+          sql
+        );
 
-See DATABASE_FIX_BANGLA.md for step-by-step guide.
-
-For now, use "Apply Theme" button (works with localStorage).`);
+        alert('⚠️ Theme Saved Locally Only.\n\nThe database migration has not been run yet. Your theme is saved to your browser but other users won\'t see it until the SQL is run.');
       }
     }
   };
@@ -239,21 +248,19 @@ For now, use "Apply Theme" button (works with localStorage).`);
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setMode('simple')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                mode === 'simple'
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${mode === 'simple'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               ✨ Simple
             </button>
             <button
               onClick={() => setMode('advanced')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                mode === 'advanced'
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${mode === 'advanced'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               ⚙️ Advanced
             </button>
@@ -277,11 +284,10 @@ For now, use "Apply Theme" button (works with localStorage).`);
                       <button
                         key={preset.id}
                         onClick={() => handleApplyPreset(preset.id as keyof typeof THEME_PRESETS)}
-                        className={`relative rounded-lg border-2 transition-all hover:shadow-lg ${
-                          selectedPreset === preset.id
+                        className={`relative rounded-lg border-2 transition-all hover:shadow-lg ${selectedPreset === preset.id
                             ? 'border-emerald-500 ring-2 ring-emerald-200'
                             : 'border-gray-200 hover:border-gray-300'
-                        }`}
+                          }`}
                       >
                         {/* DEFAULT Badge */}
                         {selectedPreset === preset.id && (
@@ -335,11 +341,10 @@ For now, use "Apply Theme" button (works with localStorage).`);
                         <button
                           key={option.name}
                           onClick={() => setPrimaryColor(option.color)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
-                            primaryColor === option.color
+                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${primaryColor === option.color
                               ? 'border-gray-900 bg-gray-50 shadow-sm'
                               : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div
                             className="w-12 h-12 rounded-full shadow-md"
@@ -365,11 +370,10 @@ For now, use "Apply Theme" button (works with localStorage).`);
                         <button
                           key={option.name}
                           onClick={() => setBackgroundStyle(option.value)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
-                            backgroundColor === option.value
+                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${backgroundColor === option.value
                               ? 'border-gray-900 bg-gray-50 shadow-sm'
                               : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div
                             className="w-full h-16 rounded shadow-md border border-gray-200"
@@ -397,11 +401,10 @@ For now, use "Apply Theme" button (works with localStorage).`);
                         <button
                           key={option.name}
                           onClick={() => setAccentColor(option.color)}
-                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${
-                            accentColor === option.color
+                          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition ${accentColor === option.color
                               ? 'border-gray-900 bg-gray-50 shadow-sm'
                               : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           <div
                             className="w-12 h-12 rounded-full shadow-md"
