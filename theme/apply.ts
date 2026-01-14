@@ -198,6 +198,12 @@ export async function publishThemeToAllUsers(config: SimpleThemeConfig): Promise
 
     if (error) {
       console.error('[Theme] Failed to publish theme to database:', error);
+
+      // Show user-friendly error message
+      if (error.message.includes('relation') || error.message.includes('does not exist')) {
+        alert('⚠️ Database table not found!\n\nPlease run the SQL migration first:\n1. Open Supabase Dashboard\n2. Go to SQL Editor\n3. Run supabase_migration_app_settings.sql\n\nSee SETUP_STEPS.md for details.');
+      }
+
       return false;
     }
 
@@ -227,7 +233,12 @@ export async function loadGlobalTheme(): Promise<{ config: SimpleThemeConfig; to
       .single();
 
     if (error) {
-      console.error('[Theme] Failed to load global theme:', error);
+      // If table doesn't exist or no data, silently fallback
+      if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
+        console.log('[Theme] Database table not found, using localStorage fallback');
+        return null;
+      }
+      console.warn('[Theme] Failed to load global theme:', error.message);
       return null;
     }
 
@@ -241,7 +252,7 @@ export async function loadGlobalTheme(): Promise<{ config: SimpleThemeConfig; to
 
     return null;
   } catch (error) {
-    console.error('[Theme] Error loading global theme:', error);
+    console.warn('[Theme] Error loading global theme, using fallback:', error);
     return null;
   }
 }
