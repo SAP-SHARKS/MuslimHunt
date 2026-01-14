@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, Download, Upload, RotateCcw } from 'lucide-react';
+import { ChevronRight, ChevronDown, Download, Upload, RotateCcw } from 'lucide-react';
 import {
   SimpleThemeConfig,
   BackgroundStyle,
@@ -29,9 +29,21 @@ const presetThemes = [
   { id: 'minimal', name: 'Sage Green', colors: ['#10B981', '#10B981', '#DC2626'], isDark: false },
 ];
 
+// Advanced mode sections
+const advancedSections = [
+  { id: 'brand', name: 'Brand Colors', description: 'Primary, secondary, and accent colors' },
+  { id: 'backgrounds', name: 'Backgrounds', description: 'Background colors for different surfaces' },
+  { id: 'sidebar', name: 'Sidebar Icons', description: 'Icon colors and hover states' },
+  { id: 'text', name: 'Text Colors', description: 'Primary, secondary, and muted text' },
+  { id: 'buttons', name: 'Buttons', description: 'Button styles and hover states' },
+  { id: 'navigation', name: 'Navigation', description: 'Navigation bar and menu colors' },
+  { id: 'status', name: 'Status Colors', description: 'Success, warning, error indicators' },
+];
+
 export const ThemeAdminPanelV2: React.FC = () => {
   const [mode, setMode] = useState<ViewMode>('simple');
   const [selectedPreset, setSelectedPreset] = useState('default');
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Current theme values
   const [primaryColor, setPrimaryColor] = useState('#10B981');
@@ -59,7 +71,7 @@ export const ThemeAdminPanelV2: React.FC = () => {
     setBackgroundStyle(preset.backgroundColor);
   };
 
-  // Apply theme (save to localStorage)
+  // Apply theme (save to localStorage and reload)
   const handleApplyTheme = () => {
     const config: SimpleThemeConfig = {
       primaryColor,
@@ -68,7 +80,11 @@ export const ThemeAdminPanelV2: React.FC = () => {
       roundness: 'rounded',
     };
     updateTheme(config);
-    alert('✅ Theme applied successfully! Reload the page to see changes across the entire app.');
+    // Show success message then auto-reload
+    alert('✅ Theme applied successfully! The page will reload to show changes.');
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   // Publish to all users (in production would save to DB)
@@ -82,6 +98,9 @@ export const ThemeAdminPanelV2: React.FC = () => {
       };
       updateTheme(config);
       alert('✅ Theme published! In production, this would update the database.');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     }
   };
 
@@ -93,7 +112,9 @@ export const ThemeAdminPanelV2: React.FC = () => {
       setAccentColor('#F59E0B');
       setBackgroundStyle('clean-white');
       setSelectedPreset('default');
-      alert('✅ Reset to default theme!');
+      setTimeout(() => {
+        window.location.reload();
+      }, 300);
     }
   };
 
@@ -132,6 +153,11 @@ export const ThemeAdminPanelV2: React.FC = () => {
       }
     };
     input.click();
+  };
+
+  // Toggle advanced section
+  const toggleSection = (sectionId: string) => {
+    setExpandedSection(expandedSection === sectionId ? null : sectionId);
   };
 
   // Color options for custom theme builder
@@ -375,19 +401,38 @@ export const ThemeAdminPanelV2: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900 mb-6">Customize Colors</h2>
 
                 {/* Expandable Sections */}
-                {['Brand Colors', 'Backgrounds', 'Sidebar Icons', 'Text Colors', 'Buttons', 'Navigation', 'Status Colors'].map((section) => (
-                  <button
-                    key={section}
-                    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg mb-2 border border-gray-100"
-                  >
-                    <span className="font-medium text-gray-900">{section}</span>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </button>
+                {advancedSections.map((section) => (
+                  <div key={section.id} className="mb-2">
+                    <button
+                      onClick={() => toggleSection(section.id)}
+                      className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg border border-gray-100 transition"
+                    >
+                      <div className="text-left">
+                        <div className="font-medium text-gray-900">{section.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{section.description}</div>
+                      </div>
+                      {expandedSection === section.id ? (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                      )}
+                    </button>
+
+                    {/* Expanded Content */}
+                    {expandedSection === section.id && (
+                      <div className="mt-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p className="text-sm text-gray-600">
+                          🎨 Advanced color customization for <strong>{section.name}</strong> coming soon!
+                          For now, use the Simple mode to customize your theme.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 ))}
 
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    💡 <strong>Advanced mode:</strong> Click any section above to customize individual color tokens. Coming soon!
+                    💡 <strong>Advanced mode:</strong> Click any section above to customize individual color tokens.
                   </p>
                 </div>
               </div>
