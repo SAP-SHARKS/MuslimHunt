@@ -48,8 +48,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isDevMode, setIsDevMode] = useState(false);
 
-  // Check if user is admin
-  const isAdmin = user?.app_metadata?.role === 'admin' || user?.role === 'admin';
+  // Admin emails list (same as in App.tsx)
+  const ADMIN_EMAILS = ['admin@muslimhunt.com', 'moderator@muslimhunt.com', 'zeirislam@gmail.com'];
+
+  // Check if user is admin (by role OR by email)
+  const isAdmin =
+    user?.app_metadata?.role === 'admin' ||
+    user?.role === 'admin' ||
+    (user?.email ? ADMIN_EMAILS.includes(user.email) : false);
 
   useEffect(() => {
     // Check for dev session on mount
