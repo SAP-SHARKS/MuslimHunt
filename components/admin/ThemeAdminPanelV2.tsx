@@ -63,7 +63,7 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [roundness, setRoundness] = useState<'sharp' | 'rounded' | 'pill'>('rounded');
   const [bannerStyle, setBannerStyle] = useState<'dark' | 'primary' | 'light'>('primary');
   const [navPattern, setNavPattern] = useState<'standard' | 'floating-dock' | 'sidebar' | 'minimal-scroll' | 'mega-menu' | 'bottom-mobile' | 'horizontal-dropdown'>('standard');
-  const [menuStyle, setMenuStyle] = useState<'default' | 'rounded' | 'pill' | 'underline' | 'filled' | 'outlined' | 'minimal'>('default');
+  const [menuStyle, setMenuStyle] = useState<'default' | 'rounded' | 'pill' | 'underline' | 'filled' | 'outlined' | 'minimal' | 'bottom-slide'>('default');
   const [menuAnimation, setMenuAnimation] = useState<'none' | 'fade' | 'slide' | 'scale' | 'bounce' | 'flip'>('none');
   const [dropdownStyle, setDropdownStyle] = useState<'classic' | 'modern' | 'minimal' | 'card' | 'mega'>('classic');
   const [dropdownAnimation, setDropdownAnimation] = useState<'fade' | 'slide-down' | 'slide-up' | 'scale' | 'flip'>('slide-down');
@@ -839,6 +839,23 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                         </div>
                         <div className="text-xs sm:text-sm font-semibold text-gray-900">Minimal</div>
                         <div className="text-[10px] sm:text-xs text-gray-500">Text only</div>
+                      </button>
+
+                      <button
+                        onClick={() => setMenuStyle('bottom-slide')}
+                        className={`p-2 sm:p-4 rounded-lg border-2 transition ${menuStyle === 'bottom-slide' ? 'border-primary bg-primary-light shadow-md ring-2 ring-primary/20' : 'border-gray-200 hover:border-gray-300'}`}
+                      >
+                        <div className="space-y-0.5 sm:space-y-1 mb-1 sm:mb-2">
+                          <div className="flex gap-0.5 sm:gap-1 justify-center">
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200 relative">
+                              <div className="absolute bottom-0 left-0 right-0 h-0.5 sm:h-1 bg-primary transform -translate-y-0.5" />
+                            </div>
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200" />
+                            <div className="w-8 h-4 sm:w-12 sm:h-5 bg-gray-200" />
+                          </div>
+                        </div>
+                        <div className="text-xs sm:text-sm font-semibold text-gray-900">Bottom Slide</div>
+                        <div className="text-[10px] sm:text-xs text-gray-500">Animated line</div>
                       </button>
                     </div>
                   </div>

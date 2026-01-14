@@ -159,6 +159,56 @@
 }
 
 /* ===============================================
+   BOTTOM SLIDE STYLE - Animated Bottom Border
+   =============================================== */
+.menu-bottom-slide .nav-link {
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Bottom highlight line */
+.menu-bottom-slide .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  transform: translateY(0);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  border-radius: 3px 3px 0 0;
+}
+
+.menu-bottom-slide .nav-link:hover {
+  color: var(--color-primary);
+}
+
+/* Slide the bottom line up on hover */
+.menu-bottom-slide .nav-link:hover::after {
+  transform: translateY(-4px);
+  opacity: 1;
+}
+
+.menu-bottom-slide .nav-link.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Active state has the line visible and slightly elevated */
+.menu-bottom-slide .nav-link.active::after {
+  transform: translateY(-2px);
+  opacity: 1;
+  height: 4px;
+}
+
+/* ===============================================
    COMMON UTILITIES
    =============================================== */
 
