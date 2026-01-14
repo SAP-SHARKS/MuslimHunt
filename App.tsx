@@ -109,7 +109,7 @@ export const TrendingSidebar: React.FC<{ user: User | null; setView: (v: View) =
         <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm">
           <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-4">
             <h3
-              className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-primary transition-colors"
+              className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] cursor-pointer hover:text-primary transition-colors font-serif"
               onClick={() => setView(View.FORUM_HOME)}
             >
               Trending Forum Threads
