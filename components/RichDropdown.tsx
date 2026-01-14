@@ -184,15 +184,23 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
-      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-primary py-4 transition-colors">
+      <button
+        className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-primary py-4 transition-colors"
+        style={isOpen ? { color: 'var(--color-primary)' } : undefined}
+      >
         {label}
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className={`rich-dropdown-menu ${getDropdownWidth()}`}>
-          {renderContent()}
-        </div>
+        <>
+          {/* Invisible bridge to prevent dropdown from closing when moving mouse down */}
+          <div className="absolute top-full left-0 right-0 h-2" />
+
+          <div className={`rich-dropdown-menu ${getDropdownWidth()}`}>
+            {renderContent()}
+          </div>
+        </>
       )}
     </div>
   );

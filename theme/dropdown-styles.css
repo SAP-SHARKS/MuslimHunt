@@ -5,9 +5,9 @@
    =============================================== */
 .dropdown-classic .rich-dropdown-menu {
   background: white !important;
-  border: 1px solid #e5e7eb !important;
+  border: 2px solid var(--color-primary) !important;
   border-radius: 0.75rem !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--color-primary-alpha-20) !important;
 }
 
 .dropdown-classic .dropdown-item {
@@ -25,9 +25,9 @@
    =============================================== */
 .dropdown-modern .rich-dropdown-menu {
   background: white !important;
-  border: 1px solid #e5e7eb !important;
+  border: 2px solid var(--color-primary) !important;
   border-radius: 1.25rem !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-primary-alpha-20) !important;
   padding: 0.75rem !important;
 }
 
@@ -55,9 +55,9 @@
    =============================================== */
 .dropdown-minimal .rich-dropdown-menu {
   background: white !important;
-  border: 1px solid #f3f4f6 !important;
+  border: 2px solid var(--color-primary) !important;
   border-radius: 0.625rem !important;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--color-primary-alpha-10) !important;
   padding: 0.5rem !important;
 }
 
@@ -85,9 +85,9 @@
    =============================================== */
 .dropdown-card .rich-dropdown-menu {
   background: white !important;
-  border: 1px solid #e5e7eb !important;
+  border: 2px solid var(--color-primary) !important;
   border-radius: 1.25rem !important;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--color-primary-alpha-20) !important;
   padding: 0.75rem !important;
 }
 
@@ -136,9 +136,9 @@
    =============================================== */
 .dropdown-mega .rich-dropdown-menu {
   background: white !important;
-  border: 1px solid #e5e7eb !important;
+  border: 2px solid var(--color-primary) !important;
   border-radius: 1.5rem !important;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--color-primary-alpha-20) !important;
   padding: 0 !important;
 }
 
