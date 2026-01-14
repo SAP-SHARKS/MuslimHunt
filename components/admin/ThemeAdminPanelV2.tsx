@@ -107,7 +107,18 @@ export const ThemeAdminPanelV2: React.FC = () => {
           window.location.reload();
         }, 500);
       } else {
-        alert('❌ Failed to publish theme to database. Please check console for errors.');
+        alert(`❌ Failed to publish theme to database!
+
+The "app_settings" table doesn't exist in Supabase.
+
+To fix this:
+1. Open Supabase Dashboard
+2. Go to SQL Editor
+3. Run the SQL from: supabase_migration_app_settings.sql
+
+See DATABASE_FIX_BANGLA.md for step-by-step guide.
+
+For now, use "Apply Theme" button (works with localStorage).`);
       }
     }
   };
