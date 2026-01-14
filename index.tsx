@@ -15,6 +15,7 @@ function applyMenuSettings() {
   const menuAnimation = localStorage.getItem('muslimhunt_menu_animation') || 'none';
   const dropdownStyle = localStorage.getItem('muslimhunt_dropdown_style') || 'classic';
   const dropdownAnimation = localStorage.getItem('muslimhunt_dropdown_animation') || 'slide-down';
+  const dropdownActiveColor = localStorage.getItem('muslimhunt_dropdown_active_color') || '#3B82F6';
 
   // Remove any existing menu and dropdown classes
   const classesToRemove: string[] = [];
@@ -34,7 +35,10 @@ function applyMenuSettings() {
   document.body.classList.add(`dropdown-${dropdownStyle}`);
   document.body.classList.add(`dropdown-anim-${dropdownAnimation}`);
 
-  console.log('[Menu] Applied settings:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation });
+  // Apply dropdown active color as CSS variable
+  document.documentElement.style.setProperty('--dropdown-active-color', dropdownActiveColor);
+
+  console.log('[Menu] Applied settings:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation, dropdownActiveColor });
 }
 
 // Initialize theme and fonts from database before React renders

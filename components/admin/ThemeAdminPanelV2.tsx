@@ -67,6 +67,7 @@ export const ThemeAdminPanelV2: React.FC = () => {
   const [menuAnimation, setMenuAnimation] = useState<'none' | 'fade' | 'slide' | 'scale' | 'bounce' | 'flip'>('none');
   const [dropdownStyle, setDropdownStyle] = useState<'classic' | 'modern' | 'minimal' | 'card' | 'mega'>('classic');
   const [dropdownAnimation, setDropdownAnimation] = useState<'fade' | 'slide-down' | 'slide-up' | 'scale' | 'flip'>('slide-down');
+  const [dropdownActiveColor, setDropdownActiveColor] = useState('#3B82F6'); // Color for selected dropdown items
 
   // Advanced color states
   const [secondaryColor, setSecondaryColor] = useState('#10B981');
@@ -135,7 +136,8 @@ export const ThemeAdminPanelV2: React.FC = () => {
       localStorage.setItem('muslimhunt_menu_animation', menuAnimation);
       localStorage.setItem('muslimhunt_dropdown_style', dropdownStyle);
       localStorage.setItem('muslimhunt_dropdown_animation', dropdownAnimation);
-      console.log('[ThemePanel] Menu settings saved:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation });
+      localStorage.setItem('muslimhunt_dropdown_active_color', dropdownActiveColor);
+      console.log('[ThemePanel] Menu settings saved:', { navPattern, menuStyle, menuAnimation, dropdownStyle, dropdownAnimation, dropdownActiveColor });
 
       // Show success message then auto-reload
       alert('✅ Theme applied successfully! The page will reload to show changes.');
@@ -1060,11 +1062,42 @@ INSERT INTO app_settings (id, config, tokens) VALUES ('global_theme', '${JSON.st
                     </div>
                   </div>
 
-                  {/* Menu Animation */}
+                  {/* Dropdown Active Item Color */}
                   <div className="mb-4 sm:mb-6">
                     <div className="flex items-center gap-2 mb-2 sm:mb-3">
                       <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
                         11
+                      </span>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900">Dropdown Active Item Color</h3>
+                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Color for selected/active dropdown menu items</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={dropdownActiveColor}
+                        onChange={(e) => setDropdownActiveColor(e.target.value)}
+                        className="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={dropdownActiveColor}
+                          onChange={(e) => setDropdownActiveColor(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono"
+                          placeholder="#3B82F6"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Animation */}
+                  <div className="mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                      <span className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold">
+                        12
                       </span>
                       <div>
                         <h3 className="text-sm sm:text-base font-semibold text-gray-900">Menu Animation</h3>

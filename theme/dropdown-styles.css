@@ -20,6 +20,16 @@
   background-color: #f3f4f6 !important;
 }
 
+.dropdown-classic .dropdown-item.active {
+  background-color: var(--dropdown-active-color, #3B82F6) !important;
+  color: white !important;
+}
+
+.dropdown-classic .dropdown-item.active .dropdown-text-primary,
+.dropdown-classic .dropdown-item.active .dropdown-text-secondary {
+  color: white !important;
+}
+
 /* ===============================================
    MODERN STYLE - With Icons and Accent Colors
    =============================================== */
@@ -50,6 +60,16 @@
   transform: scale(1.15) !important;
 }
 
+.dropdown-modern .dropdown-item.active {
+  background: var(--dropdown-active-color, #3B82F6) !important;
+  color: white !important;
+}
+
+.dropdown-modern .dropdown-item.active .dropdown-text-primary,
+.dropdown-modern .dropdown-item.active .dropdown-text-secondary {
+  color: white !important;
+}
+
 /* ===============================================
    MINIMAL STYLE - Clean Text-Only
    =============================================== */
@@ -78,6 +98,15 @@
 .dropdown-minimal .dropdown-icon {
   opacity: 0.6 !important;
   filter: grayscale(100%) !important;
+}
+
+.dropdown-minimal .dropdown-item.active {
+  background: var(--dropdown-active-color, #3B82F6) !important;
+  color: white !important;
+}
+
+.dropdown-minimal .dropdown-item.active .dropdown-text-primary {
+  color: white !important;
 }
 
 /* ===============================================
@@ -131,6 +160,17 @@
   color: var(--color-primary) !important;
 }
 
+.dropdown-card .dropdown-item.active {
+  background: var(--dropdown-active-color, #3B82F6) !important;
+  border-color: var(--dropdown-active-color, #3B82F6) !important;
+  color: white !important;
+}
+
+.dropdown-card .dropdown-item.active .dropdown-text-primary,
+.dropdown-card .dropdown-item.active .dropdown-text-secondary {
+  color: white !important;
+}
+
 /* ===============================================
    MEGA MENU STYLE - Multi-Column Layout
    =============================================== */
@@ -162,6 +202,17 @@
 
 .dropdown-mega .dropdown-item:hover .dropdown-icon {
   transform: scale(1.1) !important;
+}
+
+.dropdown-mega .dropdown-item.active {
+  background: var(--dropdown-active-color, #3B82F6) !important;
+  border-left-color: var(--dropdown-active-color, #3B82F6) !important;
+  color: white !important;
+}
+
+.dropdown-mega .dropdown-item.active .dropdown-text-primary,
+.dropdown-mega .dropdown-item.active .dropdown-text-secondary {
+  color: white !important;
 }
 
 /* ===============================================

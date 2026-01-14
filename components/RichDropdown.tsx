@@ -8,6 +8,7 @@ export interface DropdownItem {
   colorClass?: string;
   bgClass?: string;
   onClick?: () => void;
+  isActive?: boolean; // To highlight the currently active/selected item
 }
 
 interface RichDropdownProps {
@@ -46,7 +47,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
         <button
           key={i}
           onClick={item.onClick}
-          className="dropdown-item w-full flex items-start gap-4"
+          className={`dropdown-item w-full flex items-start gap-4 ${item.isActive ? 'active' : ''}`}
         >
           <div className={`dropdown-icon w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0`}>
             <item.icon className="w-4 h-4" />
@@ -66,7 +67,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
         <button
           key={i}
           onClick={item.onClick}
-          className="dropdown-item w-full flex items-center gap-4 group"
+          className={`dropdown-item w-full flex items-center gap-4 group ${item.isActive ? 'active' : ''}`}
         >
           <div className={`dropdown-icon w-11 h-11 ${item.bgClass || 'bg-gradient-to-br from-gray-50 to-gray-100'} rounded-2xl flex items-center justify-center ${item.colorClass || 'text-gray-500'} shrink-0 shadow-sm`}>
             <item.icon className="w-5 h-5" />
@@ -87,7 +88,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
         <button
           key={i}
           onClick={item.onClick}
-          className="dropdown-item w-full flex items-center justify-between group"
+          className={`dropdown-item w-full flex items-center justify-between group ${item.isActive ? 'active' : ''}`}
         >
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="dropdown-icon w-1 h-1 rounded-full bg-gray-300 group-hover:bg-current shrink-0" />
@@ -107,7 +108,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
         <button
           key={i}
           onClick={item.onClick}
-          className="dropdown-item flex flex-col items-start text-left group card-item"
+          className={`dropdown-item flex flex-col items-start text-left group card-item ${item.isActive ? 'active' : ''}`}
         >
           <div className={`dropdown-icon w-12 h-12 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} mb-3 group-hover:shadow-md`}>
             <item.icon className="w-5 h-5" />
@@ -138,7 +139,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
               <button
                 key={i}
                 onClick={item.onClick}
-                className="dropdown-item flex items-start gap-3 text-left group"
+                className={`dropdown-item flex items-start gap-3 text-left group ${item.isActive ? 'active' : ''}`}
               >
                 <div className={`dropdown-icon w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-lg flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0`}>
                   <item.icon className="w-4 h-4" />
