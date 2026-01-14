@@ -21,6 +21,8 @@ export interface SimpleThemeConfig {
   accentColor?: string;
   backgroundColor: BackgroundStyle;
   roundness: Roundness;
+  headingFont?: string;
+  bodyFont?: string;
 }
 
 /**

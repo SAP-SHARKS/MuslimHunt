@@ -158,6 +158,8 @@ export const ThemeAdminPanelV2: React.FC = () => {
         accentColor,
         backgroundColor,
         roundness: 'rounded',
+        headingFont,
+        bodyFont,
       };
 
       // Publish to database
