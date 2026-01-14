@@ -17,6 +17,7 @@
             theme: {
                 extend: {
                     colors: {
+                        // Legacy colors (keep for backward compatibility)
                         emerald: {
                             900: '#064e3b',
                             800: '#065f46',
@@ -24,6 +25,73 @@
                             600: '#059669',
                         },
                         cream: '#fdfcf0',
+
+                        // Dynamic theme colors using CSS variables
+                        primary: {
+                            DEFAULT: 'var(--color-primary)',
+                            hover: 'var(--color-primary-hover)',
+                            light: 'var(--color-primary-light)',
+                            dark: 'var(--color-primary-dark)',
+                        },
+                        accent: {
+                            DEFAULT: 'var(--color-accent)',
+                            hover: 'var(--color-accent-hover)',
+                            light: 'var(--color-accent-light)',
+                        },
+                        background: {
+                            DEFAULT: 'var(--bg-primary)',
+                            secondary: 'var(--bg-secondary)',
+                            tertiary: 'var(--bg-tertiary)',
+                        },
+                        card: 'var(--bg-card)',
+                        sidebar: 'var(--bg-sidebar)',
+                        text: {
+                            DEFAULT: 'var(--text-primary)',
+                            secondary: 'var(--text-secondary)',
+                            tertiary: 'var(--text-tertiary)',
+                            muted: 'var(--text-muted)',
+                            inverse: 'var(--text-inverse)',
+                        },
+                        success: {
+                            DEFAULT: 'var(--color-success)',
+                            light: 'var(--color-success-light)',
+                        },
+                        warning: {
+                            DEFAULT: 'var(--color-warning)',
+                            light: 'var(--color-warning-light)',
+                        },
+                        error: {
+                            DEFAULT: 'var(--color-error)',
+                            light: 'var(--color-error-light)',
+                        },
+                        info: {
+                            DEFAULT: 'var(--color-info)',
+                            light: 'var(--color-info-light)',
+                        },
+                    },
+                    borderColor: {
+                        DEFAULT: 'var(--border-default)',
+                        light: 'var(--border-light)',
+                        dark: 'var(--border-dark)',
+                    },
+                    borderRadius: {
+                        card: 'var(--radius-card)',
+                        button: 'var(--radius-button)',
+                        input: 'var(--radius-input)',
+                    },
+                    boxShadow: {
+                        sm: 'var(--shadow-sm)',
+                        DEFAULT: 'var(--shadow-md)',
+                        md: 'var(--shadow-md)',
+                        lg: 'var(--shadow-lg)',
+                        xl: 'var(--shadow-xl)',
+                    },
+                    spacing: {
+                        xs: 'var(--spacing-xs)',
+                        sm: 'var(--spacing-sm)',
+                        md: 'var(--spacing-md)',
+                        lg: 'var(--spacing-lg)',
+                        xl: 'var(--spacing-xl)',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
