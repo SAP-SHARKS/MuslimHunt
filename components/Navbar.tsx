@@ -194,7 +194,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center lg:ml-12 gap-7 h-full">
+          <div className="hidden lg:flex items-center lg:ml-12 gap-7 h-full nav-menu">
             {mainNavItems.map((menu) => (
               <React.Fragment key={menu.id}>
                 {menu.sub_items && menu.sub_items.length > 0 ? (
@@ -205,7 +205,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   }))} />
                 ) : (
                   <button onClick={() => { const tv = (menu.view || (menu as any).view_name); if (tv) { setView(tv as View); } }}
-                    className={`text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'text-primary font-black' : 'text-gray-600 hover:text-primary'}`}>
+                    className={`nav-link text-[13px] font-bold transition-colors py-4 px-1 flex items-center h-full relative ${(menu.view || (menu as any).view_name) === currentView ? 'active text-primary font-black' : 'text-gray-600 hover:text-primary'}`}>
                     {menu.label}{(menu.view || (menu as any).view_name) === currentView && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-hover rounded-full" />}
                   </button>
                 )}
