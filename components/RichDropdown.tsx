@@ -75,7 +75,7 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
             <p className="dropdown-text-primary text-[14px]">{item.label}</p>
             {item.subtext && <p className="dropdown-text-secondary text-[11px] mt-1">{item.subtext}</p>}
           </div>
-          <ChevronDown className="w-4 h-4 text-gray-400 -rotate-90 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ChevronDown className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity -rotate-90" style={{ color: 'var(--color-primary)' }} />
         </button>
       ))}
     </div>
@@ -107,13 +107,13 @@ const RichDropdown: React.FC<RichDropdownProps> = ({ label, items }) => {
         <button
           key={i}
           onClick={item.onClick}
-          className="dropdown-item flex flex-col items-start text-left group"
+          className="dropdown-item flex flex-col items-start text-left group card-item"
         >
-          <div className={`dropdown-icon w-12 h-12 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} mb-3`}>
+          <div className={`dropdown-icon w-12 h-12 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} mb-3 group-hover:shadow-md`}>
             <item.icon className="w-5 h-5" />
           </div>
           <div className="flex flex-col min-w-0 w-full">
-            <p className="dropdown-text-primary text-[13px] mb-1">{item.label}</p>
+            <p className="dropdown-text-primary text-[13px] mb-1 font-bold">{item.label}</p>
             {item.subtext && <p className="dropdown-text-secondary text-[10px] line-clamp-2">{item.subtext}</p>}
           </div>
         </button>
