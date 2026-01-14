@@ -9,6 +9,7 @@ import {
 import { User, View, Notification, NavMenuItem, Category } from '../types';
 import { formatTimeAgo } from '../utils/dateUtils';
 import NotificationBell from './NotificationBell.tsx';
+import RichDropdown from './RichDropdown';
 
 const ICON_MAP: Record<string, any> = {
   Rocket, MessageSquare, Mail, BookOpen, Star, Code, Cpu, CheckSquare, Palette, Users, DollarSign, Megaphone, Layout, Triangle, Bot, Sparkles, Trophy, Hash
@@ -47,43 +48,7 @@ const FORUMS_MOBILE = [
   { label: 'Events', sub: 'Meet others online and in-person', view: View.FORUM_HOME, icon: Calendar },
 ];
 
-interface DropdownItem {
-  label: string;
-  subtext?: string;
-  icon: any;
-  colorClass?: string;
-  bgClass?: string;
-  onClick?: () => void;
-}
-
-const RichDropdown: React.FC<{ label: string; items: DropdownItem[] }> = ({ label, items }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div className="relative group h-full flex items-center" onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
-      <button className="flex items-center gap-1.5 text-[13px] font-bold text-gray-600 hover:text-primary py-4 transition-colors">
-        {label}
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
-      {isOpen && (
-        <div className={`rich-dropdown-menu ${label === "Best Products" ? 'w-[520px]' : 'w-80'}`}>
-          <div className="py-4">{items.map((item, i) => (
-            <button key={i} onClick={item.onClick} className="dropdown-item w-full flex items-start gap-4">
-              <div className={`dropdown-icon w-9 h-9 ${item.bgClass || 'bg-gray-50'} rounded-xl flex items-center justify-center ${item.colorClass || 'text-gray-400'} shrink-0`}>
-                <item.icon className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col pt-0.5 min-w-0 text-left">
-                <p className="dropdown-text-primary">{item.label}</p>
-                {item.subtext && <p className="dropdown-text-secondary line-clamp-1">{item.subtext}</p>}
-              </div>
-            </button>
-          ))}</div>
-        </div>
-      )}
-    </div>
-  );
-};
+// RichDropdown component is now imported from separate file
 
 interface NavbarProps {
   user: User | null;
