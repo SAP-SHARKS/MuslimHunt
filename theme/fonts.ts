@@ -192,16 +192,45 @@ export function loadFontConfig(): { heading: string; body: string } | null {
 }
 
 /**
- * Initialize fonts on app load
+ * Initialize fonts on app load (checks database first for global theme fonts, then localStorage)
  */
-export function initializeFonts(): void {
+export async function initializeFonts(): Promise<void> {
+  console.log('[Fonts] 🚀 Initializing fonts...');
+
+  // PRIORITY 1: Try to load fonts from database (global theme published by admin)
+  try {
+    const { supabase } = await import('../lib/supabase');
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('config')
+      .eq('id', 'global_theme')
+      .single();
+
+    if (!error && data?.config) {
+      const config = data.config as any;
+      if (config.headingFont && config.bodyFont) {
+        console.log('[Fonts] ✅ Using global fonts from database:', {
+          heading: config.headingFont,
+          body: config.bodyFont
+        });
+        applyFonts(config.headingFont, config.bodyFont);
+        return;
+      }
+    }
+  } catch (error) {
+    console.debug('[Fonts] Could not load fonts from database, trying localStorage');
+  }
+
+  console.log('[Fonts] ℹ️ No global fonts, checking localStorage...');
+
+  // PRIORITY 2: Load from localStorage (user's personal customization)
   const saved = loadFontConfig();
 
   if (saved) {
-    console.log('[Fonts] Loading saved fonts:', saved);
+    console.log('[Fonts] ✅ Using personal fonts from localStorage:', saved);
     applyFonts(saved.heading, saved.body);
   } else {
-    console.log('[Fonts] Using default fonts');
+    console.log('[Fonts] ℹ️ Using default fonts from index.html');
     // Defaults are already in index.html
   }
 }

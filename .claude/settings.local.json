@@ -4,7 +4,8 @@
       "Bash(npm run dev:*)",
       "Bash(npx tsc:*)",
       "Bash(powershell -Command \"$files = Get-ChildItem -Path ''c:\\\\Users\\\\Asus\\\\Muslimhunt'' -Filter ''*.tsx'' -Recurse -File; Write-Host ''Found'' $files.Count ''.tsx files''; $files | Select-Object FullName | ForEach-Object { Write-Host $_FullName }\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

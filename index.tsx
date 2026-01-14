@@ -42,9 +42,13 @@ function applyMenuSettings() {
 }
 
 // Initialize theme and fonts from database before React renders
-initializeThemeFromDatabase();
-initializeFonts();
-applyMenuSettings();
+async function initializeApp() {
+  await initializeThemeFromDatabase();
+  await initializeFonts();
+  applyMenuSettings();
+}
+
+initializeApp();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
