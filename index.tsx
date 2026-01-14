@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
-import { initializeThemeFromDatabase } from './theme/apply.ts';
+import { initializeTheme } from './theme/apply.ts';
 
-// Initialize theme from database before React renders
-initializeThemeFromDatabase();
+// Initialize theme before React renders
+initializeTheme();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
