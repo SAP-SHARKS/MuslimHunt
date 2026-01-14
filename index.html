@@ -148,6 +148,65 @@
             background: #d1d5db;
             border-radius: 10px;
         }
+
+        /* Global theme-aware button styles - Override hardcoded colors */
+        /* Primary colored buttons */
+        .bg-emerald-600,
+        .bg-emerald-500,
+        .bg-green-600,
+        .bg-green-500,
+        .bg-blue-600,
+        .bg-blue-500 {
+            background-color: var(--color-primary) !important;
+        }
+
+        .bg-emerald-600:hover,
+        .bg-emerald-500:hover,
+        .bg-green-600:hover,
+        .bg-green-500:hover,
+        .bg-blue-600:hover,
+        .bg-blue-500:hover,
+        .hover\:bg-emerald-700:hover,
+        .hover\:bg-green-700:hover,
+        .hover\:bg-blue-700:hover {
+            background-color: var(--color-primary-hover) !important;
+        }
+
+        /* Text colors */
+        .text-emerald-600,
+        .text-emerald-500,
+        .text-green-600,
+        .text-green-500,
+        .text-blue-600,
+        .text-blue-500 {
+            color: var(--color-primary) !important;
+        }
+
+        .hover\:text-emerald-600:hover,
+        .hover\:text-green-600:hover,
+        .hover\:text-blue-600:hover {
+            color: var(--color-primary) !important;
+        }
+
+        /* Border colors */
+        .border-emerald-600,
+        .border-emerald-500,
+        .border-green-600,
+        .border-green-500,
+        .border-blue-600,
+        .border-blue-500 {
+            border-color: var(--color-primary) !important;
+        }
+
+        /* Ring colors (focus states) */
+        .ring-emerald-500,
+        .ring-green-500,
+        .ring-blue-500,
+        .focus\:ring-emerald-500:focus,
+        .focus\:ring-green-500:focus,
+        .focus\:ring-blue-500:focus {
+            --tw-ring-color: var(--color-primary) !important;
+        }
     </style>
 
 </head>

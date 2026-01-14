@@ -46,7 +46,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
   ];
 
   return (
-    <footer className="bg-[#042119] text-gray-400 py-8 mt-10 border-t border-emerald-900/30">
+    <footer className="bg-gray-900 text-gray-400 py-8 mt-10 border-t" style={{ borderColor: 'var(--color-primary-alpha-20)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {sections.map((section) => (
@@ -57,7 +57,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-[13px] hover:text-primary-light transition-colors">
+                    <a href="#" className="text-[13px] transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>
                       {link}
                     </a>
                   </li>
@@ -67,7 +67,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 border-y border-emerald-900/20 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 mb-12" style={{ borderTop: '1px solid var(--color-primary-alpha-20)', borderBottom: '1px solid var(--color-primary-alpha-20)' }}>
           {categoriesGrid.map((group) => (
             <div key={group.title}>
               <h3 className="text-gray-100 font-bold text-[11px] uppercase tracking-[0.2em] mb-6">
@@ -76,7 +76,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
               <ul className="space-y-3">
                 {group.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-[13px] hover:text-primary-light transition-colors">
+                    <a href="#" className="text-[13px] transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>
                       {link}
                     </a>
                   </li>
@@ -89,41 +89,47 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-8 text-[11px] font-medium tracking-tight uppercase">
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3">
             <span className="text-gray-500 font-black tracking-widest">© 2025 MUSLIM HUNT</span>
-            <button 
+            <button
               onClick={() => setView?.(View.NEWSLETTER)}
-              className="hover:text-primary-light transition-colors"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
             >
               Newsletter
             </button>
-            <a href="#" className="hover:text-primary-light transition-colors">Apps</a>
-            <a href="#" className="hover:text-primary-light transition-colors">About</a>
-            <a href="#" className="hover:text-primary-light transition-colors">FAQ</a>
-            <a href="#" className="hover:text-primary-light transition-colors">Terms</a>
-            <a href="#" className="hover:text-primary-light transition-colors">Privacy</a>
-            <button 
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Apps</a>
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>About</a>
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>FAQ</a>
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Terms</a>
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Privacy</a>
+            <button
               onClick={() => setView?.(View.SPONSOR)}
-              className="hover:text-primary-light transition-colors"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
             >
               Advertise
             </button>
-            <a href="#" className="hover:text-primary-light transition-colors italic">llms.txt</a>
-            <a href="#" className="hover:text-primary-light transition-colors">Contact us</a>
+            <a href="#" className="transition-colors italic" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>llms.txt</a>
+            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Contact us</a>
           </div>
 
           <div className="flex items-center gap-6">
-            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
+            <a href="#" className="text-gray-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = ''}>
               <Twitter className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
+            <a href="#" className="text-gray-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = ''}>
               <Linkedin className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
+            <a href="#" className="text-gray-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = ''}>
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
+            <a href="#" className="text-gray-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = ''}>
               <Instagram className="w-4 h-4" />
             </a>
-            <a href="#" className="text-gray-500 hover:text-primary-light transition-colors">
+            <a href="#" className="text-gray-500 transition-colors" onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = ''}>
               <Github className="w-4 h-4" />
             </a>
           </div>
