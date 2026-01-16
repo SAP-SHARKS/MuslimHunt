@@ -229,27 +229,27 @@ export const ThemeAdminPanel: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Palette className="w-8 h-8 text-primary" />
-          <h1 className="text-3xl font-bold text-gray-900">Theme Settings</h1>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-3 mb-2">
+          <Palette className="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Theme Settings</h1>
         </div>
-        <p className="text-gray-600">Customize the look and feel of your application</p>
+        <p className="text-sm sm:text-base text-gray-600">Customize the look and feel of your application</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Column: Controls */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Quick Presets */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Quick Presets</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Quick Presets</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {Object.keys(THEME_PRESETS).map((presetName) => (
                 <button
                   key={presetName}
                   onClick={() => applyPreset(presetName as keyof typeof THEME_PRESETS)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-primary-light transition capitalize text-sm font-medium"
+                  className="px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-primary-light transition capitalize text-xs sm:text-sm font-medium"
                 >
                   {presetName}
                 </button>
@@ -258,46 +258,46 @@ export const ThemeAdminPanel: React.FC = () => {
           </div>
 
           {/* Color Pickers */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Colors</h2>
-            <div className="space-y-4">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Colors</h2>
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   Primary Color
                 </label>
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2 sm:gap-3 items-center">
                   <input
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="w-20 h-12 rounded cursor-pointer border-2 border-gray-200"
+                    className="w-14 sm:w-20 h-10 sm:h-12 rounded cursor-pointer border-2 border-gray-200"
                   />
                   <input
                     type="text"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                    className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md font-mono text-xs sm:text-sm"
                     placeholder="#3b82f6"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   Accent Color
                 </label>
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2 sm:gap-3 items-center">
                   <input
                     type="color"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-20 h-12 rounded cursor-pointer border-2 border-gray-200"
+                    className="w-14 sm:w-20 h-10 sm:h-12 rounded cursor-pointer border-2 border-gray-200"
                   />
                   <input
                     type="text"
                     value={accentColor}
                     onChange={(e) => setAccentColor(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                    className="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md font-mono text-xs sm:text-sm"
                     placeholder="#8b5cf6"
                   />
                 </div>
@@ -306,87 +306,87 @@ export const ThemeAdminPanel: React.FC = () => {
           </div>
 
           {/* Background Style */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Background Style</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Background Style</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {backgroundOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => setBackgroundStyle(option.value)}
-                  className={`p-4 border-2 rounded-lg text-left transition ${
+                  className={`p-3 sm:p-4 border-2 rounded-lg text-left transition ${
                     backgroundColor === option.value
                       ? 'border-emerald-500 bg-primary-light'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="font-semibold text-gray-900">{option.label}</div>
-                  <div className="text-xs text-gray-600 mt-1">{option.description}</div>
+                  <div className="font-semibold text-gray-900 text-sm sm:text-base">{option.label}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1">{option.description}</div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Roundness */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Border Roundness</h2>
-            <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Border Roundness</h2>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {roundnessOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => setRoundness(option.value)}
-                  className={`p-4 border-2 rounded-lg text-center transition ${
+                  className={`p-2 sm:p-4 border-2 rounded-lg text-center transition ${
                     roundness === option.value
                       ? 'border-emerald-500 bg-primary-light'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="font-semibold text-gray-900 text-sm">{option.label}</div>
-                  <div className="text-xs text-gray-600 mt-1">{option.description}</div>
+                  <div className="font-semibold text-gray-900 text-xs sm:text-sm">{option.label}</div>
+                  <div className="text-[9px] sm:text-xs text-gray-600 mt-0.5 sm:mt-1 hidden sm:block">{option.description}</div>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Actions */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Actions</h2>
-            <div className="flex flex-wrap gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800">Actions</h2>
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium disabled:opacity-50 text-xs sm:text-sm col-span-2 sm:col-span-1"
               >
-                <Save className="w-4 h-4" />
+                <Save className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 {isSaving ? 'Saving...' : 'Save Theme'}
               </button>
               <button
                 onClick={handleReset}
-                className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-xs sm:text-sm"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 Reset
               </button>
               <button
                 onClick={handleExport}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-medium"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-medium text-xs sm:text-sm"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 Export
               </button>
               <button
                 onClick={handleImport}
-                className="flex items-center gap-2 px-6 py-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition font-medium"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition font-medium text-xs sm:text-sm"
               >
-                <Upload className="w-4 h-4" />
+                <Upload className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 Import
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Live Preview */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6">
+        {/* Right Column: Live Preview - Shows at top on mobile */}
+        <div className="lg:col-span-1 order-first lg:order-none">
+          <div className="lg:sticky lg:top-6">
             <ThemeLivePreview
               primaryColor={primaryColor}
               accentColor={accentColor}
