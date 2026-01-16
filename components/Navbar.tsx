@@ -420,13 +420,42 @@ const Navbar: React.FC<NavbarProps> = ({
 
               <div className="pt-4 border-t border-gray-100 mt-4">
                 {user ? (
-                  <button onClick={() => handleNavigate(View.PROFILE)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
-                    <div className="flex items-center gap-3">
-                      <UserIcon className="w-5 h-5 text-gray-400" />
-                      My Profile
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300" />
-                  </button>
+                  <>
+                    <button onClick={() => { handleNavigate(View.PROFILE_EDIT); setView(View.PROFILE, '/@' + user.username); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                      <div className="flex items-center gap-3">
+                        <UserIcon className="w-5 h-5 text-gray-400" />
+                        My Profile
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                    </button>
+                    <button onClick={() => handleNavigate(View.MY_PRODUCTS)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Menu className="w-5 h-5 text-gray-400" />
+                        My Products
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                    </button>
+                    <button onClick={() => handleNavigate(View.SETTINGS)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Settings className="w-5 h-5 text-gray-400" />
+                        Settings
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                    </button>
+                    <button onClick={() => handleNavigate(View.API_DASHBOARD)} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-gray-700 hover:bg-gray-100/50 transition-all">
+                      <div className="flex items-center gap-3">
+                        <Code className="w-5 h-5 text-gray-400" />
+                        API Dashboard
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                    </button>
+                    <button onClick={() => { onLogout(); closeDrawer(); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-red-600 hover:bg-red-50 transition-all border-t border-gray-100 mt-2">
+                      <div className="flex items-center gap-3">
+                        <LogOut className="w-5 h-5" />
+                        Logout
+                      </div>
+                    </button>
+                  </>
                 ) : (
                   <button onClick={() => { onSignInClick(); closeDrawer(); }} className="w-full flex items-center justify-between p-4 rounded-xl font-bold text-[16px] text-primary hover:bg-primary-light transition-all">
                     <div className="flex items-center gap-3">

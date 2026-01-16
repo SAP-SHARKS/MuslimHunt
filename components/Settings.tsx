@@ -82,10 +82,10 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
             case 'Followed products':
                 return (
                     <div className="max-w-4xl animate-fadeIn">
-                        <div className="flex items-center justify-between mb-8">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
                             <h2 className="text-2xl font-bold text-gray-900">Followed products</h2>
                             {/* Replicating the search bar from Product Hunt */}
-                            <div className="relative w-64">
+                            <div className="relative w-full sm:w-64">
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                                     <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -124,52 +124,52 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
                             {/* ... (Start of Verification inner content wrapper) */}
                             <div className="space-y-10">
                                 {/* Work Email */}
-                                <div className="flex gap-4">
-                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50"></div>
-                                    <div className="flex-1">
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50 self-start"></div>
+                                    <div className="flex-1 min-w-0">
                                         <h3 className="text-base font-bold text-gray-900 mb-1">Verify your work email</h3>
                                         <p className="text-sm text-gray-500 mb-4">Submit your work email address. (Recommended)</p>
 
                                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 mb-4">
                                             <p className="text-sm text-gray-600 mb-1">It looks like you already have a work email on your account:</p>
-                                            <p className="text-sm font-bold text-gray-900">{email}</p>
+                                            <p className="text-sm font-bold text-gray-900 break-all">{email}</p>
                                         </div>
 
-                                        <div className="flex gap-3">
-                                            <button className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm">
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                            <button className="px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm text-center">
                                                 Use this email
                                             </button>
-                                            <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
+                                            <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition-colors text-center">
                                                 Use another email
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 {/* GitHub */}
-                                <div className="flex gap-4">
-                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50"></div>
-                                    <div className="flex-1">
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50 self-start"></div>
+                                    <div className="flex-1 min-w-0">
                                         <h3 className="text-base font-bold text-gray-900 mb-1">GitHub profile</h3>
                                         <p className="text-sm text-gray-500 mb-4">Login with your GitHub profile. (Recommended)</p>
-                                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        <button className="flex items-center justify-center sm:justify-start gap-2 px-4 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto">
                                             <Github className="w-4 h-4" />
                                             Login with GitHub
                                         </button>
                                     </div>
                                 </div>
                                 {/* LinkedIn */}
-                                <div className="flex gap-4">
-                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50"></div>
-                                    <div className="flex-1">
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="mt-1 w-6 h-6 rounded-full border-2 border-gray-100 flex items-center justify-center flex-shrink-0 bg-gray-50 self-start"></div>
+                                    <div className="flex-1 min-w-0">
                                         <h3 className="text-base font-bold text-gray-900 mb-1">LinkedIn profile</h3>
                                         <p className="text-sm text-gray-500 mb-4">Submit your LinkedIn profile URL. (Recommended)</p>
-                                        <div className="flex gap-2 max-w-md">
+                                        <div className="flex flex-col sm:flex-row gap-2 max-w-md">
                                             <input
                                                 type="text"
                                                 placeholder="https://linkedin.com/in/username"
-                                                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
+                                                className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 w-full"
                                             />
-                                            <button className="px-5 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                            <button className="px-5 py-2 border border-gray-200 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto">
                                                 Add
                                             </button>
                                         </div>
@@ -313,13 +313,13 @@ const Settings: React.FC<SettingsProps> = ({ onNavigate, currentView = View.SETT
 
                 {/* Tabs */}
                 <div className="border-b border-gray-200 mb-8">
-                    <nav className="-mb-px flex space-x-8">
+                    <nav className="-mb-px flex space-x-8 overflow-x-auto pb-1 scrollbar-hide">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.name}
                                 onClick={() => handleTabClick(tab.name)}
                                 className={`
-                                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                                  whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors shrink-0
                   ${activeTab === tab.name || (loadingTab === tab.name)
                                         ? 'border-emerald-600 text-primary'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:text-primary'
