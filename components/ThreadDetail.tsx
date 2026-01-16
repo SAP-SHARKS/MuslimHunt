@@ -33,21 +33,47 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
             setLoading(true);
 
             try {
-                const { data, error } = await supabase
+                // Try fetching thread - RLS should allow:
+                // 1. Approved threads (public)
+                // 2. User's own threads (via author_id = auth.uid())
+                let { data, error } = await supabase
                     .from('threads')
                     .select(`
-            *,
-            profiles:author_id (
-              username,
-              avatar_url,
-              headline
-            )
-          `)
+                        *,
+                        profiles:author_id (
+                            username,
+                            avatar_url,
+                            headline
+                        )
+                    `)
                     .eq('slug', threadSlug)
                     .single();
 
+                // If RLS blocked and user is logged in, try fetching as author
+                if (error && user) {
+                    console.log('First query failed, trying author-specific query...');
+                    const { data: ownThread, error: ownError } = await supabase
+                        .from('threads')
+                        .select(`
+                            *,
+                            profiles:author_id (
+                                username,
+                                avatar_url,
+                                headline
+                            )
+                        `)
+                        .eq('slug', threadSlug)
+                        .eq('author_id', user.id)
+                        .single();
+
+                    if (!ownError && ownThread) {
+                        data = ownThread;
+                        error = null;
+                    }
+                }
+
                 if (error) {
-                    // If error (like RLS) but we have initialData, stick with initialData
+                    // If error but we have initialData, stick with initialData
                     if (initialData) {
                         setThread(initialData);
                         setLoading(false);
@@ -71,7 +97,7 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
         };
 
         if (threadSlug) fetchThread();
-    }, [threadSlug, initialData]); // Include initialData to handle fresh posts
+    }, [threadSlug, initialData, user]); // Include user to refetch when auth changes
 
     if (loading) return <ThreadDetailSkeleton />;
     if (!thread) return <div className="p-8 text-center text-gray-500">Thread not found</div>;
