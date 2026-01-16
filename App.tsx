@@ -340,7 +340,7 @@ const App: React.FC = () => {
       // Append random str to avoid collision
       slug = `${slug}-${Math.random().toString(36).substring(2, 7)}`;
 
-      // 2. Insert into Supabase
+      // 2. Insert into Supabase (is_approved: false means it needs admin review)
       const { data: insertedData, error } = await supabase
         .from('threads')
         .insert({
@@ -348,7 +348,8 @@ const App: React.FC = () => {
           body: data.body,
           category_id: data.category_id,
           slug: slug,
-          author_id: user.id
+          author_id: user.id,
+          is_approved: false
         })
         .select()
         .single();

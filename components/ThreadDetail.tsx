@@ -22,9 +22,15 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
 
     useEffect(() => {
         const fetchThread = async () => {
-            // If we have initialData and it matches the slug, we can skip loading state initially
-            // But we should still verify/update from server in background
-            if (!initialData) setLoading(true);
+            // If we have initialData and it matches the slug, use it directly
+            // This handles the case where author just created the thread (pending review)
+            if (initialData && initialData.slug === threadSlug) {
+                setThread(initialData);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
 
             try {
                 const { data, error } = await supabase
@@ -42,7 +48,11 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
 
                 if (error) {
                     // If error (like RLS) but we have initialData, stick with initialData
-                    if (initialData) return;
+                    if (initialData) {
+                        setThread(initialData);
+                        setLoading(false);
+                        return;
+                    }
                     throw error;
                 }
 
@@ -52,13 +62,16 @@ const ThreadDetail: React.FC<ThreadDetailProps> = ({ threadSlug, categorySlug, s
             } catch (err) {
                 console.error('Error fetching thread:', err);
                 // Keep showing initialData if available on error
+                if (initialData) {
+                    setThread(initialData);
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         if (threadSlug) fetchThread();
-    }, [threadSlug]); // Removing initialData from dependency to avoid loop if it changes
+    }, [threadSlug, initialData]); // Include initialData to handle fresh posts
 
     if (loading) return <ThreadDetailSkeleton />;
     if (!thread) return <div className="p-8 text-center text-gray-500">Thread not found</div>;
