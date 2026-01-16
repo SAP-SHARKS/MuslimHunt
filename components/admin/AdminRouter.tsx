@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { AdminDashboard } from './AdminDashboard';
 import { ThemeAdminPanelV2 } from './ThemeAdminPanelV2';
+import { ThreadReviewPanel } from './ThreadReviewPanel';
 import { useAuth } from '../../contexts/AuthContext';
 import { Shield, AlertTriangle, FileCheck } from 'lucide-react';
 
@@ -96,6 +97,9 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
             </div>
           </div>
         );
+
+      case 'threads':
+        return <ThreadReviewPanel />;
 
       case 'users':
         return (

@@ -5,6 +5,7 @@ import {
   Settings,
   Palette,
   FileCheck,
+  MessageSquareMore,
   Menu,
   X,
   LogOut,
@@ -41,6 +42,13 @@ const NAV_ITEMS: NavItem[] = [
     icon: FileCheck,
     color: 'text-green-600',
     description: 'Approve & Moderate',
+  },
+  {
+    id: 'threads',
+    label: 'Thread Review',
+    icon: MessageSquareMore,
+    color: 'text-orange-600',
+    description: 'Review Forum Threads',
   },
   {
     id: 'users',
