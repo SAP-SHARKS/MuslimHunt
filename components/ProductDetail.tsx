@@ -250,68 +250,71 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-8 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-8 animate-in fade-in duration-500">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors mb-10 group font-bold uppercase tracking-widest text-xs"
+        className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors mb-6 sm:mb-10 group font-bold uppercase tracking-widest text-[10px] sm:text-xs"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Back to discovery feed
+        <span className="hidden sm:inline">Back to discovery feed</span>
+        <span className="sm:hidden">Back</span>
       </button>
 
-      <div className="flex flex-col lg:flex-row gap-12">
-        <div className="flex-1 lg:max-w-[65%] space-y-12">
-          {/* Product Header */}
-          <div className="flex items-start gap-8">
-            <div className="w-24 h-24 rounded-[1.5rem] bg-white overflow-hidden border border-gray-100 shadow-sm shrink-0">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="flex-1 lg:max-w-[65%] space-y-8 sm:space-y-12">
+          {/* Product Header - Stacked on mobile */}
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-8">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-xl sm:rounded-[1.5rem] bg-white overflow-hidden border border-gray-100 shadow-sm shrink-0">
               <SafeImage src={product.logo_url} alt={product.name} seed={product.id} className="w-full h-full object-cover" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 w-full">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] px-2 py-0.5 bg-primary-light text-primary rounded-md font-black uppercase tracking-widest border border-primary-light/50">
+                <span className="text-[9px] sm:text-[10px] px-2 py-0.5 bg-primary-light text-primary rounded-md font-black uppercase tracking-widest border border-primary-light/50">
                   {product.category}
                 </span>
               </div>
-              <h1 className="text-4xl font-serif font-bold text-primary mb-2 tracking-tight">{product.name}</h1>
-              <p className="text-xl text-gray-500 font-medium leading-tight mb-6">{product.tagline}</p>
-              <div className="flex items-center gap-4">
+              <h1 className="text-2xl sm:text-4xl font-serif font-bold text-primary mb-2 tracking-tight">{product.name}</h1>
+              <p className="text-base sm:text-xl text-gray-500 font-medium leading-tight mb-4 sm:mb-6">{product.tagline}</p>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <a
                   href={product.website_url || product.url}
                   target="_blank" rel="noopener noreferrer"
-                  className="px-8 py-3.5 bg-primary text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl shadow-emerald-900/10 active:scale-[0.98] flex items-center gap-2"
+                  className="px-5 sm:px-8 py-3 sm:py-3.5 bg-primary text-white rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl shadow-emerald-900/10 active:scale-[0.98] flex items-center gap-2"
                 >
-                  Visit website <ExternalLink className="w-4 h-4" />
+                  <span className="hidden sm:inline">Visit website</span>
+                  <span className="sm:hidden">Visit</span>
+                  <ExternalLink className="w-4 h-4" />
                 </a>
 
                 {/* Comment Count Button (Product Hunt Style) */}
                 <button
                   onClick={() => discussionRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                  className="flex flex-col items-center justify-center min-w-[3.5rem] h-12 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-primary hover:border-primary-light transition-all shadow-sm active:scale-95 group"
+                  className="flex flex-col items-center justify-center min-w-[3rem] sm:min-w-[3.5rem] h-10 sm:h-12 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-gray-400 hover:text-primary hover:border-primary-light transition-all shadow-sm active:scale-95 group"
                 >
                   {isLoadingComments ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    <Loader2 className="w-4 sm:w-5 h-4 sm:h-5 animate-spin text-primary" />
                   ) : (
                     <>
-                      <MessageSquare className="w-5 h-5 mb-0.5 group-hover:text-primary transition-colors" />
-                      <span className="text-[11px] font-black tracking-tighter group-hover:text-primary transition-colors">
+                      <MessageSquare className="w-4 sm:w-5 h-4 sm:h-5 mb-0.5 group-hover:text-primary transition-colors" />
+                      <span className="text-[10px] sm:text-[11px] font-black tracking-tighter group-hover:text-primary transition-colors">
                         {localComments.length}
                       </span>
                     </>
                   )}
                 </button>
 
-                <button className="p-3.5 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-primary transition-all shadow-sm">
-                  <Share2 className="w-5 h-5" />
+                <button className="p-2.5 sm:p-3.5 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-gray-400 hover:text-primary transition-all shadow-sm">
+                  <Share2 className="w-4 sm:w-5 h-4 sm:h-5" />
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Media Gallery (Mock) */}
+          {/* Media Gallery (Mock) - Responsive */}
           <div className="space-y-4">
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
               {[1, 2].map((i) => (
-                <div key={i} className="min-w-[450px] aspect-video bg-gray-50 border border-gray-100 rounded-3xl overflow-hidden shadow-sm shrink-0">
+                <div key={i} className="min-w-[280px] sm:min-w-[450px] aspect-video bg-gray-50 border border-gray-100 rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm shrink-0">
                   <SafeImage
                     src={`https://images.unsplash.com/photo-${i === 1 ? ' photo-1584697964400-2af6a2f6204c' : 'photo-1517694712202-14dd9538aa97'}?w=900&q=80`}
                     alt="Gallery" className="w-full h-full object-cover"
@@ -322,14 +325,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           </div>
 
           <div className="prose prose-emerald max-w-none">
-            <h2 className="text-xl font-serif font-bold text-gray-900 mb-4">What's new?</h2>
-            <p className="text-gray-600 leading-relaxed text-lg whitespace-pre-wrap font-medium">
+            <h2 className="text-lg sm:text-xl font-serif font-bold text-gray-900 mb-3 sm:mb-4">What's new?</h2>
+            <p className="text-gray-600 leading-relaxed text-base sm:text-lg whitespace-pre-wrap font-medium">
               {product.description || "Building the next generation of Halal tools for the community."}
             </p>
           </div>
 
           {/* Discussion Section */}
-          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-12 shadow-sm scroll-mt-20">
+          <div ref={discussionRef} className="bg-white border border-gray-100 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 lg:p-12 shadow-sm scroll-mt-20">
             <div className="flex items-center justify-between mb-8 border-b border-gray-50 pb-6">
               <h3 className="text-lg font-bold text-primary flex items-center gap-3 uppercase tracking-tight">
                 <MessageSquare className="w-5 h-5 text-emerald-700" />
@@ -399,51 +402,54 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="lg:w-[35%] shrink-0">
-          <div className="sticky top-24 space-y-6">
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col items-center text-center">
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Support this Launch</h4>
-              <button
-                onClick={() => onUpvote(product.id)}
-                className={`w-full py-6 rounded-[1.5rem] font-black text-lg uppercase tracking-widest transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-2 border-2 ${hasUpvoted
-                  ? 'bg-primary border-primary text-white shadow-xl shadow-emerald-900/20'
-                  : 'bg-white border-primary text-primary hover:bg-primary-light'
-                  }`}
-              >
-                <Triangle className={`w-6 h-6 ${hasUpvoted ? 'fill-white' : ''}`} />
-                UPVOTE • {product.upvotes_count || 0}
-              </button>
-            </div>
+        {/* Sidebar - Shows below content on mobile, sticky sidebar on desktop */}
+        <div className="w-full lg:w-[35%] shrink-0 order-last lg:order-none">
+          <div className="lg:sticky lg:top-24 space-y-4 sm:space-y-6">
+            {/* Mobile: Horizontal scroll cards, Desktop: Stacked */}
+            <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
+              <div className="bg-white border border-gray-100 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-sm flex flex-col items-center text-center min-w-[260px] lg:min-w-0 shrink-0 lg:shrink">
+                <h4 className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4 sm:mb-6">Support this Launch</h4>
+                <button
+                  onClick={() => onUpvote(product.id)}
+                  className={`w-full py-4 sm:py-6 rounded-xl sm:rounded-[1.5rem] font-black text-base sm:text-lg uppercase tracking-widest transition-all active:scale-[0.98] flex flex-col items-center justify-center gap-2 border-2 ${hasUpvoted
+                    ? 'bg-primary border-primary text-white shadow-xl shadow-emerald-900/20'
+                    : 'bg-white border-primary text-primary hover:bg-primary-light'
+                    }`}
+                >
+                  <Triangle className={`w-5 sm:w-6 h-5 sm:h-6 ${hasUpvoted ? 'fill-white' : ''}`} />
+                  UPVOTE • {product.upvotes_count || 0}
+                </button>
+              </div>
 
-            <div className="bg-primary-dark rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-              <div className="relative z-10">
-                <div className="inline-block px-3 py-1 bg-emerald-400 text-[#064e3b] rounded-md text-[10px] font-black uppercase tracking-widest mb-4">
-                  PERFORMANCE
-                </div>
-                <p className="text-4xl font-serif font-bold mb-1">Top Tier</p>
-                <p className="text-emerald-300 text-[11px] font-black uppercase tracking-[0.2em] mb-8">Of the Week</p>
-                <div className="flex items-center gap-3 p-4 bg-primary/40 rounded-2xl border border-emerald-700/30">
-                  <ShieldCheck className="w-6 h-6 text-primary-light" />
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-widest">Status</p>
-                    <p className="text-sm font-bold text-emerald-50">{product.halal_status}</p>
+              <div className="bg-primary-dark rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 text-white relative overflow-hidden shadow-2xl min-w-[260px] lg:min-w-0 shrink-0 lg:shrink">
+                <div className="relative z-10">
+                  <div className="inline-block px-2 sm:px-3 py-1 bg-emerald-400 text-[#064e3b] rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-3 sm:mb-4">
+                    PERFORMANCE
+                  </div>
+                  <p className="text-2xl sm:text-4xl font-serif font-bold mb-1">Top Tier</p>
+                  <p className="text-emerald-300 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] mb-4 sm:mb-8">Of the Week</p>
+                  <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-primary/40 rounded-xl sm:rounded-2xl border border-emerald-700/30">
+                    <ShieldCheck className="w-5 sm:w-6 h-5 sm:h-6 text-primary-light" />
+                    <div>
+                      <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest">Status</p>
+                      <p className="text-xs sm:text-sm font-bold text-emerald-50">{product.halal_status}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-sm">
-              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">The Builder</h4>
-              <div className="flex items-center gap-4 group cursor-pointer" onClick={() => onViewProfile(product.user_id)}>
-                <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
-                  <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
+              <div className="bg-white border border-gray-100 rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-8 shadow-sm min-w-[260px] lg:min-w-0 shrink-0 lg:shrink">
+                <h4 className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 sm:mb-6">The Builder</h4>
+                <div className="flex items-center gap-3 sm:gap-4 group cursor-pointer" onClick={() => onViewProfile(product.user_id)}>
+                  <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl sm:rounded-2xl overflow-hidden border-2 border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
+                    <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-primary transition-colors truncate">View Profile</p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-tighter truncate">Maker of {product.name}</p>
+                  </div>
+                  <ChevronRight className="ml-auto w-4 sm:w-5 h-4 sm:h-5 text-gray-300 group-hover:text-primary transition-colors hidden sm:block" />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-gray-900 group-hover:text-primary transition-colors truncate">View Profile</p>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">Maker of {product.name}</p>
-                </div>
-                <ChevronRight className="ml-auto w-5 h-5 text-gray-300 group-hover:text-primary transition-colors" />
               </div>
             </div>
           </div>
