@@ -139,5 +139,6 @@ export enum View {
   VERIFICATION = 'verification',
   FORUM_CATEGORY = 'forum_category',
   FORUM_THREAD = 'forum_thread',
-  HELP_ARTICLE = 'help_article'
+  HELP_ARTICLE = 'help_article',
+  LAUNCH_ARCHIVE = 'launch_archive'
 }

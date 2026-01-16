@@ -38,6 +38,7 @@ import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
+import LaunchArchive from './components/LaunchArchive.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import { AdminRouter } from './components/admin/AdminRouter.tsx';
 import { DevAuthButtons } from './components/admin/DevAuthButtons.tsx';
@@ -200,6 +201,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   const [pendingUrl, setPendingUrl] = useState('');
+  const [archiveDate, setArchiveDate] = useState<string>('');
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false, yesterday: false, lastWeek: false, lastMonth: false
@@ -510,7 +512,21 @@ const App: React.FC = () => {
           setActiveCategory(catName);
           setView(View.CATEGORY_DETAIL);
         } else setView(View.CATEGORIES);
-      } else if (path === '/' || path === '') setView(View.HOME);
+      }
+      else if (path.startsWith('/leaderboard/')) {
+        // Launch Archive: /leaderboard/daily/2025/1/15
+        const match = path.match(/\/leaderboard\/daily\/(\d+)\/(\d+)\/(\d+)/);
+        if (match) {
+          const dateStr = `${match[1]}/${match[2]}/${match[3]}`;
+          setArchiveDate(dateStr);
+        } else {
+          // Default to today
+          const today = new Date();
+          setArchiveDate(`${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`);
+        }
+        setView(View.LAUNCH_ARCHIVE);
+      }
+      else if (path === '/' || path === '') setView(View.HOME);
     } catch (err) {
       setView(View.HOME);
     }
@@ -717,6 +733,13 @@ const App: React.FC = () => {
       else if (newView === View.DIRECTORY) path = '/products';
       else if (newView === View.CATEGORY_DETAIL && activeCategory) {
         path = `/categories/${slugify(activeCategory)}`;
+      }
+      else if (newView === View.LAUNCH_ARCHIVE) {
+        // Default to today's date if no path provided
+        const today = new Date();
+        const defaultDate = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()}`;
+        setArchiveDate(defaultDate);
+        path = `/leaderboard/daily/${defaultDate}`;
       }
       else if (newView === View.PROFILE && user) path = `/@${user.username}`;
       else if (newView === View.FORUM_CATEGORY && activeForumCategorySlug) path = `/p/${activeForumCategorySlug}`;
@@ -989,6 +1012,16 @@ const App: React.FC = () => {
             category={activeCategory} products={products} categories={categories}
             onBack={() => updateView(View.CATEGORIES)} onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
             onUpvote={handleUpvote} hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)} onCategorySelect={handleCategorySelect}
+          />
+        )}
+        {view === View.LAUNCH_ARCHIVE && (
+          <LaunchArchive
+            products={products}
+            initialDate={archiveDate}
+            setView={updateView}
+            onProductClick={(p) => { setSelectedProduct(p); updateView(View.DETAIL, `/products/${slugify(p.name)}`); }}
+            onUpvote={handleUpvote}
+            hasUpvoted={(id) => votes.has(`${user?.id}_${id}`)}
           />
         )}
         {view === View.DETAIL && selectedProduct && (

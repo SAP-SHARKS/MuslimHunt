@@ -30,10 +30,8 @@ const BEST_PRODUCTS_MOBILE = [
 ];
 
 const LAUNCHES_MOBILE = [
-  { label: 'Launch archive', view: View.HOME },
-  { label: 'Most-loved launches by the community', view: View.HOME },
-  { label: 'Launch Guide', view: View.POST_SUBMIT },
-  { label: 'Checklists/pro tips for launching', view: View.POST_SUBMIT },
+  { label: 'Launch archive', sub: 'Most-loved launches by the community', view: View.LAUNCH_ARCHIVE },
+  { label: 'Launch Guide', sub: 'Checklists and pro tips for launching', view: View.LAUNCH_GUIDE },
 ];
 
 const NEWS_MOBILE = [
@@ -359,8 +357,9 @@ const Navbar: React.FC<NavbarProps> = ({
                 {expandedAccordion === 'launches' && (
                   <div className="ml-4 mt-1 space-y-1 py-2 animate-in slide-in-from-top-2 duration-300">
                     {LAUNCHES_MOBILE.map((item, idx) => (
-                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex items-center gap-3 p-3 text-[14px] font-bold text-gray-600 hover:text-primary rounded-lg text-left">
-                        {item.label}
+                      <button key={idx} onClick={() => handleNavigate(item.view)} className="w-full flex flex-col p-3 hover:bg-primary-light rounded-lg text-left">
+                        <p className="text-[14px] font-bold text-gray-900">{item.label}</p>
+                        {item.sub && <p className="text-[12px] text-gray-500 font-medium">{item.sub}</p>}
                       </button>
                     ))}
                   </div>
