@@ -54,7 +54,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                 if (category) {
                     setCurrentCategory(category);
 
-                    // 2. Fetch threads
+                    // 2. Fetch threads (only approved ones)
                     // Note: joining profiles using the relation if it exists, otherwise we might just get author_id
                     // Assuming 'profiles' table is related via author_id
                     const { data, error } = await supabase
@@ -68,6 +68,7 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
               )
             `)
                         .eq('category_id', category.id)
+                        .eq('is_approved', true)
                         .order('created_at', { ascending: false });
 
                     if (!error && data) {
