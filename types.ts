@@ -196,5 +196,6 @@ export enum View {
   STORIES = 'stories',
   STORY_DETAIL = 'story_detail',
   STORY_CATEGORY = 'story_category',
-  ABOUT = 'about'
+  ABOUT = 'about',
+  LEGAL = 'legal'
 }
