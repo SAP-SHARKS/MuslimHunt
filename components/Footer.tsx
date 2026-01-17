@@ -177,11 +177,42 @@ const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = []
             >
               Newsletter
             </button>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Apps</a>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>About</a>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>FAQ</a>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Terms</a>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Privacy</a>
+            <a
+              href="/about"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+            >
+              About
+            </a>
+            <a
+              href="/help"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+            >
+              FAQ
+            </a>
+            <a
+              href="/legal#terms"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+            >
+              Terms
+            </a>
+            <a
+              href="/legal#privacy"
+              className="transition-colors"
+              style={{ color: 'inherit' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+            >
+              Privacy
+            </a>
             <button
               onClick={() => setView?.(View.SPONSOR)}
               className="transition-colors"
@@ -191,8 +222,7 @@ const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = []
             >
               Advertise
             </button>
-            <a href="#" className="transition-colors italic" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>llms.txt</a>
-            <a href="#" className="transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>Contact us</a>
+            <span className="text-gray-500">Contact us: hello@muslim-hunt.vercel.app</span>
           </div>
 
           <div className="flex items-center gap-6">
