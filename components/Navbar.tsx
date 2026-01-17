@@ -36,7 +36,7 @@ const LAUNCHES_MOBILE = [
 
 const NEWS_MOBILE = [
   { label: 'Newsletter', sub: 'The best of Muslim Hunt, every day', view: View.NEWSLETTER, icon: Mail },
-  { label: 'Stories', sub: 'Tech news, interviews, and tips from makers', view: View.NEWSLETTER, icon: BookOpen },
+  { label: 'Stories', sub: 'Tech news, interviews, and tips from makers', view: View.STORIES, icon: BookOpen },
   { label: 'Changelog', sub: 'New Muslim Hunt features and releases', view: View.NEWSLETTER, icon: Rocket },
 ];
 
