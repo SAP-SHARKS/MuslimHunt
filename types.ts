@@ -142,5 +142,6 @@ export enum View {
   HELP_ARTICLE = 'help_article',
   LAUNCH_ARCHIVE = 'launch_archive',
   HOW_IT_WORKS = 'how_it_works',
-  BEFORE_LAUNCH = 'before_launch'
+  BEFORE_LAUNCH = 'before_launch',
+  PREPARING_FOR_LAUNCH = 'preparing_for_launch'
 }

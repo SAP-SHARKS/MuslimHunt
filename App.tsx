@@ -17,6 +17,7 @@ import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
 import LaunchGuide from './components/LaunchGuide.tsx';
 import LaunchGuideSkeleton from './components/LaunchGuideSkeleton.tsx';
 import BeforeLaunch from './components/BeforeLaunch.tsx';
+import PreparingForLaunch from './components/PreparingForLaunch.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -452,6 +453,9 @@ const App: React.FC = () => {
       else if (path.startsWith('/launch/before-launch')) {
         setView(View.BEFORE_LAUNCH);
       }
+      else if (path.startsWith('/launch/preparing-for-launch')) {
+        setView(View.PREPARING_FOR_LAUNCH);
+      }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
         setTimeout(() => setIsLoadingHelpCenter(false), 800);
@@ -717,6 +721,9 @@ const App: React.FC = () => {
       }
       else if (newView === View.BEFORE_LAUNCH) {
         path = '/launch/before-launch';
+      }
+      else if (newView === View.PREPARING_FOR_LAUNCH) {
+        path = '/launch/preparing-for-launch';
       }
       else if (newView === View.HELP_CENTER) {
         path = '/help';
@@ -1134,6 +1141,10 @@ const App: React.FC = () => {
 
         {view === View.BEFORE_LAUNCH && (
           <BeforeLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.PREPARING_FOR_LAUNCH && (
+          <PreparingForLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (

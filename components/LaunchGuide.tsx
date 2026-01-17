@@ -48,7 +48,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
                 setLaunchLinks([
                     { id: '1', icon: '🔍', label: 'Hunters: Do you need one?', url: 'https://muslim-hunt.vercel.app/launch/before-launch#hunters-do-you-need-one', display_order: 1 },
                     { id: '2', icon: '📦', label: 'Setting pack', url: 'https://muslim-hunt.vercel.app/launch/before-launch#setting-goals', display_order: 2 },
-                    { id: '3', icon: '📅', label: 'Content checklist', url: '#', display_order: 3 },
+                    { id: '3', icon: '📅', label: 'Content checklist', url: 'https://muslim-hunt.vercel.app/launch/preparing-for-launch#content-checklist', display_order: 3 },
                     { id: '4', icon: '🎬', label: 'Maker stories & studios', url: '#', display_order: 4 }
                 ]);
             } else if (data) {

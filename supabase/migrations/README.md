@@ -29,7 +29,7 @@ SELECT * FROM launch_guide_links ORDER BY display_order;
 You should see 4 links:
 - 🔍 Hunters: Do you need one? (points to: https://muslim-hunt.vercel.app/launch/before-launch#hunters-do-you-need-one)
 - 📦 Setting pack (points to: https://muslim-hunt.vercel.app/launch/before-launch#setting-goals)
-- 📅 Content checklist
+- 📅 Content checklist (points to: https://muslim-hunt.vercel.app/launch/preparing-for-launch#content-checklist)
 - 🎬 Maker stories & studios
 
 ### Step 4: Run Migration #2 - Launch Content
@@ -45,9 +45,10 @@ After running the migration, verify the content:
 SELECT page_id, title FROM launch_content WHERE is_active = true;
 ```
 
-You should see 2 content sections:
+You should see 3 content sections:
 - hunters-do-you-need-one | Hunters: Do you need one?
 - setting-goals | Setting goals
+- content-checklist | Content checklist
 
 ## How to Update Links in the Future
 
