@@ -44,6 +44,7 @@ import NotificationsPage from './components/NotificationsPage.tsx';
 import NotificationsSkeleton from './components/NotificationsSkeleton.tsx';
 import Sponsor from './components/Sponsor.tsx';
 import Newsletter from './components/Newsletter.tsx';
+import About from './components/About.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import LaunchArchive from './components/LaunchArchive.tsx';
@@ -444,6 +445,7 @@ const App: React.FC = () => {
       else if (path === '/forums/comments') setView(View.RECENT_COMMENTS);
       else if (path === '/sponsor') setView(View.SPONSOR);
       else if (path === '/newsletters') setView(View.NEWSLETTER);
+      else if (path === '/about' || path === '/branding') setView(View.ABOUT);
       else if (path === '/categories') setView(View.CATEGORIES);
       else if (path === '/my/welcome') setView(View.WELCOME);
       else if (path === '/my/details/edit') {
@@ -1131,6 +1133,7 @@ const App: React.FC = () => {
         )}
         {view === View.NEWSLETTER && <Newsletter onSponsorClick={() => setView(View.SPONSOR)} />}
         {view === View.SPONSOR && <Sponsor />}
+        {view === View.ABOUT && <About onBack={() => updateView(View.HOME)} setView={updateView} />}
 
         {view === View.PROFILE && (
           isLoadingProfile || !selectedProfile ? (
