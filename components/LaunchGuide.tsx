@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Rocket, Users, BookOpen, HelpCircle, ArrowRight, ExternalLink, ChevronDown } from 'lucide-react';
 import { View } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface LaunchGuideProps {
     onBack: () => void;
@@ -13,8 +14,17 @@ interface ExpandableAnswer {
     fullA: string;
 }
 
+interface LaunchGuideLink {
+    id: string;
+    icon: string;
+    label: string;
+    url: string;
+    display_order: number;
+}
+
 const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
     const [expandedQuestions, setExpandedQuestions] = useState<Record<number, boolean>>({});
+    const [launchLinks, setLaunchLinks] = useState<LaunchGuideLink[]>([]);
 
     const toggleQuestion = (index: number) => {
         setExpandedQuestions(prev => ({
@@ -22,6 +32,32 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
             [index]: !prev[index]
         }));
     };
+
+    // Fetch launch guide links from Supabase
+    useEffect(() => {
+        const fetchLaunchLinks = async () => {
+            const { data, error } = await supabase
+                .from('launch_guide_links')
+                .select('*')
+                .eq('is_active', true)
+                .order('display_order', { ascending: true });
+
+            if (error) {
+                console.error('Error fetching launch links:', error);
+                // Fallback to default links if fetch fails
+                setLaunchLinks([
+                    { id: '1', icon: '🔍', label: 'Hunters: Do you need one?', url: 'https://muslim-hunt.vercel.app/launch/before-launch#hunters:-do-you-need-one?', display_order: 1 },
+                    { id: '2', icon: '📦', label: 'Setting pack', url: '#', display_order: 2 },
+                    { id: '3', icon: '📅', label: 'Content checklist', url: '#', display_order: 3 },
+                    { id: '4', icon: '🎬', label: 'Maker stories & studios', url: '#', display_order: 4 }
+                ]);
+            } else if (data) {
+                setLaunchLinks(data);
+            }
+        };
+
+        fetchLaunchLinks();
+    }, []);
 
     const commonQuestions: ExpandableAnswer[] = [
         {
@@ -185,14 +221,14 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
                                     <span className="font-bold">My launch on Muslim Hunt</span>
                                 </button>
                             </li>
-                            {[
-                                { icon: '🔍', label: 'How can I do you need one?' },
-                                { icon: '📦', label: 'Setting pack' },
-                                { icon: '📅', label: 'Content checklist' },
-                                { icon: '🎬', label: 'Maker stories & studios' }
-                            ].map((link, i) => (
-                                <li key={i}>
-                                    <a href="#" className="flex items-center gap-3 text-xs sm:text-sm text-gray-600 hover:text-primary transition-colors group py-2 px-3 rounded-lg hover:bg-primary-light/30">
+                            {launchLinks.map((link) => (
+                                <li key={link.id}>
+                                    <a
+                                        href={link.url}
+                                        className="flex items-center gap-3 text-xs sm:text-sm text-gray-600 hover:text-primary transition-colors group py-2 px-3 rounded-lg hover:bg-primary-light/30"
+                                        target={link.url.startsWith('http') ? '_blank' : '_self'}
+                                        rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                    >
                                         <span className="shrink-0 w-5 text-center text-base">{link.icon}</span>
                                         <span className="font-bold">{link.label}</span>
                                     </a>
