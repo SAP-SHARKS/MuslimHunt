@@ -53,6 +53,11 @@ export const ThreadReviewPanel: React.FC = () => {
   const fetchPendingThreads = async () => {
     setLoading(true);
     try {
+      // Debug: Log current session info
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[ThreadReview] Current user email:', session?.user?.email);
+      console.log('[ThreadReview] JWT email claim:', session?.user?.email);
+
       const { data, error } = await supabase
         .from('threads')
         .select(`
@@ -63,7 +68,13 @@ export const ThreadReviewPanel: React.FC = () => {
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ThreadReview] Failed to fetch pending threads:', error);
+        console.error('[ThreadReview] Error details:', error.message, error.details, error.hint);
+        throw error;
+      }
+
+      console.log('[ThreadReview] Fetched threads:', data?.length || 0);
       setPendingThreads(data || []);
     } catch (err) {
       console.error('[ThreadReview] Failed to fetch pending threads:', err);
