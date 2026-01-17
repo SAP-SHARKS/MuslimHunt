@@ -1,53 +1,83 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Twitter, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
-import { View } from '../types';
+import { View, Category, Product } from '../types';
 
 interface FooterProps {
   setView?: (view: View) => void;
+  categories?: Category[];
+  products?: Product[];
 }
 
-const Footer: React.FC<FooterProps> = ({ setView }) => {
-  const sections = [
-    {
-      title: "Engineering & Dev",
-      links: ["AI Development", "Web Frameworks", "No-code Tools", "API Management", "DevOps Tools", "Open Source"]
-    },
-    {
-      title: "LLMs & AI",
-      links: ["GPT-4o Solutions", "Ethical AI Tools", "AI Voice Generators", "Vector Databases", "ML Platforms", "AI Safety"]
-    },
-    {
-      title: "Productivity",
-      links: ["Task Management", "Halal Habit Trackers", "Focus Apps", "Collaboration Tools", "Note Taking", "Calendar Sync"]
-    },
-    {
-      title: "Growth & Sales",
-      links: ["Ethical Marketing", "CRM Platforms", "Lead Generation", "Ad Networks", "Customer Support", "SEO Tools"]
-    }
-  ];
+const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = [] }) => {
+  // Group categories by parent_category
+  const sections = useMemo(() => {
+    const grouped: Record<string, string[]> = {};
+    categories.forEach(cat => {
+      const parent = cat.parent_category || 'Other';
+      if (!grouped[parent]) {
+        grouped[parent] = [];
+      }
+      grouped[parent].push(cat.name);
+    });
 
-  const categoriesGrid = [
-    {
-      title: "Trending Categories",
-      links: ["Muslim Tech Ecosystem", "Shariah Fintech", "Quranic EdTech", "Halal Travel Guides", "Spirituality Tools"]
-    },
-    {
-      title: "Top Reviewed",
-      links: ["QuranFlow 2.0", "HalalWallet", "ArabicHero", "MasjidFinder", "NikahMatch"]
-    },
-    {
-      title: "Trending Products",
-      links: ["SunnahSleep", "SalahSync", "ZakatStream", "MuslimMind", "UmmahConnect"]
-    },
-    {
-      title: "Top Forum Threads",
-      links: ["Building in Public", "Best Tech Stack for Halal", "Seeking Beta Testers", "Ethical AI Future", "Community AMA"]
-    }
-  ];
+    // Sort links alphabetically within each group
+    Object.keys(grouped).forEach(key => {
+      grouped[key].sort();
+    });
+
+    return Object.entries(grouped).map(([title, links]) => ({
+      title,
+      links
+    }));
+  }, [categories]);
+
+  // Derive dynamic lists for the second grid
+  const dynamicCategoriesGrid = useMemo(() => {
+    // 1. Trending Categories (For now, just pick some categories or separate logic if needed)
+    // We can use the first 5 categories that are not already prominent, or just random
+    const trendingCategories = categories.slice(0, 5).map(c => c.name);
+
+    // 2. Top Reviewed (Most comments)
+    // Note: comments is an array in Product type, so check length
+    const topReviewed = [...products]
+      .sort((a, b) => (b.comments?.length || 0) - (a.comments?.length || 0))
+      .slice(0, 5)
+      .map(p => p.name);
+
+    // 3. Trending Products (Most upvotes)
+    const trendingProducts = [...products]
+      .sort((a, b) => (b.upvotes_count || 0) - (a.upvotes_count || 0))
+      .slice(0, 5)
+      .map(p => p.name);
+
+    // 4. Top Forum Threads (Hardcoded for now as we don't have global threads prop yet)
+    // Ideally this should be passed as a prop too if we want it dynamic
+    const topForumThreads = ["Building in Public", "Best Tech Stack for Halal", "Seeking Beta Testers", "Ethical AI Future", "Community AMA"];
+
+    return [
+      {
+        title: "Trending Categories",
+        links: trendingCategories.length > 0 ? trendingCategories : ["Muslim Tech Ecosystem", "Shariah Fintech", "Quranic EdTech", "Halal Travel Guides", "Spirituality Tools"]
+      },
+      {
+        title: "Top Reviewed",
+        links: topReviewed.length > 0 ? topReviewed : ["QuranFlow 2.0", "HalalWallet", "ArabicHero", "MasjidFinder", "NikahMatch"]
+      },
+      {
+        title: "Trending Products",
+        links: trendingProducts.length > 0 ? trendingProducts : ["SunnahSleep", "SalahSync", "ZakatStream", "MuslimMind", "UmmahConnect"]
+      },
+      {
+        title: "Top Forum Threads",
+        links: topForumThreads
+      }
+    ];
+  }, [categories, products]);
 
   return (
     <footer className="bg-gray-900 text-gray-400 py-8 mt-10 border-t" style={{ borderColor: 'var(--color-primary-alpha-20)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
+        {/* Main Categories Section (Dynamic from Supabase) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {sections.map((section) => (
             <div key={section.title}>
@@ -67,8 +97,9 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
           ))}
         </div>
 
+        {/* Secondary Grid (Trending/Stats) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12 mb-12" style={{ borderTop: '1px solid var(--color-primary-alpha-20)', borderBottom: '1px solid var(--color-primary-alpha-20)' }}>
-          {categoriesGrid.map((group) => (
+          {dynamicCategoriesGrid.map((group) => (
             <div key={group.title}>
               <h3 className="text-gray-100 font-bold text-[11px] uppercase tracking-[0.2em] mb-6">
                 {group.title}
@@ -86,6 +117,7 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
           ))}
         </div>
 
+        {/* Bottom Footer */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 pt-8 text-[11px] font-medium tracking-tight uppercase">
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3">
             <span className="text-gray-500 font-black tracking-widest">© 2025 MUSLIM HUNT</span>

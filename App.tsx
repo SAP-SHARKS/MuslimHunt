@@ -1281,7 +1281,7 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <Footer setView={updateView} />
+      <Footer setView={updateView} categories={categories} products={products} />
 
       {/* Dev Authentication Buttons - Only visible in development */}
       <DevAuthButtons />
