@@ -21,6 +21,7 @@ import PreparingForLaunch from './components/PreparingForLaunch.tsx';
 import DaysAfterLaunch from './components/DaysAfterLaunch.tsx';
 import SharingYourLaunch from './components/SharingYourLaunch.tsx';
 import LaunchDayDuties from './components/LaunchDayDuties.tsx';
+import Definitions from './components/Definitions.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -467,6 +468,9 @@ const App: React.FC = () => {
       }
       else if (path.startsWith('/launch/launch-day-duties')) {
         setView(View.LAUNCH_DAY_DUTIES);
+      }
+      else if (path.startsWith('/launch/definitions')) {
+        setView(View.DEFINITIONS);
       }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
@@ -1169,6 +1173,10 @@ const App: React.FC = () => {
 
         {view === View.LAUNCH_DAY_DUTIES && (
           <LaunchDayDuties onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.DEFINITIONS && (
+          <Definitions onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (
