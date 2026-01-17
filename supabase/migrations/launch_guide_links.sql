@@ -27,7 +27,7 @@ INSERT INTO launch_guide_links (icon, label, url, display_order) VALUES
 ('🔍', 'Hunters: Do you need one?', 'https://muslim-hunt.vercel.app/launch/before-launch#hunters-do-you-need-one', 1),
 ('📦', 'Setting pack', 'https://muslim-hunt.vercel.app/launch/before-launch#setting-goals', 2),
 ('📅', 'Content checklist', 'https://muslim-hunt.vercel.app/launch/preparing-for-launch#content-checklist', 3),
-('🎬', 'Maker stories & studios', '#', 4);
+('🎬', 'Marketing strategies', 'https://muslim-hunt.vercel.app/launch/sharing-your-launch#marketing-strategies', 4);
 
 -- Create updated_at trigger function if it doesn't exist
 CREATE OR REPLACE FUNCTION update_updated_at_column()

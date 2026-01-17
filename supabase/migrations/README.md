@@ -30,7 +30,7 @@ You should see 4 links:
 - 🔍 Hunters: Do you need one? (points to: https://muslim-hunt.vercel.app/launch/before-launch#hunters-do-you-need-one)
 - 📦 Setting pack (points to: https://muslim-hunt.vercel.app/launch/before-launch#setting-goals)
 - 📅 Content checklist (points to: https://muslim-hunt.vercel.app/launch/preparing-for-launch#content-checklist)
-- 🎬 Maker stories & studios
+- 🎬 Marketing strategies (points to: https://muslim-hunt.vercel.app/launch/sharing-your-launch#marketing-strategies)
 
 ### Step 4: Run Migration #2 - Launch Content
 1. Open the file `launch_content.sql` in this folder
