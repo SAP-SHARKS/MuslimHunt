@@ -13,6 +13,7 @@ const Stories: React.FC<StoriesProps> = ({ onStoryClick, categorySlug }) => {
   const [categories, setCategories] = useState<StoryCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(categorySlug || 'all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch categories
   useEffect(() => {
@@ -23,7 +24,15 @@ const Stories: React.FC<StoriesProps> = ({ onStoryClick, categorySlug }) => {
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      if (data) {
+      if (error) {
+        console.error('Error fetching story categories:', error);
+        // Check if it's a table not found error
+        if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+          setError('Stories database not set up. Please run the SQL migrations in Supabase.');
+        }
+        // Set loading to false even if categories fail
+        setLoading(false);
+      } else if (data) {
         setCategories(data);
       }
     };
@@ -57,6 +66,11 @@ const Stories: React.FC<StoriesProps> = ({ onStoryClick, categorySlug }) => {
 
       if (error) {
         console.error('Error fetching stories:', error);
+        console.error('Error details:', error.message, error.details, error.hint);
+        // Check if it's a table not found error
+        if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+          setError('Stories database not set up. Please run the SQL migrations in Supabase.');
+        }
       } else if (data) {
         setStories(data);
       }
@@ -64,9 +78,9 @@ const Stories: React.FC<StoriesProps> = ({ onStoryClick, categorySlug }) => {
       setLoading(false);
     };
 
-    if (categories.length > 0) {
-      fetchStories();
-    }
+    // Always try to fetch stories, even if categories are empty
+    // This allows the component to show the empty state with proper error messages
+    fetchStories();
   }, [activeCategory, categories]);
 
   // Update active category when categorySlug prop changes
@@ -140,7 +154,27 @@ const Stories: React.FC<StoriesProps> = ({ onStoryClick, categorySlug }) => {
 
       {/* Stories Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {loading ? (
+        {error ? (
+          <div className="text-center py-20">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl mx-auto">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-red-900 mb-2">Database Setup Required</h3>
+              <p className="text-red-700 mb-4">{error}</p>
+              <div className="text-left bg-white rounded p-4 text-sm text-gray-700">
+                <p className="font-semibold mb-2">To fix this:</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Go to your Supabase project dashboard</li>
+                  <li>Open the SQL Editor</li>
+                  <li>Run the migration file: <code className="bg-gray-100 px-1 rounded">00_stories_setup.sql</code></li>
+                  <li>Then run: <code className="bg-gray-100 px-1 rounded">01_stories_sample_data.sql</code></li>
+                  <li>Refresh this page</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
