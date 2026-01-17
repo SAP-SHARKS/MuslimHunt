@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   FileCheck,
@@ -11,6 +11,7 @@ import {
   BarChart3,
   ChevronRight,
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 interface ActionCard {
   id: string;
@@ -34,6 +35,35 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, stats }) => {
+  const [pendingThreadsCount, setPendingThreadsCount] = useState(0);
+  const [pendingProductsCount, setPendingProductsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      // Fetch pending threads count
+      const { count: threadsCount, error: threadsError } = await supabase
+        .from('threads')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_approved', false);
+
+      if (!threadsError && threadsCount !== null) {
+        setPendingThreadsCount(threadsCount);
+      }
+
+      // Fetch pending products count
+      const { count: productsCount, error: productsError } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_approved', false);
+
+      if (!productsError && productsCount !== null) {
+        setPendingProductsCount(productsCount);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
   const actionCards: ActionCard[] = [
     {
       id: 'products',
@@ -42,8 +72,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate, stat
       icon: FileCheck,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
-      stats: stats?.pendingProducts ? `${stats.pendingProducts} pending` : undefined,
+      stats: pendingProductsCount > 0 ? `${pendingProductsCount} pending` : undefined,
       onClick: () => onNavigate?.('products'),
+    },
+    {
+      id: 'threads',
+      label: 'Thread Review',
+      description: 'Review and approve forum discussions',
+      icon: MessageSquare,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-100',
+      stats: pendingThreadsCount > 0 ? `${pendingThreadsCount} pending` : undefined,
+      onClick: () => onNavigate?.('threads'),
     },
     {
       id: 'users',
