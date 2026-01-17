@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Twitter, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
 import { View, Category, Product } from '../types';
+import { slugify } from '../utils/searchUtils';
 
 interface FooterProps {
   setView?: (view: View) => void;
@@ -50,9 +51,13 @@ const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = []
       .slice(0, 5)
       .map(p => p.name);
 
-    // 4. Top Forum Threads (Hardcoded for now as we don't have global threads prop yet)
-    // Ideally this should be passed as a prop too if we want it dynamic
-    const topForumThreads = ["Building in Public", "Best Tech Stack for Halal", "Seeking Beta Testers", "Ethical AI Future", "Community AMA"];
+    // 4. Top Forum Threads
+    const topForumThreads = [
+      { name: "General", slug: "general" },
+      { name: "Vibecoding", slug: "vibecoding" },
+      { name: "Questions", slug: "questions" },
+      { name: "Introduce yourself", slug: "introduce-yourself" }
+    ];
 
     return [
       {
@@ -87,7 +92,13 @@ const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = []
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-[13px] transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>
+                    <a
+                      href={`/categories/${slugify(link)}`}
+                      className="text-[13px] transition-colors"
+                      style={{ color: 'inherit' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+                    >
                       {link}
                     </a>
                   </li>
@@ -105,13 +116,49 @@ const Footer: React.FC<FooterProps> = ({ setView, categories = [], products = []
                 {group.title}
               </h3>
               <ul className="space-y-3">
-                {group.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="text-[13px] transition-colors" style={{ color: 'inherit' }} onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}>
-                      {link}
-                    </a>
-                  </li>
-                ))}
+                {group.title === "Top Forum Threads" ? (
+                  (group.links as Array<{ name: string; slug: string }>).map((thread) => (
+                    <li key={thread.slug}>
+                      <a
+                        href={`/p/${thread.slug}`}
+                        className="text-[13px] transition-colors"
+                        style={{ color: 'inherit' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+                      >
+                        {thread.name}
+                      </a>
+                    </li>
+                  ))
+                ) : group.title === "Trending Categories" ? (
+                  (group.links as string[]).map((link) => (
+                    <li key={link}>
+                      <a
+                        href={`/categories/${slugify(link)}`}
+                        className="text-[13px] transition-colors"
+                        style={{ color: 'inherit' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))
+                ) : (
+                  (group.links as string[]).map((link) => (
+                    <li key={link}>
+                      <a
+                        href={`/products/${slugify(link)}`}
+                        className="text-[13px] transition-colors"
+                        style={{ color: 'inherit' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
+                      >
+                        {link}
+                      </a>
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
           ))}
