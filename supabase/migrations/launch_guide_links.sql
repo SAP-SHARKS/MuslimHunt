@@ -25,7 +25,7 @@ CREATE POLICY "Anyone can view active launch guide links"
 -- Insert initial links data
 INSERT INTO launch_guide_links (icon, label, url, display_order) VALUES
 ('🔍', 'Hunters: Do you need one?', 'https://muslim-hunt.vercel.app/launch/before-launch#hunters:-do-you-need-one?', 1),
-('📦', 'Setting pack', '#', 2),
+('📦', 'Setting pack', 'https://muslim-hunt.vercel.app/launch/before-launch#setting-goals', 2),
 ('📅', 'Content checklist', '#', 3),
 ('🎬', 'Maker stories & studios', '#', 4);
 

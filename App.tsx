@@ -16,6 +16,7 @@ import MyProducts from './components/MyProducts.tsx';
 import MyProductsSkeleton from './components/MyProductsSkeleton.tsx';
 import LaunchGuide from './components/LaunchGuide.tsx';
 import LaunchGuideSkeleton from './components/LaunchGuideSkeleton.tsx';
+import BeforeLaunch from './components/BeforeLaunch.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -448,6 +449,9 @@ const App: React.FC = () => {
       else if (path.startsWith('/launch/how-muslim-hunt-works')) {
         setView(View.HOW_IT_WORKS);
       }
+      else if (path.startsWith('/launch/before-launch')) {
+        setView(View.BEFORE_LAUNCH);
+      }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
         setTimeout(() => setIsLoadingHelpCenter(false), 800);
@@ -710,6 +714,9 @@ const App: React.FC = () => {
       }
       else if (newView === View.HOW_IT_WORKS) {
         path = '/launch/how-muslim-hunt-works';
+      }
+      else if (newView === View.BEFORE_LAUNCH) {
+        path = '/launch/before-launch';
       }
       else if (newView === View.HELP_CENTER) {
         path = '/help';
@@ -1123,6 +1130,10 @@ const App: React.FC = () => {
 
         {view === View.HOW_IT_WORKS && (
           <HowItWorks onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.BEFORE_LAUNCH && (
+          <BeforeLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (
