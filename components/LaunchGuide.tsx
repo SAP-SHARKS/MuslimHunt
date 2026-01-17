@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Rocket, Users, BookOpen, HelpCircle, ArrowRight, ExternalLink, ChevronDown } from 'lucide-react';
+import { View } from '../types';
 
 interface LaunchGuideProps {
     onBack: () => void;
+    onNavigate?: (view: View, path?: string) => void;
 }
 
 interface ExpandableAnswer {
@@ -11,7 +13,7 @@ interface ExpandableAnswer {
     fullA: string;
 }
 
-const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
+const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
     const [expandedQuestions, setExpandedQuestions] = useState<Record<number, boolean>>({});
 
     const toggleQuestion = (index: number) => {
@@ -174,8 +176,16 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack }) => {
                     <div className="bg-white rounded-2xl sm:rounded-[2rem] border border-gray-100 p-5 sm:p-6 shadow-sm sticky top-24">
                         <h3 className="font-black text-gray-900 mb-4 sm:mb-6 text-sm sm:text-base uppercase tracking-wider">Links</h3>
                         <ul className="space-y-2 sm:space-y-3">
+                            <li>
+                                <button
+                                    onClick={() => onNavigate?.(View.HOW_IT_WORKS, '/launch/how-muslim-hunt-works')}
+                                    className="w-full flex items-center gap-3 text-xs sm:text-sm text-gray-600 hover:text-primary transition-colors group py-2 px-3 rounded-lg hover:bg-primary-light/30 text-left"
+                                >
+                                    <span className="shrink-0 w-5 text-center text-base">🚀</span>
+                                    <span className="font-bold">My launch on Muslim Hunt</span>
+                                </button>
+                            </li>
                             {[
-                                { icon: '🚀', label: 'My launch on Muslim Hunt' },
                                 { icon: '🔍', label: 'How can I do you need one?' },
                                 { icon: '📦', label: 'Setting pack' },
                                 { icon: '📅', label: 'Content checklist' },

@@ -140,5 +140,6 @@ export enum View {
   FORUM_CATEGORY = 'forum_category',
   FORUM_THREAD = 'forum_thread',
   HELP_ARTICLE = 'help_article',
-  LAUNCH_ARCHIVE = 'launch_archive'
+  LAUNCH_ARCHIVE = 'launch_archive',
+  HOW_IT_WORKS = 'how_it_works'
 }

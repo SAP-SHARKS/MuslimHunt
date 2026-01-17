@@ -39,6 +39,7 @@ import Newsletter from './components/Newsletter.tsx';
 import Categories from './components/Categories.tsx';
 import CategoryDetail from './components/CategoryDetail.tsx';
 import LaunchArchive from './components/LaunchArchive.tsx';
+import HowItWorks from './components/HowItWorks.tsx';
 import AdminPanel from './components/AdminPanel.tsx';
 import { AdminRouter } from './components/admin/AdminRouter.tsx';
 import { DevAuthButtons } from './components/admin/DevAuthButtons.tsx';
@@ -444,6 +445,9 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingLaunchGuide(false), 800);
         setView(View.LAUNCH_GUIDE);
       }
+      else if (path.startsWith('/launch/how-muslim-hunt-works')) {
+        setView(View.HOW_IT_WORKS);
+      }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
         setTimeout(() => setIsLoadingHelpCenter(false), 800);
@@ -703,6 +707,9 @@ const App: React.FC = () => {
         path = '/launch';
         setIsLoadingLaunchGuide(true);
         setTimeout(() => setIsLoadingLaunchGuide(false), 800);
+      }
+      else if (newView === View.HOW_IT_WORKS) {
+        path = '/launch/how-muslim-hunt-works';
       }
       else if (newView === View.HELP_CENTER) {
         path = '/help';
@@ -1110,8 +1117,12 @@ const App: React.FC = () => {
           isLoadingLaunchGuide ? (
             <LaunchGuideSkeleton />
           ) : (
-            <LaunchGuide onBack={() => updateView(View.HOME)} />
+            <LaunchGuide onBack={() => updateView(View.HOME)} onNavigate={updateView} />
           )
+        )}
+
+        {view === View.HOW_IT_WORKS && (
+          <HowItWorks onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (
