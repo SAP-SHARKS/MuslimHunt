@@ -128,12 +128,40 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleNavigate(View.NEWSLETTER)}
-                className="px-3 py-1 text-sm font-bold text-primary border border-primary rounded-xl hover:bg-primary-light transition-all whitespace-nowrap"
-              >
-                Subscribe
-              </button>
+              {user && (
+                <div className="relative" ref={submitDropdownRef}>
+                  <button
+                    onClick={() => setShowSubmitDropdown(!showSubmitDropdown)}
+                    className="flex items-center gap-1 px-3 py-1 text-sm font-bold text-primary border border-primary rounded-xl hover:bg-primary-light transition-all whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Submit
+                  </button>
+
+                  {showSubmitDropdown && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-100 shadow-[0_15px_45px_rgba(0,0,0,0.1)] rounded-2xl py-2 z-[110] animate-in fade-in slide-in-from-top-2">
+                      <button
+                        onClick={() => handleNavigate(View.POST_SUBMIT)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-light transition-colors group/item"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center text-primary group-hover/item:scale-105 transition-transform">
+                          <Rocket className="w-4 h-4" />
+                        </div>
+                        <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-primary">Launch a product</span>
+                      </button>
+                      <button
+                        onClick={() => handleNavigate(View.NEW_THREAD)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-light transition-colors group/item"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center text-primary group-hover/item:scale-105 transition-transform">
+                          <MessageSquare className="w-4 h-4" />
+                        </div>
+                        <span className="text-[13px] font-bold text-gray-700 group-hover/item:text-primary">Start a thread</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {!user ? (
                 <button
