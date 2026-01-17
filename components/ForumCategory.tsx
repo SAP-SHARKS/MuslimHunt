@@ -55,24 +55,21 @@ const ForumCategory: React.FC<ForumCategoryProps> = ({ categorySlug, setView, us
                     setCurrentCategory(category);
 
                     // 2. Fetch threads (only approved ones)
-                    // Note: joining profiles using the relation if it exists, otherwise we might just get author_id
-                    // Assuming 'profiles' table is related via author_id
+                    console.log('[ForumCategory] Fetching threads for category:', category.slug);
+
+                    // Simplified query without joins
                     const { data, error } = await supabase
                         .from('threads')
-                        .select(`
-              *,
-              profiles:author_id (
-                username,
-                avatar_url,
-                headline
-              )
-            `)
+                        .select('*')
                         .eq('category_id', category.id)
                         .eq('is_approved', true)
                         .order('created_at', { ascending: false });
 
-                    if (!error && data) {
-                        setThreads(data as any); // Type assertion for profiles join
+                    if (error) {
+                        console.error('[ForumCategory] Error fetching threads:', error);
+                    } else if (data) {
+                        console.log('[ForumCategory] Fetched threads:', data.length);
+                        setThreads(data as any);
                     }
                 }
             } catch (err) {

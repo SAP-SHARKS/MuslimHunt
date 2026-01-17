@@ -40,21 +40,25 @@ const ForumHome: React.FC<ForumHomeProps> = ({ setView, user, onSignIn }) => {
   useEffect(() => {
     const fetchThreads = async () => {
       try {
+        console.log('[ForumHome] Fetching approved threads...');
+
+        // Simplified query without joins
         const { data, error } = await supabase
           .from('threads')
-          .select(`
-            *,
-            profiles:author_id (username, avatar_url, headline),
-            forum_categories:category_id (name, slug)
-          `)
+          .select('*')
           .eq('is_approved', true)
           .order('created_at', { ascending: false })
           .limit(20);
 
-        if (error) throw error;
+        if (error) {
+          console.error('[ForumHome] Error fetching threads:', error);
+          throw error;
+        }
+
+        console.log('[ForumHome] Fetched threads:', data?.length || 0);
         setThreads(data || []);
       } catch (err) {
-        console.error('Error fetching threads:', err);
+        console.error('[ForumHome] Error fetching threads:', err);
       } finally {
         setLoading(false);
       }
