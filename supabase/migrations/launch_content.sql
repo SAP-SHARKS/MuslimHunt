@@ -130,7 +130,64 @@ If you''re ready for your launch to go live right away, you can select the "Laun
 Find info on the best time to launch here.
 
 For troubleshooting during the building of your launch page, reach out to our support team using the chat button on the bottom right corner of the website.',
-'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "preparing-for-launch"}'::jsonb);
+'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "preparing-for-launch"}'::jsonb),
+
+-- Insert Launch Day Duties content
+('launch-day-duties', 'Launch Day duties', E'Now that you know what to expect, let''s talk about the things you should keep an eye on for launch day.
+
+This article covers:
+
+• Track your progress
+• How do products get in the newsletter
+• Claiming your Product Page
+
+**Track your progress**
+
+The Launch Day dashboard is a great place to keep an eye on the performance of your launch. It will track your position, upvotes, comments, and reviews throughout the day (and after launch day). You can also easily see and reply to the latest comments and get embeddable badges to drive traffic from your website to your launch.
+
+**How do products get in the newsletter**
+
+If you didn''t know, Muslim Hunt actually started as a newsletter back in 2013! Today, our Daily Digest newsletter is how more than half a million readers learn about new products. It gets delivered every weekday and includes the previous day''s top 10 most upvoted products.
+
+We also have an editorial section where we highlight trends, curate collections, and talk about the buzziest launches. This means even if you didn''t make it to the top of the leaderboard, you still have a chance of getting into the newsletter. The best thing you can do to make it into the Daily Digest is to focus on having a successful launch, using the tips we provide on this page. Great content, like a thoughtful first comment, goes a long way in giving us the tools our writers need to tell your story.
+
+**Claiming your Product Page**
+
+When you post a product, you create a Launch Page and a Product Page. Almost everything in this guide up until now has been about your Launch Page. While Launch Pages drive awareness and traffic during your launch milestone, Product Pages are the single source of truth for people to follow along on your product''s journey as you grow.
+
+You should request access to edit your Product Page as soon as you launch. You can do this by clicking "Claim this page" or "Request access to manage this page" on the Product Page.
+
+We''ll cover how Muslim Hunt Product Pages can help you engage your community and drive more traffic to your product long after launch. It''s helpful to know what your Product Page is and claim it now because you can start collecting followers right away since, those who upvote your launch will become followers of your Product Page too.',
+'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "launch-a-product"}'::jsonb),
+
+-- Insert Marketing Strategies content
+('marketing-strategies', 'Marketing strategies', E'We have a few best practices on what you should have ready for launch day.
+
+**Update your profile**
+
+The chances of people viewing your Muslim Hunt profile on the day you launch or the days and weeks after are much higher than usual. Take the opportunity to update your "About" section and make sure everything is polished and accurately showcases your experience, interests, goals, personal website, and social accounts. Growing followers will help you gain support for your upcoming launches!
+
+**Landing page**
+
+Consider creating a landing page on your website that drives people to download or use your product. Oftentimes this can be your homepage, however, sometimes such pages are cluttered with additional information and links that distract from your key launch goals. Your landing page on the other hand should be focused on the key values your product provides with one CTA that drives people to use your product.
+
+Your landing page can even be specifically targeted to the Muslim Hunt community, especially if you''re offering a special discount.
+
+**Badges & Embeds**
+
+We also have several badges & embeds available to add your homepage, sitewide banner, or blog. You can find them by clicking the Embed link at the top right of your Launch Page.
+
+These tools help:
+
+• Drive traffic to your Launch Page
+• Engage your current community in your launch
+• Show off the success of your launch
+• Help tell your story and give context in blogs and on media pages
+
+**Promotions and discounts**
+
+Many Muslim Hunt users love a good deal (duh). Feel free to include a special promotion or offer on a dedicated landing page. These special launch day offers can increase engagement, help capture people''s attention, and encourage people to try what you''re working on (e.g. 20% off for 6 months).',
+'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "sharing-your-launch"}'::jsonb);
 
 -- Create trigger for updated_at
 CREATE TRIGGER update_launch_content_updated_at
