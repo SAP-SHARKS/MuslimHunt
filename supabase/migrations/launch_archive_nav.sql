@@ -2,10 +2,10 @@
 -- Run this in Supabase SQL Editor to update the Launches dropdown with Launch Archive view
 
 -- First, check current Launches menu item structure
--- SELECT * FROM nav_menu_items WHERE label = 'Launches';
+-- SELECT * FROM navigation_menu WHERE label = 'Launches';
 
 -- Update the sub_items for the Launches menu item to include Launch Archive
-UPDATE nav_menu_items
+UPDATE navigation_menu
 SET sub_items = '[
   {
     "label": "Launch archive",
@@ -27,4 +27,4 @@ SET sub_items = '[
 WHERE label = 'Launches';
 
 -- Verify the update
--- SELECT label, sub_items FROM nav_menu_items WHERE label = 'Launches';
+-- SELECT label, sub_items FROM navigation_menu WHERE label = 'Launches';
