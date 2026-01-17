@@ -256,12 +256,21 @@ const App: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('navigation_menu')
-        .select('*')
+        .select('id, label, view_name, icon, sub_items, display_order, is_active')
         .eq('is_active', true)
         .order('display_order');
 
       if (!error && data) {
-        setMenuItems(data as NavMenuItem[]);
+        // Map view_name to view for TypeScript interface compatibility
+        const mappedData = data.map(item => ({
+          ...item,
+          view: item.view_name as View,
+          sub_items: item.sub_items ? item.sub_items.map((sub: any) => ({
+            ...sub,
+            view: sub.view_name || sub.view
+          })) : undefined
+        }));
+        setMenuItems(mappedData as NavMenuItem[]);
       }
     } catch (err) {
       console.error('[Muslim Hunt] Navigation fetch failed:', err);
