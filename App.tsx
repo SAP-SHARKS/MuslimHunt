@@ -18,6 +18,7 @@ import LaunchGuide from './components/LaunchGuide.tsx';
 import LaunchGuideSkeleton from './components/LaunchGuideSkeleton.tsx';
 import BeforeLaunch from './components/BeforeLaunch.tsx';
 import PreparingForLaunch from './components/PreparingForLaunch.tsx';
+import DaysAfterLaunch from './components/DaysAfterLaunch.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -455,6 +456,9 @@ const App: React.FC = () => {
       }
       else if (path.startsWith('/launch/preparing-for-launch')) {
         setView(View.PREPARING_FOR_LAUNCH);
+      }
+      else if (path.startsWith('/launch/days-after-launch')) {
+        setView(View.DAYS_AFTER_LAUNCH);
       }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
@@ -1145,6 +1149,10 @@ const App: React.FC = () => {
 
         {view === View.PREPARING_FOR_LAUNCH && (
           <PreparingForLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.DAYS_AFTER_LAUNCH && (
+          <DaysAfterLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (

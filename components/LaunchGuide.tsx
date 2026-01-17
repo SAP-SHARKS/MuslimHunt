@@ -141,7 +141,7 @@ const LaunchGuide: React.FC<LaunchGuideProps> = ({ onBack, onNavigate }) => {
                             {[
                                 { icon: Rocket, color: 'text-primary', bg: 'bg-primary-light', title: 'Getting started', desc: 'The mechanics of the site, how the platform works, and how to prep everything you need to know before you hunt.', onClick: () => onNavigate?.(View.HOW_IT_WORKS, '/launch/how-muslim-hunt-works') },
                                 { icon: Rocket, color: 'text-blue-600', bg: 'bg-blue-50', title: 'Launching a product', desc: 'Set up the background images, text that you have to make it essential you pass the "Is it huntable?" test, and other tips for the big moment.', onClick: null },
-                                { icon: Users, color: 'text-purple-600', bg: 'bg-purple-50', title: 'Growing a community', desc: 'Learn how to leverage your launch to acquire users, get feedback and grow your goals post-launch day.', onClick: null },
+                                { icon: Users, color: 'text-purple-600', bg: 'bg-purple-50', title: 'Growing a community', desc: 'Learn how to leverage your launch to acquire users, get feedback and grow your goals post-launch day.', onClick: () => onNavigate?.(View.DAYS_AFTER_LAUNCH, '/launch/days-after-launch') },
                                 { icon: BookOpen, color: 'text-orange-600', bg: 'bg-orange-50', title: 'Definitions', desc: 'A glossary for navigating Product Hunt and common terminology.', onClick: null }
                             ].map((item, i) => (
                                 <div

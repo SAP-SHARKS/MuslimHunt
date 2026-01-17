@@ -143,5 +143,6 @@ export enum View {
   LAUNCH_ARCHIVE = 'launch_archive',
   HOW_IT_WORKS = 'how_it_works',
   BEFORE_LAUNCH = 'before_launch',
-  PREPARING_FOR_LAUNCH = 'preparing_for_launch'
+  PREPARING_FOR_LAUNCH = 'preparing_for_launch',
+  DAYS_AFTER_LAUNCH = 'days_after_launch'
 }
