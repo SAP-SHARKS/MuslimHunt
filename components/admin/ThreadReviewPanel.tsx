@@ -58,13 +58,10 @@ export const ThreadReviewPanel: React.FC = () => {
       console.log('[ThreadReview] Current user email:', session?.user?.email);
       console.log('[ThreadReview] JWT email claim:', session?.user?.email);
 
+      // Simplified query without joins to avoid foreign key issues
       const { data, error } = await supabase
         .from('threads')
-        .select(`
-          *,
-          profiles:author_id (username, avatar_url, headline),
-          forum_categories:category_id (name, slug)
-        `)
+        .select('*')
         .eq('is_approved', false)
         .order('created_at', { ascending: true });
 
