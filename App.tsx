@@ -20,6 +20,7 @@ import BeforeLaunch from './components/BeforeLaunch.tsx';
 import PreparingForLaunch from './components/PreparingForLaunch.tsx';
 import DaysAfterLaunch from './components/DaysAfterLaunch.tsx';
 import SharingYourLaunch from './components/SharingYourLaunch.tsx';
+import LaunchDayDuties from './components/LaunchDayDuties.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -463,6 +464,9 @@ const App: React.FC = () => {
       }
       else if (path.startsWith('/launch/sharing-your-launch')) {
         setView(View.SHARING_YOUR_LAUNCH);
+      }
+      else if (path.startsWith('/launch/launch-day-duties')) {
+        setView(View.LAUNCH_DAY_DUTIES);
       }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
@@ -1161,6 +1165,10 @@ const App: React.FC = () => {
 
         {view === View.SHARING_YOUR_LAUNCH && (
           <SharingYourLaunch onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.LAUNCH_DAY_DUTIES && (
+          <LaunchDayDuties onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
         )}
 
         {view === View.HELP_CENTER && (

@@ -145,5 +145,6 @@ export enum View {
   BEFORE_LAUNCH = 'before_launch',
   PREPARING_FOR_LAUNCH = 'preparing_for_launch',
   DAYS_AFTER_LAUNCH = 'days_after_launch',
-  SHARING_YOUR_LAUNCH = 'sharing_your_launch'
+  SHARING_YOUR_LAUNCH = 'sharing_your_launch',
+  LAUNCH_DAY_DUTIES = 'launch_day_duties'
 }
