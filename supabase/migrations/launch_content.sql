@@ -187,7 +187,85 @@ These tools help:
 **Promotions and discounts**
 
 Many Muslim Hunt users love a good deal (duh). Feel free to include a special promotion or offer on a dedicated landing page. These special launch day offers can increase engagement, help capture people''s attention, and encourage people to try what you''re working on (e.g. 20% off for 6 months).',
-'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "sharing-your-launch"}'::jsonb);
+'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "sharing-your-launch"}'::jsonb),
+
+-- Insert Days After Launch content
+('days-after-launch', 'Days after your launch', E'Congratulations on your launch! Now the real work begins — building and nurturing a community around your product. Here''s how to keep the momentum going with that Muslim vibes energy.
+
+**Your Muslim Hunt Product Page**
+
+Your Product Page is your home on Muslim Hunt. Think of your Launch Page as a moment in time, while your Product Page is an evergreen resource that grows with your product.
+
+**What you can do with your Product Page:**
+
+• Share product updates and milestones
+• Announce new features and improvements
+• Collect and respond to reviews from users
+• Build a following of engaged community members
+• Track your product''s journey and growth metrics
+
+**Engaging with your community**
+
+The Muslim Hunt community is here to support you beyond launch day. Here''s how to stay connected:
+
+**Respond to feedback**
+
+Every comment, review, and piece of feedback is an opportunity to learn and improve. Engage authentically with your community. Thank supporters, address concerns, and show that you''re listening. This builds trust and loyalty.
+
+**Share regular updates**
+
+Keep your followers in the loop about what you''re working on. Major feature releases, bug fixes, behind-the-scenes content — all of this helps maintain interest and shows your commitment to the product.
+
+**Celebrate milestones**
+
+Hit 1,000 users? Reached profitability? Launched in a new market? Share these wins with the Muslim Hunt community. People love being part of success stories.
+
+**Building beyond Muslim Hunt**
+
+While Muslim Hunt is a great launchpad, your community should extend beyond any single platform:
+
+**Create community spaces**
+
+Consider starting a Discord server, Slack community, or forum where your users can connect with each other. These spaces foster deeper relationships and create advocates for your product.
+
+**Newsletter and content**
+
+Regular newsletters keep your audience engaged. Share product updates, industry insights, user stories, and tips. Quality content positions you as a thought leader in your space.
+
+**Social media presence**
+
+Maintain active social media accounts. Share user testimonials, feature highlights, and engage with your audience. Social proof builds credibility.
+
+**Long-term growth strategies**
+
+**Listen and iterate**
+
+Your early users are your best source of truth. Pay attention to what they love, what frustrates them, and what features they''re requesting. Not every piece of feedback needs to be implemented, but all of it should be considered.
+
+**Build in public**
+
+Share your journey — the wins and the challenges. The Muslim Hunt community appreciates authenticity. Building in public creates accountability and attracts people who want to be part of your story.
+
+**Leverage your network**
+
+Connect with other makers on Muslim Hunt. Share experiences, collaborate on features, cross-promote products. The Muslim Hunt community is collaborative, not competitive.
+
+**Keep launching**
+
+Every major update is an opportunity to launch again on Muslim Hunt. Share new versions, significant features, and pivots. Each launch brings fresh attention and validates your progress.
+
+**Metrics that matter**
+
+Focus on metrics that align with your goals:
+
+• User retention and engagement
+• Customer feedback and satisfaction scores
+• Revenue and growth metrics
+• Community size and activity
+• Product usage patterns
+
+Remember, building a community is a marathon, not a sprint. Stay consistent, stay authentic, and keep those Muslim vibes strong. Your launch was just the beginning of an incredible journey.',
+'{"brand": "Muslim Hunt", "vibe": "Muslim vibes", "section": "days-after-launch"}'::jsonb);
 
 -- Create trigger for updated_at
 CREATE TRIGGER update_launch_content_updated_at

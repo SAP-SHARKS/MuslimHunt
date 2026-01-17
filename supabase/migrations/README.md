@@ -45,12 +45,13 @@ After running the migration, verify the content:
 SELECT page_id, title FROM launch_content WHERE is_active = true;
 ```
 
-You should see 5 content sections:
+You should see 6 content sections:
 - hunters-do-you-need-one | Hunters: Do you need one?
 - setting-goals | Setting goals
 - content-checklist | Content checklist
 - launch-day-duties | Launch Day duties
 - marketing-strategies | Marketing strategies
+- days-after-launch | Days after your launch
 
 ## How to Update Links in the Future
 
