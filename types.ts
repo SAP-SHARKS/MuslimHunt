@@ -111,6 +111,51 @@ export interface User {
   is_admin?: boolean; // Admin privilege flag
 }
 
+export interface StoryCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  display_order: number;
+  is_active: boolean;
+}
+
+export interface Story {
+  id: string;
+  title: string;
+  slug: string;
+  subtitle?: string;
+  content: string;
+  excerpt?: string;
+  cover_image_url?: string;
+  author_id?: string;
+  author_name: string;
+  author_avatar_url?: string;
+  category_id: string;
+  views_count: number;
+  comments_count: number;
+  likes_count: number;
+  reading_time?: number;
+  is_featured: boolean;
+  is_published: boolean;
+  published_at: string;
+  created_at: string;
+  category?: StoryCategory;
+}
+
+export interface StoryComment {
+  id: string;
+  story_id: string;
+  user_id?: string;
+  username: string;
+  avatar_url?: string;
+  text: string;
+  parent_id?: string;
+  likes_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export enum View {
   HOME = 'home',
   SUBMIT = 'submit',
@@ -147,5 +192,8 @@ export enum View {
   DAYS_AFTER_LAUNCH = 'days_after_launch',
   SHARING_YOUR_LAUNCH = 'sharing_your_launch',
   LAUNCH_DAY_DUTIES = 'launch_day_duties',
-  DEFINITIONS = 'definitions'
+  DEFINITIONS = 'definitions',
+  STORIES = 'stories',
+  STORY_DETAIL = 'story_detail',
+  STORY_CATEGORY = 'story_category'
 }

@@ -22,6 +22,8 @@ import DaysAfterLaunch from './components/DaysAfterLaunch.tsx';
 import SharingYourLaunch from './components/SharingYourLaunch.tsx';
 import LaunchDayDuties from './components/LaunchDayDuties.tsx';
 import Definitions from './components/Definitions.tsx';
+import Stories from './components/Stories.tsx';
+import StoryDetail from './components/StoryDetail.tsx';
 import HelpCenter from './components/HelpCenter.tsx';
 import HelpCenterSkeleton from './components/HelpCenterSkeleton.tsx';
 import HelpArticle from './components/HelpArticle.tsx';
@@ -209,6 +211,8 @@ const App: React.FC = () => {
   const [shouldScrollToComments, setShouldScrollToComments] = useState(false);
   const [pendingUrl, setPendingUrl] = useState('');
   const [archiveDate, setArchiveDate] = useState<string>('');
+  const [activeStorySlug, setActiveStorySlug] = useState<string>('');
+  const [activeStoryCategorySlug, setActiveStoryCategorySlug] = useState<string>('');
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     today: false, yesterday: false, lastWeek: false, lastMonth: false
@@ -471,6 +475,22 @@ const App: React.FC = () => {
       }
       else if (path.startsWith('/launch/definitions')) {
         setView(View.DEFINITIONS);
+      }
+      else if (path === '/stories' || path.startsWith('/stories')) {
+        const segments = path.split('/').filter(Boolean);
+        if (segments.length === 1) {
+          // Main stories page: /stories
+          setActiveStoryCategorySlug('all');
+          setView(View.STORIES);
+        } else if (segments[1] === 'category' && segments[2]) {
+          // Category page: /stories/category/makers
+          setActiveStoryCategorySlug(segments[2]);
+          setView(View.STORY_CATEGORY);
+        } else if (segments.length === 2) {
+          // Story detail page: /stories/story-slug
+          setActiveStorySlug(segments[1]);
+          setView(View.STORY_DETAIL);
+        }
       }
       else if (path === '/help') {
         setIsLoadingHelpCenter(true);
@@ -781,6 +801,9 @@ const App: React.FC = () => {
       else if (newView === View.PROFILE && user) path = `/@${user.username}`;
       else if (newView === View.FORUM_CATEGORY && activeForumCategorySlug) path = `/p/${activeForumCategorySlug}`;
       else if (newView === View.FORUM_THREAD && activeThreadSlug) path = `/p/${activeForumCategorySlug}/${activeThreadSlug}`;
+      else if (newView === View.STORIES) path = '/stories';
+      else if (newView === View.STORY_CATEGORY && activeStoryCategorySlug) path = `/stories/category/${activeStoryCategorySlug}`;
+      else if (newView === View.STORY_DETAIL && activeStorySlug) path = `/stories/${activeStorySlug}`;
       else if (newView === View.HOME) path = '/';
     }
 
@@ -1177,6 +1200,32 @@ const App: React.FC = () => {
 
         {view === View.DEFINITIONS && (
           <Definitions onBack={() => updateView(View.LAUNCH_GUIDE, '/launch')} />
+        )}
+
+        {view === View.STORIES && (
+          <Stories
+            onStoryClick={(slug) => {
+              setActiveStorySlug(slug);
+              updateView(View.STORY_DETAIL, `/stories/${slug}`);
+            }}
+          />
+        )}
+
+        {view === View.STORY_CATEGORY && (
+          <Stories
+            categorySlug={activeStoryCategorySlug}
+            onStoryClick={(slug) => {
+              setActiveStorySlug(slug);
+              updateView(View.STORY_DETAIL, `/stories/${slug}`);
+            }}
+          />
+        )}
+
+        {view === View.STORY_DETAIL && activeStorySlug && (
+          <StoryDetail
+            storySlug={activeStorySlug}
+            onBack={() => updateView(View.STORIES, '/stories')}
+          />
         )}
 
         {view === View.HELP_CENTER && (
