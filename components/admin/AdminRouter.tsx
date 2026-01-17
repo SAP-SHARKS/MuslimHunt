@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from './AdminLayout';
 import { AdminDashboard } from './AdminDashboard';
 import { ThemeAdminPanelV2 } from './ThemeAdminPanelV2';
@@ -17,6 +17,38 @@ interface AdminRouterProps {
 export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, user, onRefresh }) => {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const { isAdmin, loading, user: authUser } = useAuth();
+
+  // Sync view with URL
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/admin/Thread-Review') {
+      setCurrentView('threads');
+    } else if (path === '/admin/Product-Review') {
+      setCurrentView('products');
+    } else if (path === '/admin/Theme') {
+      setCurrentView('theme');
+    } else if (path === '/admin/Users') {
+      setCurrentView('users');
+    } else if (path === '/admin/Settings') {
+      setCurrentView('settings');
+    } else if (path === '/admin' || path === '/admin/Dashboard') {
+      setCurrentView('dashboard');
+    }
+  }, []);
+
+  // Update URL when view changes
+  const handleNavigate = (view: string) => {
+    setCurrentView(view);
+    let newPath = '/admin';
+    if (view === 'threads') newPath = '/admin/Thread-Review';
+    else if (view === 'products') newPath = '/admin/Product-Review';
+    else if (view === 'theme') newPath = '/admin/Theme';
+    else if (view === 'users') newPath = '/admin/Users';
+    else if (view === 'settings') newPath = '/admin/Settings';
+    else if (view === 'dashboard') newPath = '/admin/Dashboard';
+
+    window.history.pushState({}, '', newPath);
+  };
 
   // Show loading state
   if (loading) {
@@ -61,7 +93,7 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
       case 'dashboard':
         return (
           <AdminDashboard
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
             stats={{
               pendingProducts: 5,
               totalUsers: 150,
@@ -80,7 +112,7 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
           return (
             <ProductReviewPanel
               user={user || authUser}
-              onBack={() => setCurrentView('dashboard')}
+              onBack={() => handleNavigate('dashboard')}
               onRefresh={onRefresh || (() => {})}
             />
           );
@@ -126,7 +158,7 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
       default:
         return (
           <AdminDashboard
-            onNavigate={setCurrentView}
+            onNavigate={handleNavigate}
             stats={{
               pendingProducts: 5,
               totalUsers: 150,
@@ -139,7 +171,7 @@ export const AdminRouter: React.FC<AdminRouterProps> = ({ ProductReviewPanel, us
   };
 
   return (
-    <AdminLayout currentView={currentView} onNavigate={setCurrentView}>
+    <AdminLayout currentView={currentView} onNavigate={handleNavigate}>
       {renderView()}
     </AdminLayout>
   );

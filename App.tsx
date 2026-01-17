@@ -502,7 +502,7 @@ const App: React.FC = () => {
         setTimeout(() => setIsLoadingHelpArticle(false), 800);
         setView(View.HELP_ARTICLE);
       }
-      else if (path === '/admin') setView(View.ADMIN_PANEL);
+      else if (path === '/admin' || path.startsWith('/admin/')) setView(View.ADMIN_PANEL);
       else if (path === '/my/settings/edit') {
         setIsLoadingSettings(true);
         setTimeout(() => setIsLoadingSettings(false), 800);
