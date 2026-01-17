@@ -871,27 +871,6 @@ const App: React.FC = () => {
     return grouped;
   }, [filteredProducts]);
 
-  // Real-time Comment Subscription (Global)
-  useEffect(() => {
-    const channel = supabase
-      .channel('global_comments')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments' },
-        (payload) => {
-          const newComment = payload.new as Comment;
-          // We can reuse the handleCommentAdded logic to update the product state
-          // This ensures the feed count updates instantly for ANY user
-          handleCommentAdded(newComment.product_id, newComment);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
   const handleCommentAdded = (productId: string, newComment: Comment) => {
     setProducts(prev => prev.map(p => {
       if (p.id === productId) {
@@ -912,6 +891,43 @@ const App: React.FC = () => {
         (payload) => {
           const newComment = payload.new as Comment;
           handleCommentAdded(newComment.product_id, newComment);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Real-time Upvote Subscription (Global)
+  useEffect(() => {
+    const channel = supabase
+      .channel('global_votes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'votes' },
+        (payload) => {
+          const newVote = payload.new as { user_id: string; product_id: string };
+          // Update product upvote count when someone upvotes
+          setProducts(prev => prev.map(p =>
+            p.id === newVote.product_id
+              ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 }
+              : p
+          ));
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'votes' },
+        (payload) => {
+          const deletedVote = payload.old as { user_id: string; product_id: string };
+          // Update product upvote count when someone removes their upvote
+          setProducts(prev => prev.map(p =>
+            p.id === deletedVote.product_id
+              ? { ...p, upvotes_count: Math.max((p.upvotes_count || 0) - 1, 0) }
+              : p
+          ));
         }
       )
       .subscribe();

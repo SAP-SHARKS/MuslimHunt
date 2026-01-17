@@ -293,11 +293,22 @@ BEGIN
 END $$;
 
 -- =============================================
--- 7. VERIFY SETUP
+-- 7. ENABLE REALTIME FOR VOTES TABLE
+-- =============================================
+-- Enable realtime replication for votes table
+ALTER PUBLICATION supabase_realtime ADD TABLE votes;
+
+-- =============================================
+-- 8. VERIFY SETUP
 -- =============================================
 DO $$
 BEGIN
   RAISE NOTICE 'Votes and Notifications system setup completed!';
   RAISE NOTICE 'Tables created: votes, notifications';
+  RAISE NOTICE 'Realtime enabled for votes table';
   RAISE NOTICE 'Check notices above for trigger status';
+  RAISE NOTICE '';
+  RAISE NOTICE 'IMPORTANT: Make sure to enable Realtime in Supabase Dashboard:';
+  RAISE NOTICE '1. Go to Database > Replication';
+  RAISE NOTICE '2. Enable realtime for "votes" table';
 END $$;
