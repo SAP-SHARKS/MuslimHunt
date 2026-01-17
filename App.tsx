@@ -238,6 +238,42 @@ const App: React.FC = () => {
     }
   };
 
+  const fetchUserVotes = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('votes')
+        .select('product_id, user_id')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      const voteSet = new Set<string>();
+      data?.forEach(vote => {
+        voteSet.add(`${vote.user_id}_${vote.product_id}`);
+      });
+      setVotes(voteSet);
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching user votes:', err);
+    }
+  };
+
+  const fetchUserNotifications = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      setNotifications(data || []);
+    } catch (err) {
+      console.error('[Muslim Hunt] Error fetching notifications:', err);
+    }
+  };
+
   const fetchCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -635,6 +671,10 @@ const App: React.FC = () => {
   // Simulate Notifications & Streaks
   useEffect(() => {
     if (user) {
+      // Fetch user's votes and notifications when they log in
+      fetchUserVotes(user.id);
+      fetchUserNotifications(user.id);
+
       // Simple streak logic using local storage simulation
       const today = new Date().toDateString();
       const lastLogin = localStorage.getItem('last_login_date');
@@ -840,12 +880,57 @@ const App: React.FC = () => {
     updateView(View.DIRECTORY, newPath);
   };
 
-  const handleUpvote = (id: string) => {
-    if (!user) { setIsAuthModalOpen(true); return; }
+  const handleUpvote = async (id: string) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const voteKey = `${user.id}_${id}`;
-    if (votes.has(voteKey)) return;
-    setVotes(prev => new Set(prev).add(voteKey));
-    setProducts(curr => curr.map(p => p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p));
+    const hasVoted = votes.has(voteKey);
+
+    try {
+      if (hasVoted) {
+        // Remove upvote
+        const { error } = await supabase
+          .from('votes')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('product_id', id);
+
+        if (error) throw error;
+
+        // Update local state
+        setVotes(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(voteKey);
+          return newSet;
+        });
+
+        setProducts(curr => curr.map(p =>
+          p.id === id ? { ...p, upvotes_count: Math.max(0, (p.upvotes_count || 0) - 1) } : p
+        ));
+      } else {
+        // Add upvote
+        const { error } = await supabase
+          .from('votes')
+          .insert({
+            user_id: user.id,
+            product_id: id
+          });
+
+        if (error) throw error;
+
+        // Update local state
+        setVotes(prev => new Set(prev).add(voteKey));
+
+        setProducts(curr => curr.map(p =>
+          p.id === id ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 } : p
+        ));
+      }
+    } catch (error) {
+      console.error('Error toggling upvote:', error);
+    }
   };
 
   const filteredProducts = useMemo(() => {
@@ -913,12 +998,11 @@ const App: React.FC = () => {
         { event: 'INSERT', schema: 'public', table: 'votes' },
         (payload) => {
           const newVote = payload.new as { user_id: string; product_id: string };
-          // Update product upvote count when someone upvotes
-          setProducts(prev => prev.map(p =>
-            p.id === newVote.product_id
-              ? { ...p, upvotes_count: (p.upvotes_count || 0) + 1 }
-              : p
-          ));
+
+          // Update user's votes if they voted from another device
+          if (user && newVote.user_id === user.id) {
+            setVotes(prev => new Set(prev).add(`${newVote.user_id}_${newVote.product_id}`));
+          }
         }
       )
       .on(
@@ -926,12 +1010,15 @@ const App: React.FC = () => {
         { event: 'DELETE', schema: 'public', table: 'votes' },
         (payload) => {
           const deletedVote = payload.old as { user_id: string; product_id: string };
-          // Update product upvote count when someone removes their upvote
-          setProducts(prev => prev.map(p =>
-            p.id === deletedVote.product_id
-              ? { ...p, upvotes_count: Math.max((p.upvotes_count || 0) - 1, 0) }
-              : p
-          ));
+
+          // Update user's votes if they removed a vote from another device
+          if (user && deletedVote.user_id === user.id) {
+            setVotes(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(`${deletedVote.user_id}_${deletedVote.product_id}`);
+              return newSet;
+            });
+          }
         }
       )
       .subscribe();
@@ -939,7 +1026,33 @@ const App: React.FC = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
+
+  // Subscribe to real-time notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user_notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const newNotification = payload.new as Notification;
+          setNotifications(prev => [newNotification, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const isForumView = [View.FORUM_HOME, View.RECENT_COMMENTS, View.NEW_THREAD, View.FORUM_CATEGORY, View.FORUM_THREAD].includes(view);
 
