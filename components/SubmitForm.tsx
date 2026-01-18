@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info, 
-  Calendar, Link as LinkIcon, User as UserIcon, Plus, 
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import {
+  X, Wand2, Loader2, Heart, ShieldCheck, ArrowRight, AlertCircle, Info,
+  Calendar, Link as LinkIcon, User as UserIcon, Plus,
   CheckCircle2, DollarSign, Tag, Clock, Rocket, Sparkles, Image as ImageIcon,
-  Check, ChevronRight, Search, ChevronDown, MessageSquare, Ticket, Twitter
+  Check, ChevronRight, Search, ChevronDown, MessageSquare, Ticket, Twitter, Upload
 } from 'lucide-react';
 import { HALAL_STATUSES } from '../constants';
 import { geminiService } from '../services/geminiService';
@@ -52,6 +52,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<{ message: string; isSchemaError?: boolean } | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialUrl) setFormData(prev => ({ ...prev, url: initialUrl }));
@@ -73,6 +76,53 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
       if (tagline) setFormData(prev => ({ ...prev, tagline, category }));
     } finally {
       setIsOptimizing(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError({ message: 'Please upload an image file (PNG or JPG)' });
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      setError({ message: 'File size must be less than 2MB' });
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    setError(null);
+
+    try {
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `product-logos/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { data, error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, logo_url: publicUrl }));
+      setLogoPreview(publicUrl);
+    } catch (err: any) {
+      console.error('Logo upload failed:', err);
+      setError({ message: err.message || 'Failed to upload logo. Please try again.' });
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -242,10 +292,48 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
               <h3 className="text-2xl sm:text-3xl font-serif font-bold text-primary mb-1 sm:mb-2">Images and Media</h3>
               <p className="text-gray-400 text-xs sm:text-sm font-medium italic">Give your product a visual identity.</p>
             </div>
-            <div className="bg-gray-50 p-6 sm:p-10 rounded-2xl sm:rounded-[2.5rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 sm:gap-4 text-center hover:border-primary-light transition-colors">
-              <div className="w-24 sm:w-32 h-24 sm:h-32 bg-white rounded-2xl sm:rounded-3xl flex items-center justify-center text-gray-300 shadow-sm border border-gray-100"><ImageIcon className="w-8 sm:w-12 h-8 sm:h-12" /></div>
-              <div><p className="text-base sm:text-lg font-bold text-gray-900">Upload product logo</p><p className="text-xs sm:text-sm text-gray-400 font-medium">PNG or JPG, max 2MB.</p></div>
-              <button type="button" className="px-4 sm:px-6 py-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-gray-500 hover:text-primary transition-all">Choose File</button>
+            <div
+              className={`bg-gray-50 p-6 sm:p-10 rounded-2xl sm:rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-3 sm:gap-4 text-center transition-colors cursor-pointer ${logoPreview || formData.logo_url ? 'border-primary bg-primary-light/20' : 'border-gray-200 hover:border-primary-light'}`}
+              onClick={() => logoInputRef.current?.click()}
+            >
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              {isUploadingLogo ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                  <p className="text-sm font-bold text-primary">Uploading...</p>
+                </div>
+              ) : logoPreview || formData.logo_url ? (
+                <>
+                  <div className="w-24 sm:w-32 h-24 sm:h-32 rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border-2 border-white">
+                    <img src={logoPreview || formData.logo_url} alt="Logo preview" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-base sm:text-lg font-bold text-primary flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5" /> Logo uploaded
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">Click to change</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-24 sm:w-32 h-24 sm:h-32 bg-white rounded-2xl sm:rounded-3xl flex items-center justify-center text-gray-300 shadow-sm border border-gray-100">
+                    <ImageIcon className="w-8 sm:w-12 h-8 sm:h-12" />
+                  </div>
+                  <div>
+                    <p className="text-base sm:text-lg font-bold text-gray-900">Upload product logo</p>
+                    <p className="text-xs sm:text-sm text-gray-400 font-medium">PNG or JPG, max 2MB.</p>
+                  </div>
+                  <button type="button" className="px-4 sm:px-6 py-2 bg-white border border-gray-200 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black text-gray-500 hover:text-primary transition-all flex items-center gap-2">
+                    <Upload className="w-4 h-4" /> Choose File
+                  </button>
+                </>
+              )}
             </div>
             <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button type="button" onClick={() => setActiveStep(Step.MAIN_INFO)} className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-gray-100 rounded-xl sm:rounded-2xl font-bold text-gray-400 hover:bg-gray-50 transition-all active:scale-[0.98] order-2 sm:order-1">Back</button>
@@ -347,14 +435,30 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
           </div>
         );
       case Step.CHECKLIST:
+        const checklistItems = [
+          { step: Step.MAIN_INFO, label: 'Main info provided', isComplete: !!(formData.name && formData.tagline && formData.url && formData.description) },
+          { step: Step.MEDIA, label: 'Visual identity set', isComplete: !!(logoPreview || formData.logo_url) },
+          { step: Step.MAKERS, label: 'Maker info added', isComplete: true },
+          { step: Step.EXTRAS, label: 'Extras configured', isComplete: true }
+        ];
         return (
           <div className="space-y-6 sm:space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
             <div><h3 className="text-2xl sm:text-3xl font-serif font-bold text-primary mb-1 sm:mb-2">Launch Checklist</h3><p className="text-gray-400 text-xs sm:text-sm font-medium italic">Final review before going live.</p></div>
             <div className="space-y-3 sm:space-y-4">
-              {[{ step: Step.MAIN_INFO, label: 'Main info provided' }, { step: Step.MEDIA, label: 'Visual identity set' }].map((item, idx) => (
-                <div key={idx} className="p-4 sm:p-6 bg-primary-light rounded-xl sm:rounded-[2rem] border border-primary-light flex items-center justify-between shadow-sm gap-3">
-                  <div className="flex items-center gap-3 sm:gap-4"><div className="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-white flex items-center justify-center text-primary shadow-sm shrink-0"><Check className="w-4 sm:w-5 h-4 sm:h-5" /></div><div><p className="font-bold text-gray-900 text-sm sm:text-base">{item.label}</p><p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-widest">{item.step}</p></div></div>
-                  <button onClick={() => setActiveStep(item.step as Step)} className="text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest hover:underline shrink-0">Review</button>
+              {checklistItems.map((item, idx) => (
+                <div key={idx} className={`p-4 sm:p-6 rounded-xl sm:rounded-[2rem] border flex items-center justify-between shadow-sm gap-3 ${item.isComplete ? 'bg-primary-light border-primary-light' : 'bg-amber-50 border-amber-200'}`}>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className={`w-7 sm:w-8 h-7 sm:h-8 rounded-full flex items-center justify-center shadow-sm shrink-0 ${item.isComplete ? 'bg-white text-primary' : 'bg-amber-100 text-amber-600'}`}>
+                      {item.isComplete ? <Check className="w-4 sm:w-5 h-4 sm:h-5" /> : <AlertCircle className="w-4 sm:w-5 h-4 sm:h-5" />}
+                    </div>
+                    <div>
+                      <p className={`font-bold text-sm sm:text-base ${item.isComplete ? 'text-gray-900' : 'text-amber-800'}`}>{item.label}</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-widest">{item.step}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setActiveStep(item.step as Step)} className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:underline shrink-0 ${item.isComplete ? 'text-primary' : 'text-amber-600'}`}>
+                    {item.isComplete ? 'Review' : 'Complete'}
+                  </button>
                 </div>
               ))}
             </div>

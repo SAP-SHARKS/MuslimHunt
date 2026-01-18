@@ -168,6 +168,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
         console.warn('Non-critical notification error:', nErr);
       }
 
+      // Step 2.5: Post the first comment if it exists in metadata
+      try {
+        const firstComment = product.metadata?.first_comment;
+        if (firstComment && firstComment.trim()) {
+          // Fetch maker's profile for username and avatar
+          const { data: makerProfile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', product.user_id)
+            .single();
+
+          const { error: commentError } = await supabase.from('comments').insert([{
+            product_id: product.id,
+            user_id: product.user_id,
+            text: firstComment,
+            username: makerProfile?.username || 'Maker',
+            avatar_url: makerProfile?.avatar_url || null,
+            is_maker: true,
+            upvotes_count: 0
+          }]);
+
+          if (commentError) {
+            console.warn('Note: First comment failed to post, but product is approved.', commentError.code, commentError.message);
+          }
+        }
+      } catch (cErr) {
+        console.warn('Non-critical first comment error:', cErr);
+      }
+
       // Step 3: Success Actions (Update local UI and global feed)
       setPendingProducts(prev => prev.filter(p => p.id !== product.id));
       onRefresh(); // This makes it show up on the public home page immediately
