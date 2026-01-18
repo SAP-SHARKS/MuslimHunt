@@ -104,16 +104,16 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ initialUrl = '', user, categori
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `product-logos/${fileName}`;
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage (using 'avatars' bucket which exists)
       const { data, error: uploadError } = await supabase.storage
-        .from('assets')
+        .from('avatars')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('assets')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, logo_url: publicUrl }));
