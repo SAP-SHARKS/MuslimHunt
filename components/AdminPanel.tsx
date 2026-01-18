@@ -476,7 +476,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                 <tr className="bg-gray-50/50 border-y border-primary-light">
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Product</th>
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Maker</th>
-                  <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
+                  <th className="px-6 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] min-w-[180px]">Category</th>
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
                   <th className="px-12 py-7 text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] text-right">Moderation</th>
                 </tr>
@@ -524,8 +524,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                           <span className="text-sm font-black text-gray-900 truncate">@{p.profiles?.username}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-10">
-                        <span className="px-4 py-2 bg-primary-light text-primary rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-primary-light/50">
+                      <td className="px-6 py-10 min-w-[180px]">
+                        <span className="px-4 py-2 bg-primary-light text-primary rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border border-primary-light/50 whitespace-nowrap inline-block">
                           {p.category}
                         </span>
                       </td>
