@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import UserHoverCard from './UserHoverCard';
 import {
   ExternalLink, ArrowLeft, MessageSquare, ShieldCheck, Send, Share2,
   Triangle, Image as ImageIcon, ChevronRight, AtSign, Loader2
@@ -197,12 +197,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <button
-                className={`font-bold text-[14px] hover:underline transition-colors ${node.is_maker ? 'text-primary' : 'text-gray-900'}`}
-                onClick={() => onViewProfile(node.user_id)}
-              >
-                {node.username}
-              </button>
+              <UserHoverCard userId={node.user_id} username={node.username}>
+                <button
+                  className={`font-bold text-[14px] hover:underline transition-colors ${node.is_maker ? 'text-primary' : 'text-gray-900'}`}
+                  onClick={() => onViewProfile(node.user_id)}
+                >
+                  {node.username}
+                </button>
+              </UserHoverCard>
 
               {/* Maker Badge */}
               {node.is_maker && (

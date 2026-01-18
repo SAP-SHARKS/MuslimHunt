@@ -7,6 +7,8 @@ export interface Profile {
   headline?: string;
   twitter_url?: string;
   website_url?: string;
+  followers_count?: number;
+  following_count?: number;
 }
 
 export interface Comment {
