@@ -388,6 +388,31 @@ const App: React.FC = () => {
     }
   };
 
+  // Fetch profile by user ID (for View Profile in ProductDetail)
+  const fetchProfileById = async (userId: string) => {
+    setIsLoadingProfile(true);
+    setSelectedProfile(null);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (data) {
+        setSelectedProfile(data as Profile);
+        // Navigate to profile page with username
+        updateView(View.PROFILE, `/@${data.username}`);
+      } else {
+        console.error('Profile not found by ID', error);
+      }
+    } catch (e) {
+      console.error('Error fetching profile by ID', e);
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
   const handleThreadSubmit = async (data: { category_id: number; title: string; body: string }) => {
     if (!user) {
       setIsAuthModalOpen(true);
@@ -1230,7 +1255,7 @@ const App: React.FC = () => {
           <ProductDetail
             product={selectedProduct} user={user} onBack={() => { updateView(View.HOME); fetchProducts(); }}
             onUpvote={handleUpvote} hasUpvoted={votes.has(`${user?.id}_${selectedProduct.id}`)}
-            commentVotes={commentVotes} onCommentUpvote={() => { }} onAddComment={() => { }} onViewProfile={() => { }} scrollToComments={shouldScrollToComments}
+            commentVotes={commentVotes} onCommentUpvote={() => { }} onAddComment={() => { }} onViewProfile={fetchProfileById} scrollToComments={shouldScrollToComments}
             onCommentAdded={(newComment) => handleCommentAdded(selectedProduct.id, newComment)}
           />
         )}

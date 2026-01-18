@@ -9,6 +9,14 @@ import { formatTimeAgo } from '../utils/dateUtils';
 import SafeImage from './SafeImage.tsx';
 import { supabase } from '../lib/supabase.ts';
 
+interface MakerProfile {
+  id: string;
+  username: string;
+  full_name?: string;
+  avatar_url?: string;
+  headline?: string;
+}
+
 interface ProductDetailProps {
   product: Product;
   user: any;
@@ -40,7 +48,31 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [makerProfile, setMakerProfile] = useState<MakerProfile | null>(null);
   const discussionRef = useRef<HTMLDivElement>(null);
+
+  // Fetch maker profile
+  useEffect(() => {
+    const fetchMakerProfile = async () => {
+      if (!product.user_id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, username, full_name, avatar_url, headline')
+          .eq('id', product.user_id)
+          .single();
+
+        if (data && !error) {
+          setMakerProfile(data);
+        }
+      } catch (err) {
+        console.error('[Muslim Hunt] Failed to fetch maker profile:', err);
+      }
+    };
+
+    fetchMakerProfile();
+  }, [product.user_id]);
 
   // Independent Comment Fetching (Localized strictly to this component)
   const fetchComments = async () => {
@@ -442,11 +474,19 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
                 <h4 className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 sm:mb-6">The Builder</h4>
                 <div className="flex items-center gap-3 sm:gap-4 group cursor-pointer" onClick={() => onViewProfile(product.user_id)}>
                   <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-xl sm:rounded-2xl overflow-hidden border-2 border-emerald-50 group-hover:ring-2 group-hover:ring-emerald-800 transition-all shrink-0">
-                    <SafeImage src={`https://i.pravatar.cc/150?u=${product.user_id}`} alt="Founder" className="w-full h-full object-cover" />
+                    <SafeImage
+                      src={makerProfile?.avatar_url || `https://i.pravatar.cc/150?u=${product.user_id}`}
+                      alt={makerProfile?.full_name || makerProfile?.username || 'Founder'}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-primary transition-colors truncate">View Profile</p>
-                    <p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-tighter truncate">Maker of {product.name}</p>
+                    <p className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-primary transition-colors truncate">
+                      {makerProfile?.full_name || makerProfile?.username || 'View Profile'}
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-400 font-black uppercase tracking-tighter truncate">
+                      Maker of {product.name}
+                    </p>
                   </div>
                   <ChevronRight className="ml-auto w-4 sm:w-5 h-4 sm:h-5 text-gray-300 group-hover:text-primary transition-colors hidden sm:block" />
                 </div>
