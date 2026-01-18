@@ -526,7 +526,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user: initialUser, onBack, onRe
                           <button
                             onClick={() => handleApprove(p)}
                             disabled={processingId === p.id}
-                            className="pl-8 pr-6 py-4 bg-primary/90 hover:bg-primary-dark text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
+                            className="pl-8 pr-6 py-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-lg active:scale-95 flex items-center gap-4 border border-emerald-700 shadow-emerald-900/10"
                           >
                             {processingId === p.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
                             Approve Launch
